@@ -17,6 +17,8 @@ class Progam
 
     static SavingsGoal userSavingsGoal = null;
 
+    static List<BudgetLimit> budgetLimits = new List<BudgetLimit>();
+
     static void Main()
     {
         bool running = true;
@@ -39,7 +41,11 @@ class Progam
             Console.WriteLine("11. Set Savings Goal");
             Console.WriteLine("12. View Savings Goal");
             Console.WriteLine("13. View Savings Plan");
-            Console.WriteLine("14. Exit");
+            Console.WriteLine("14. Add Budget Limit");
+            Console.WriteLine("15. View Budget Limits");
+            Console.WriteLine("16. Check Budget Limits");
+            Console.WriteLine("17. AI Money Coach");
+            Console.WriteLine("18. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -57,7 +63,7 @@ class Progam
                     break;
                 case "4":
                     DeleteExpense();
-                        break;
+                    break;
                 case "5":
                     EditExpense();
                     break;
@@ -85,8 +91,19 @@ class Progam
                 case "13":
                     ViewSavingsPlan();
                     break;
-                      
                 case "14":
+                    AddBudgetLimits();
+                    break;
+                case "15":
+                    ViewBudgetLimits();
+                    break;
+                case "16":
+                    CheckBudgetLimits();
+                    break;
+                case "17":
+                    AIMoneyCoach();
+                    break;
+                case "18":
                     running = false;
                     break;
 
@@ -170,7 +187,7 @@ class Progam
         //Start total at 0
         double total = 0;
 
-        foreach(Expense expense in expenses)
+        foreach (Expense expense in expenses)
         {
             total += expense.Amount;
         }
@@ -189,7 +206,7 @@ class Progam
         Console.WriteLine("=== Delete Expense ===");
 
         //If there are no expenses 
-        if(expenses.Count ==0 )
+        if (expenses.Count == 0)
         {
             Console.WriteLine("No expenses found");
             Console.WriteLine("Press Enter to continue");
@@ -198,7 +215,7 @@ class Progam
         }
 
         //Shows the user what expense exists.
-        foreach(Expense expense in expenses)
+        foreach (Expense expense in expenses)
         {
             Console.WriteLine($"{expense.Id}. {expense.Name} - {expense.Amount:C} - {expense.Category}");
         }
@@ -206,7 +223,7 @@ class Progam
         Console.WriteLine("To Delete the Expense select the Id: ");
         bool idIsValid = int.TryParse(Console.ReadLine(), out int id);
 
-        if(!idIsValid)
+        if (!idIsValid)
         {
             Console.WriteLine("Invalid ID. Press Enter to continue.");
             Console.ReadLine();
@@ -216,7 +233,7 @@ class Progam
         //Finds the expense with the matching Id
         Expense expensesToDelete = expenses.Find(expense => expense.Id == id);
 
-        if(expensesToDelete == null)
+        if (expensesToDelete == null)
         {
             Console.WriteLine("Expense not found. Press Enter to continue.");
             Console.ReadLine();
@@ -246,7 +263,7 @@ class Progam
         }
 
         //Shows all expenses for user
-        foreach(Expense expense in expenses)
+        foreach (Expense expense in expenses)
         {
             Console.WriteLine($"{expense.Id}. {expense.Name} - {expense.Amount} - {expense.Category} - {expense.Date.ToShortDateString()}");
 
@@ -255,7 +272,7 @@ class Progam
         Console.WriteLine("Enter the ID of the expense to edit: ");
         bool idIsValid = int.TryParse(Console.ReadLine(), out int id);
 
-        if(!idIsValid)
+        if (!idIsValid)
         {
             Console.WriteLine("Invalid ID. Press Enter to continue.");
             Console.ReadLine();
@@ -278,7 +295,7 @@ class Progam
         Console.WriteLine($"New name ({expenseToEdit.Name}): ");
         string newName = Console.ReadLine();
 
-        if( newName != "")
+        if (newName != "")
         {
             expenseToEdit.Name = newName;
         }
@@ -286,10 +303,10 @@ class Progam
         Console.WriteLine($"New Amount ({expenseToEdit.Amount:C})");
         string amountInput = Console.ReadLine();
 
-        if(amountInput != "")
+        if (amountInput != "")
         {
             bool amountIsValid = double.TryParse(amountInput, out double newAmount);
-            
+
             if (!amountIsValid)
             {
                 Console.Write("Invalid amount. Press Enter to continue.");
@@ -303,7 +320,7 @@ class Progam
         Console.WriteLine($"New category ({expenseToEdit.Category})");
         string newCategory = Console.ReadLine();
 
-        if( newCategory != "")
+        if (newCategory != "")
         {
             expenseToEdit.Category = newCategory;
         }
@@ -311,7 +328,7 @@ class Progam
         Console.WriteLine($"New date ({expenseToEdit.Date.ToShortTimeString()})");
         string dateInput = Console.ReadLine();
 
-        if( dateInput != "")
+        if (dateInput != "")
         {
             bool dateIsValid = DateTime.TryParse(dateInput, out DateTime newDate);
 
@@ -328,7 +345,7 @@ class Progam
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
 
-        
+
 
     }
 
@@ -368,7 +385,7 @@ class Progam
             }
         }
 
-        if(!foundExpense)
+        if (!foundExpense)
         {
             Console.WriteLine("No expenses found in that category");
         }
@@ -400,7 +417,7 @@ class Progam
         foreach (Expense expense in expenses)
         {
             //Adds only the expense that make the category
-            if(expense.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
+            if (expense.Category.Equals(category, StringComparison.OrdinalIgnoreCase))
             {
                 total += expense.Amount;
             }
@@ -543,7 +560,7 @@ class Progam
 
 
         {
-            
+
         }
     }
 
@@ -562,7 +579,13 @@ class Progam
         }
 
         double amountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
-        double progressPercent = userSavingsGoal.CurrentAmount / userSavingsGoal.TargetAmount * 100;
+
+        double progressPercent = 0;
+
+        if (userSavingsGoal.TargetAmount > 0)
+        {
+            progressPercent = userSavingsGoal.CurrentAmount / userSavingsGoal.TargetAmount * 100;
+        }
 
         Console.WriteLine($"Goal: {userSavingsGoal.Name}");
         Console.WriteLine($"Target Amount: {userSavingsGoal.TargetAmount:C}");
@@ -581,7 +604,7 @@ class Progam
 
         Console.WriteLine("=== Savings Plan ===");
 
-        if(userSavingsGoal == null)
+        if (userSavingsGoal == null)
         {
             Console.WriteLine("No savings goal has been set yet.");
             Console.WriteLine("Press Enter to continue.");
@@ -591,7 +614,7 @@ class Progam
 
         double amountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
 
-        if(amountRemaining <= 0)
+        if (amountRemaining <= 0)
         {
             Console.WriteLine("You already reached your savings goal.");
             Console.WriteLine("Press Enter to continue.");
@@ -635,6 +658,247 @@ class Progam
 
     }
 
+    static void AddBudgetLimits()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Add Budget Limit ===");
+
+        Console.WriteLine("Add Budget category: ");
+        string category = Console.ReadLine();
+
+        Console.WriteLine("Monthly limit amount: ");
+        bool isValidlimit = double.TryParse(Console.ReadLine(), out double limitAmount);
+
+        if (!isValidlimit)
+        {
+            Console.WriteLine("Invalid limit amount. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        BudgetLimit existingLimit = budgetLimits.Find(limit => limit.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+
+        if (existingLimit != null)
+        {
+            existingLimit.LimitAmount = limitAmount;
+            Console.WriteLine("Budget limit updated successfully/");
+        }
+        else
+        {
+            BudgetLimit newLimit = new BudgetLimit(category, limitAmount);
+            budgetLimits.Add(newLimit);
+            Console.WriteLine("Budget limit added successfully.");
+        }
+
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    //Shows the user all of there budget limits
+    static void ViewBudgetLimits()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Budget Limits ===");
+
+        if (budgetLimits.Count == 0)
+        {
+            Console.WriteLine("No budget limts set yet.");
+        }
+        else
+        {
+            foreach (BudgetLimit limit in budgetLimits)
+            {
+                Console.WriteLine($"{limit.Category}: {limit.LimitAmount:C}");
+            }
+        }
+
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    //Method that compares each of the users Budget limit
+    static void CheckBudgetLimits()
+    {
+        Console.Clear();
+
+        if (budgetLimits.Count == 0)
+        {
+            Console.WriteLine("No budget limits set yet.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        if (expenses.Count == 0)
+        {
+            Console.WriteLine("No expenses found.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //Adds all expenses that match this budget category 
+        foreach (BudgetLimit limit in budgetLimits)
+        {
+            double categoryTotal = 0;
+
+            foreach (Expense expense in expenses)
+            {
+                if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
+                {
+                    categoryTotal += expense.Amount;
+                }
+            }
+            double amountLeft = limit.LimitAmount - categoryTotal;
+
+            Console.WriteLine("-----------------------");
+            Console.WriteLine($"Category: {limit.Category}");
+            Console.WriteLine($"Limit: {limit.LimitAmount:C}");
+            Console.WriteLine($"Spent: {categoryTotal:C}");
+
+            if (amountLeft >= 0)
+            {
+                Console.WriteLine($"Remaining: {amountLeft:C}");
+                Console.WriteLine("Status: Your are within this budget.");
+            }
+            else
+            {
+                Console.WriteLine($"Over Buget By: {Math.Abs(amountLeft):C}");
+                Console.WriteLine("Statuc: Over Budget)");
+            }
+
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+        }
+    }
+
+    static void AIMoneyCoach()
+    {
+        Console.Clear();
+
+        Console.WriteLine("===AI Money Coach ===");
+        Console.WriteLine();
+
+        if (userIncome == null)
+        {
+            Console.WriteLine("Set your monthly income first so I can give better advice.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        double totalSpent = 0;
+
+        //Adds all expenses together 
+        foreach (Expense expense in expenses)
+        {
+            totalSpent += expense.Amount;
+        }
+
+        double moneyLeft = userIncome.MonthlyAmount - totalSpent;
+
+        Console.WriteLine($"Monthly Income: {userIncome.MonthlyAmount:C}");
+        Console.WriteLine($"Total Spent: {totalSpent:C}");
+        Console.WriteLine($"Money left before savings {moneyLeft:C}");
+        Console.WriteLine();
+
+        if (moneyLeft < 0)
+        {
+            Console.WriteLine("Warning: You spent more than your monthly income.");
+            Console.WriteLine("You need to cute spending or increase your income.");
+        }
+        else if (moneyLeft < userIncome.MonthlyAmount * 0.20)
+        {
+            Console.WriteLine("Warning: You have less than 20% of your income left.");
+            Console.WriteLine("Be carful. Your spending is getting tight.");
+        }
+        else
+        {
+            Console.WriteLine("Good Job. You still have a good amount of income left.");
+        }
+
+        Console.WriteLine();
+
+        //Checks savings 
+
+        if (userSavingsGoal != null)
+        {
+            double amountRemaing = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
+
+            DateTime today = DateTime.Today;
+
+            double daysLeft = (userSavingsGoal.DeadLine - today).TotalDays;
+
+            Console.WriteLine("Savings Goal Check:");
+            Console.WriteLine($"Goal: {userSavingsGoal.Name}");
+            Console.WriteLine($"Amount remaing: {amountRemaing:C}");
+
+            if (amountRemaing < 0)
+            {
+                Console.WriteLine("You already reached your savings goal.");
+            }
+            else if (amountRemaing >= 0)
+            {
+                Console.WriteLine("Your savings goal deadline has passed.");
+            }
+            else
+            {
+                double weeksLeft = daysLeft / 7;
+                double savePerWeek = amountRemaing / weeksLeft;
+
+                Console.WriteLine($"You need to save about {savePerWeek:C} per week.");
+
+                if (moneyLeft >= amountRemaing)
+                {
+                    Console.WriteLine("You currently have enough left this month to reach the goal.");
+                }
+                else
+                {
+                    Console.WriteLine("You do not currently have enough left for this month to fullyreach the goal.");
+                }
+            }
+
+            Console.WriteLine();
+        }
+
+        // Check budget limits if any exist
+        if (budgetLimits.Count > 0)
+        {
+            Console.WriteLine("Budget Limit Check: ");
+
+            foreach (BudgetLimit limit in budgetLimits)
+            {
+                double categoryTotal = 0;
+
+                foreach (Expense expense in expenses)
+                {
+                    if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
+                    {
+                        categoryTotal += expense.Amount;
+                    }
+                }
+
+                if (categoryTotal > limit.LimitAmount)
+                {
+                    double overAmount = categoryTotal - limit.LimitAmount;
+                    Console.WriteLine($"You are over budget in {limit.Category} by {overAmount:C}.");
+                }
+                else
+                {
+                    double remaining = limit.LimitAmount - categoryTotal;
+                    Console.WriteLine($"You have {remaining:C} left in {limit.Category}");
+                }
+            }
+
+            Console.WriteLine();
+
+            //Add Category advice
+        }
+        //
+        
+    }
 }
 
 
