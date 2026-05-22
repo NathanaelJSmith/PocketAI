@@ -15,12 +15,21 @@ class Progam
     //Stores the users income information
     static Income userIncome = null;
 
+    //Stores the users savings goals
     static SavingsGoal userSavingsGoal = null;
 
+    //Stores all the budget limits
     static List<BudgetLimit> budgetLimits = new List<BudgetLimit>();
+
+    //Does the saving and loading data from Sqlite
+    static DataBaseManager dataBaseManager = new DataBaseManager();
 
     static void Main()
     {
+
+        //Creates the file when the app starts
+        dataBaseManager.CreateTables();
+
         bool running = true;
 
         while (running)
@@ -894,7 +903,26 @@ class Progam
 
             Console.WriteLine();
 
-            //Add Category advice
+            if (expenses.Count > 0)
+            {
+                var highestCategory = expenses
+                    .GroupBy(expense => expense.Category)
+                    .Select(group => new
+                    {
+                        Category = group.Key,
+                        Total = group.Sum(expense => expense.Amount)
+                    })
+                    .OrderByDescending(group => group.Total)
+                    .First();
+
+                Console.WriteLine("Biggest Spending Category:");
+                Console.WriteLine($"{highestCategory.Category}: {highestCategory.Total:C}");
+                Console.WriteLine("This is the first place you should review if you need to save more.");
+            }
+
+            Console.WriteLine();
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
         }
         //
         
