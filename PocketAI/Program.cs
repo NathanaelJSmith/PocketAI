@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 class Progam
 {
@@ -24,11 +25,22 @@ class Progam
     //Does the saving and loading data from Sqlite
     static DataBaseManager dataBaseManager = new DataBaseManager();
 
+
+
     static void Main()
     {
 
         //Creates the file when the app starts
         dataBaseManager.CreateTables();
+
+        //Loads all saved expenses from database
+        expenses = dataBaseManager.GetAllExpenses();
+
+        //This sets the next ID based on the highest saved expense ID
+        if (expenses.Count > 0)
+        {
+            nextExpenseId = expenses.Max(expense =>  expense.Id) + 1;
+        }
 
         bool running = true;
 
@@ -149,6 +161,10 @@ class Progam
         // Adds the expense to the list
         expenses.Add(newExpense);
 
+        //Saves the expense permanently in the database
+        dataBaseManager.AddExpense(newExpense);
+
+        //Moves the ID number for the next expense 
         nextExpenseId++;
 
         Console.WriteLine("Expense added successfully.");
