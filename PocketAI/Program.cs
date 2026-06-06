@@ -42,6 +42,14 @@ class Progam
             nextExpenseId = expenses.Max(expense =>  expense.Id) + 1;
         }
 
+        //Loads the income from the database
+        userIncome = dataBaseManager.GetIncome();
+
+        //Loads the savings goal from the database
+        userSavingsGoal = dataBaseManager.GetSavingsGoal();
+
+        budgetLimits = dataBaseManager.GetBudgetLimits();
+
         bool running = true;
 
         while (running)
@@ -268,11 +276,14 @@ class Progam
         //Removes the expense from the list
         expenses.Remove(expensesToDelete);
 
+        dataBaseManager.DeleteExpenseById(id);
+
         Console.WriteLine("Expense deleted successfully.");
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
     }
 
+    //Method to edit the expense
     static void EditExpense()
     {
         Console.Clear();
@@ -366,6 +377,7 @@ class Progam
             expenseToEdit.Date = newDate;
         }
 
+        dataBaseManager.UpdateExpense(expenseToEdit);
         Console.WriteLine("Expense updated successfully");
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
@@ -488,6 +500,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method to set the users monthly income
     static void SetMonthlyIncome()
     {
         Console.Clear();
@@ -509,11 +522,14 @@ class Progam
         //Saves the income information user has given
         userIncome = new Income(source, monthlyAmount);
 
+        dataBaseManager.SaveIncome(userIncome);
+
         Console.WriteLine("Monthly income saved successfully.");
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
     }
 
+    //Method to view the users monthly income
     static void ViewMonthlyIncome()
     {
         Console.Clear();
@@ -534,6 +550,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method to set the users savings goal
     static void SetSavingsGoal()
     {
         Console.Clear();
@@ -577,6 +594,9 @@ class Progam
         //Saves the users goals for savings
         userSavingsGoal = new SavingsGoal(name, targetAmount, currentAmount, deadLine);
 
+        //Saves the user's goal permanently in the database
+        dataBaseManager.SaveSavingsGoal(userSavingsGoal);
+
         Console.WriteLine("Savings goal saved successfully.");
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
@@ -589,6 +609,7 @@ class Progam
         }
     }
 
+    //Method to view the users savings goal and progress towards it
     static void ViewSavingsGoal()
     {
         Console.Clear();
@@ -623,6 +644,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that gives the user a savings plan based on there current progress, target amount, and deadline.
     static void ViewSavingsPlan()
     {
         Console.Clear();
@@ -683,6 +705,7 @@ class Progam
 
     }
 
+    //Method to add budget limits for different categories and set the amount they want to limit themselves to spend in that category
     static void AddBudgetLimits()
     {
         Console.Clear();
@@ -706,13 +729,23 @@ class Progam
 
         if (existingLimit != null)
         {
+            //Updates the limit whille the app is running 
             existingLimit.LimitAmount = limitAmount;
+
+            //Saves the updated limit permanently in the database
+            dataBaseManager.SaveBudgetLimit(existingLimit);
+
             Console.WriteLine("Budget limit updated successfully/");
         }
         else
         {
+            //Creates a new budget limit while the app is running
             BudgetLimit newLimit = new BudgetLimit(category, limitAmount);
             budgetLimits.Add(newLimit);
+
+            //Saves the new limit permanently in the database
+            dataBaseManager.SaveBudgetLimit(newLimit);
+
             Console.WriteLine("Budget limit added successfully.");
         }
 
@@ -720,7 +753,7 @@ class Progam
         Console.ReadLine();
     }
 
-    //Shows the user all of there budget limits
+    //Method that shows the user all of there budget limits
     static void ViewBudgetLimits()
     {
         Console.Clear();
@@ -799,6 +832,7 @@ class Progam
         }
     }
 
+    //Method that gives the user advice based on their income, expenses, savings goals, and budget limits(Fake AI Going to implemt AI after fully done with C#)
     static void AIMoneyCoach()
     {
         Console.Clear();
@@ -942,6 +976,13 @@ class Progam
         }
         //
         
+    }
+
+    //Method that gives simple advice on a spending category(Fake AI Going to implemt AI in Python after fully done with C#)
+    //(Working on this next)
+    static void GiveCategoryAdvice(string category, double total)
+    {
+        string lowerCategory = category.ToLower();
     }
 }
 
