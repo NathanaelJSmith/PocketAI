@@ -144,6 +144,8 @@ class Progam
         }
     }
 
+
+
     //Method to enter expense 
     static void AddExpense()
     {
@@ -866,12 +868,12 @@ class Progam
         if (moneyLeft < 0)
         {
             Console.WriteLine("Warning: You spent more than your monthly income.");
-            Console.WriteLine("You need to cute spending or increase your income.");
+            Console.WriteLine("You need to cut spending or increase your income.");
         }
         else if (moneyLeft < userIncome.MonthlyAmount * 0.20)
         {
             Console.WriteLine("Warning: You have less than 20% of your income left.");
-            Console.WriteLine("Be carful. Your spending is getting tight.");
+            Console.WriteLine("Be careful. Your spending is getting tight.");
         }
         else
         {
@@ -898,7 +900,7 @@ class Progam
             {
                 Console.WriteLine("You already reached your savings goal.");
             }
-            else if (amountRemaing >= 0)
+            else if (amountRemaing <= 0)
             {
                 Console.WriteLine("Your savings goal deadline has passed.");
             }
@@ -915,7 +917,7 @@ class Progam
                 }
                 else
                 {
-                    Console.WriteLine("You do not currently have enough left for this month to fullyreach the goal.");
+                    Console.WriteLine("You do not currently have enough left for this month to fully reach the goal.");
                 }
             }
 
