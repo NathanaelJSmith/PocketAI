@@ -74,7 +74,8 @@ class Progam
             Console.WriteLine("15. View Budget Limits");
             Console.WriteLine("16. Check Budget Limits");
             Console.WriteLine("17. AI Money Coach");
-            Console.WriteLine("18. Exit");
+            Console.WriteLine("18. View Current Month Spending");
+            Console.WriteLine("19. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -133,6 +134,9 @@ class Progam
                     AIMoneyCoach();
                     break;
                 case "18":
+                    ViewCurrentMonthSpending();
+                    break;
+                case "19":
                     running = false;
                     break;
 
@@ -212,6 +216,15 @@ class Progam
         Console.ReadLine();
     }
 
+    //Gets only expenses from the current month and year
+    static List<Expense> GetCurrentMonthExpense()
+    {
+        DateTime today = DateTime.Today;
+        return expenses
+            .Where(expense => expense.Date.Month == today.Month && expense.Date.Year == today.Year)
+            .ToList();
+    }
+
     //Method to view the total of your expenses 
     static void ViewTotalSpent()
     {
@@ -231,6 +244,35 @@ class Progam
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
 
+    }
+
+    //Shows total spending for the current month only 
+    static void ViewCurrentMonthSpending()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Current Month Spending ===");
+
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+
+        if (currentMonthExpenses.Count == 0)
+        {
+            Console.WriteLine("No expenses found for the current month.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        double total = 0;
+
+        foreach(Expense expense in currentMonthExpenses)
+        {
+            total += expense.Amount;
+        }
+
+        Console.WriteLine($"Current Month Total Spent: {total:C}");
+        Console.WriteLine("Press Enter to Continue.");
+        Console.ReadLine();
     }
 
     //Method to be able to Delete expense
@@ -696,7 +738,7 @@ class Progam
         Console.WriteLine($"Days Left: {daysLeft:F0}");
         Console.WriteLine();
 
-        Console.WriteLine("TO reach your goal, you need to save about: ");
+        Console.WriteLine("To reach your goal, you need to save about: ");
         Console.WriteLine($"Per month: {savePerMonth:C}");
         Console.WriteLine($"Per Week: {savePerWeek:C}");
         Console.WriteLine($"Per Day: {savePerDay}");
@@ -783,6 +825,7 @@ class Progam
     {
         Console.Clear();
 
+
         if (budgetLimits.Count == 0)
         {
             Console.WriteLine("No budget limits set yet.");
@@ -791,7 +834,8 @@ class Progam
             return;
         }
 
-        if (expenses.Count == 0)
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        if (currentMonthExpenses.Count == 0)
         {
             Console.WriteLine("No expenses found.");
             Console.WriteLine("Press Enter to continue.");
@@ -804,7 +848,7 @@ class Progam
         {
             double categoryTotal = 0;
 
-            foreach (Expense expense in expenses)
+            foreach (Expense expense in currentMonthExpenses)
             {
                 if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
                 {
@@ -850,10 +894,13 @@ class Progam
             return;
         }
 
+        //Adds current month expenses together
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        
         double totalSpent = 0;
 
         //Adds all expenses together 
-        foreach (Expense expense in expenses)
+        foreach (Expense expense in currentMonthExpenses)
         {
             totalSpent += expense.Amount;
         }
@@ -861,10 +908,11 @@ class Progam
         double moneyLeft = userIncome.MonthlyAmount - totalSpent;
 
         Console.WriteLine($"Monthly Income: {userIncome.MonthlyAmount:C}");
-        Console.WriteLine($"Total Spent: {totalSpent:C}");
+        Console.WriteLine($"Current Month Spent Spent: {totalSpent:C}");
         Console.WriteLine($"Money left before savings {moneyLeft:C}");
         Console.WriteLine();
 
+        //Gives general spending advice 
         if (moneyLeft < 0)
         {
             Console.WriteLine("Warning: You spent more than your monthly income.");
@@ -896,11 +944,11 @@ class Progam
             Console.WriteLine($"Goal: {userSavingsGoal.Name}");
             Console.WriteLine($"Amount remaing: {amountRemaing:C}");
 
-            if (amountRemaing < 0)
+            if (amountRemaing <= 0)
             {
                 Console.WriteLine("You already reached your savings goal.");
             }
-            else if (amountRemaing <= 0)
+            else if (daysLeft <= 0)
             {
                 Console.WriteLine("Your savings goal deadline has passed.");
             }
@@ -924,7 +972,7 @@ class Progam
             Console.WriteLine();
         }
 
-        // Check budget limits if any exist
+        // Checks Monthly budget limits 
         if (budgetLimits.Count > 0)
         {
             Console.WriteLine("Budget Limit Check: ");
@@ -933,7 +981,8 @@ class Progam
             {
                 double categoryTotal = 0;
 
-                foreach (Expense expense in expenses)
+                //Adds current month expenses that match this budget category 
+                foreach (Expense expense in currentMonthExpenses)
                 {
                     if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
                     {
@@ -955,9 +1004,10 @@ class Progam
 
             Console.WriteLine();
 
-            if (expenses.Count > 0)
+            //Finds the biggest spending category for the current Month 
+            if (currentMonthExpenses.Count > 0)
             {
-                var highestCategory = expenses
+                var highestCategory = currentMonthExpenses
                     .GroupBy(expense => expense.Category)
                     .Select(group => new
                     {
@@ -969,14 +1019,21 @@ class Progam
 
                 Console.WriteLine("Biggest Spending Category:");
                 Console.WriteLine($"{highestCategory.Category}: {highestCategory.Total:C}");
-                Console.WriteLine("This is the first place you should review if you need to save more.");
+                Console.WriteLine();
+
+                GiveCategoryAdvice(highestCategory.Category, highestCategory.Total);
+            }
+            else
+            {
+                Console.WriteLine("No expenses found for the current month.");
+                Console.WriteLine("Add expenses so PocketAI can give better advice");
             }
 
-            Console.WriteLine();
+                Console.WriteLine();
             Console.WriteLine("Press Enter to continue.");
             Console.ReadLine();
         }
-        //
+        
         
     }
 
@@ -984,8 +1041,45 @@ class Progam
     //(Working on this next)
     static void GiveCategoryAdvice(string category, double total)
     {
+        Console.Clear();
+
         string lowerCategory = category.ToLower();
+
+        if (lowerCategory.Contains("food") || lowerCategory.Contains("resturant") || lowerCategory.Contains("eating"))
+        {
+            Console.WriteLine("Food is your highest spending area.");
+            Console.WriteLine("Try meal prepping, limiting eating out, or setting a weekly food limit.");
+            Console.WriteLine("Even cutting this category by 10-20% could help your savings goal.");
+        }
+        else if (lowerCategory.Contains("gas") || lowerCategory.Contains("car") || lowerCategory.Contains("transport"))
+        {
+            Console.WriteLine("Transportation is your highest spending area.");
+            Console.WriteLine("Try planning trips better, combining errands, or tracking gas spending weekly.");
+            Console.WriteLine("This category may be necessary, but still needs a clear limit.");
+        }
+        else if (lowerCategory.Contains("rent") || lowerCategory.Contains("housing") || lowerCategory.Contains("mortgage"))
+        {
+            Console.WriteLine("Housing is your highest spending area");
+            Console.WriteLine("This may be a fixed expense, so focus on lowering flexible expenses like food or entertainment");
+            Console.WriteLine("MAke sure your housing cost is not taking to much of your monthly income.");
+        }
+        else if (lowerCategory.Contains("entertainment") || lowerCategory.Contains("fun") || lowerCategory.Contains("games"))
+        {
+            Console.WriteLine("Subscriptions are your highest spending area.");
+            Console.WriteLine("Review every subscription and cancel anything you do not use often");
+            Console.WriteLine("Small monthly charges can quietly hurt your savings goal.");
+
+        }
+        else
+        {
+            Console.WriteLine($"Your highest spending category is {category}");
+            Console.WriteLine("Review this category and ask if every expense was necessary");
+            Console.WriteLine("If you want to save more, this is a good place to start.");
+        }
+
+        Console.WriteLine();
     }
+
 }
 
 
