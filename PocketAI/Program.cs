@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
@@ -18,6 +17,9 @@ class Progam
 
     //Stores the users savings goals
     static SavingsGoal userSavingsGoal = null;
+
+    //Stores the user's account balances
+    static AccountBalance userAccountBalance = null;
 
     //Stores all the budget limits
     static List<BudgetLimit> budgetLimits = new List<BudgetLimit>();
@@ -39,7 +41,7 @@ class Progam
         //This sets the next ID based on the highest saved expense ID
         if (expenses.Count > 0)
         {
-            nextExpenseId = expenses.Max(expense =>  expense.Id) + 1;
+            nextExpenseId = expenses.Max(expense => expense.Id) + 1;
         }
 
         //Loads the income from the database
@@ -75,7 +77,9 @@ class Progam
             Console.WriteLine("16. Check Budget Limits");
             Console.WriteLine("17. AI Money Coach");
             Console.WriteLine("18. View Current Month Spending");
-            Console.WriteLine("19. Exit");
+            Console.WriteLine("19. Set Account Balance");
+            Console.WriteLine("20. View Account Balance");
+            Console.WriteLine("21. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -137,6 +141,12 @@ class Progam
                     ViewCurrentMonthSpending();
                     break;
                 case "19":
+                    SetAccountBalance();
+                    break;
+                case "20":
+                    ViewAccountBalance();
+                    break;
+                case "21":
                     running = false;
                     break;
 
@@ -265,7 +275,7 @@ class Progam
 
         double total = 0;
 
-        foreach(Expense expense in currentMonthExpenses)
+        foreach (Expense expense in currentMonthExpenses)
         {
             total += expense.Amount;
         }
@@ -274,6 +284,81 @@ class Progam
         Console.WriteLine("Press Enter to Continue.");
         Console.ReadLine();
     }
+
+    //Method that lets the user set their account balance
+    static void SetAccountBalance()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Set Account Balance");
+
+        Console.WriteLine("Checking balance: ");
+        bool checkIsValid = double.TryParse(Console.ReadLine(), out double checkingBalance);
+
+        if (!checkIsValid)
+        {
+            Console.WriteLine("Invalid checking balance. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine("Savings balance: ");
+        bool savingsIsValid = double.TryParse(Console.ReadLine(), out double savingsBalance);
+
+        if (!savingsIsValid)
+        {
+            Console.WriteLine("Invalid savings balance. Press Enter to Continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine("Cash Balance: ");
+        bool cashIsValid = double.TryParse(Console.ReadLine(), out double cashBalance);
+
+        if (!cashIsValid)
+        {
+            Console.WriteLine("Invalid cash Balance. Press Eter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        userAccountBalance = new AccountBalance(checkingBalance, savingsBalance, cashBalance);
+
+        Console.WriteLine("Account balance saved successfully.");
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+    }
+
+    static void ViewAccountBalance()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== View Account Balance: ");
+
+        if(userAccountBalance == null)
+        {
+            Console.WriteLine("No account balance has been seet yet.");
+            Console.WriteLine("Go to option 19. to set Account Balance.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        /**
+         * This is where I left off 
+         * Add savings balance
+         * Add Cash Balance 
+         * Add Total Balance
+         * All from AccountBalance 
+         * 
+         *//
+        Console.WriteLine($"Checking: {userAccountBalance.CheckingBalance:C}");
+        Console.WriteLine("");
+        Console.WriteLine("")
+
+    }
+
 
     //Method to be able to Delete expense
     static void DeleteExpense()
