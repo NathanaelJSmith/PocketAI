@@ -1071,15 +1071,38 @@ class Progam
             Console.WriteLine($"Limit: {limit.LimitAmount:C}");
             Console.WriteLine($"Spent: {categoryTotal:C}");
 
-            if (amountLeft >= 0)
+            double percentUsed = 0;
+
+            //Calculates what percent of the budget has been used z
+            if(limit.LimitAmount > 0)
+            {
+                percentUsed = categoryTotal / limit.LimitAmount * 100;
+            }
+
+            Console.WriteLine($"Used: {percentUsed:F1}%");
+
+            if(amountLeft >= 0)
             {
                 Console.WriteLine($"Remaining: {amountLeft:C}");
-                Console.WriteLine("Status: Your are within this budget.");
+
+                if (percentUsed < 70)
+                {
+                    Console.WriteLine("Status: Good. You are safely within this budget.");
+                }
+
+                else if (percentUsed < 90)
+                {
+                    Console.WriteLine("Status: Be carful. You have used most of this budget.");
+                }
+                else
+                {
+                    Console.WriteLine("Status: Warning. You are very close to going over budget.");
+                }
             }
             else
             {
-                Console.WriteLine($"Over Buget By: {Math.Abs(amountLeft):C}");
-                Console.WriteLine("Statuc: Over Budget)");
+                Console.WriteLine($"Over Budget By: {Math.Abs(amountLeft):C}");
+                Console.WriteLine("Status: Over budget. You need to cut back in this category.");
             }
 
             Console.WriteLine("Press Enter to continue.");
@@ -1092,7 +1115,7 @@ class Progam
     {
         Console.Clear();
 
-        Console.WriteLine("===AI Money Coach ===");
+        Console.WriteLine("=== AI Money Coach ===");
         Console.WriteLine();
 
         if (userIncome == null)
@@ -1108,7 +1131,7 @@ class Progam
         
         double totalSpent = 0;
 
-        //Adds all expenses together 
+        //Adds current month expenses together 
         foreach (Expense expense in currentMonthExpenses)
         {
             totalSpent += expense.Amount;
@@ -1117,7 +1140,7 @@ class Progam
         double moneyLeft = userIncome.MonthlyAmount - totalSpent;
 
         Console.WriteLine($"Monthly Income: {userIncome.MonthlyAmount:C}");
-        Console.WriteLine($"Current Month Spent Spent: {totalSpent:C}");
+        Console.WriteLine($"Current Month Spent: {totalSpent:C}");
         Console.WriteLine($"Money left before savings {moneyLeft:C}");
         Console.WriteLine();
 
@@ -1144,10 +1167,7 @@ class Progam
         if (userSavingsGoal != null)
         {
             double amountRemaing = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
-
-            DateTime today = DateTime.Today;
-
-            double daysLeft = (userSavingsGoal.DeadLine - today).TotalDays;
+            double daysLeft = (userSavingsGoal.DeadLine - DateTime.Today).TotalDays;
 
             Console.WriteLine("Savings Goal Check:");
             Console.WriteLine($"Goal: {userSavingsGoal.Name}");
@@ -1190,7 +1210,7 @@ class Progam
             {
                 double categoryTotal = 0;
 
-                //Adds current month expenses that match this budget category 
+                // Adds current month expenses that match this budget category 
                 foreach (Expense expense in currentMonthExpenses)
                 {
                     if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
@@ -1199,55 +1219,83 @@ class Progam
                     }
                 }
 
-                if (categoryTotal > limit.LimitAmount)
+                double amountLeft = limit.LimitAmount - categoryTotal;
+
+                double percentUsed = 0;
+
+                if (limit.LimitAmount > 0)
                 {
-                    double overAmount = categoryTotal - limit.LimitAmount;
-                    Console.WriteLine($"You are over budget in {limit.Category} by {overAmount:C}.");
+                    percentUsed = categoryTotal / limit.LimitAmount * 100;
+                }
+
+                Console.WriteLine("-----------------");
+                Console.WriteLine($"Category: {limit.Category}");
+                Console.WriteLine($"Limit: {limit.LimitAmount:C}");
+                Console.WriteLine($"Spent: {categoryTotal:C}");
+                Console.WriteLine($"Used: {percentUsed:F1}%");
+
+                if (amountLeft >= 0)
+                {
+                    Console.WriteLine($"Remaining: {amountLeft:C}");
+
+                    if (percentUsed < 70)
+                    {
+                        Console.WriteLine("Status: Good. You are safely within this budget.");
+                    }
+                    else if (percentUsed < 90)
+                    {
+                        Console.WriteLine("Status: Be careful. You have used most of this budget.");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Status: Warning. You are very close to going over budget.");
+                    }
                 }
                 else
                 {
-                    double remaining = limit.LimitAmount - categoryTotal;
-                    Console.WriteLine($"You have {remaining:C} left in {limit.Category}");
+                    Console.WriteLine($"Over Budget By: {Math.Abs(amountLeft):C}");
+                    Console.WriteLine("Status: Over Budget. You need to cut back in this category.");
                 }
-            }
 
+                Console.WriteLine();
+            }
+        }
+
+        //Added this Pause because it would skip to biggest spending category.
+        Console.WriteLine("Press Enter to continue to category advice");
+        Console.ReadLine();
+
+        // Finds the biggest spending category for the current month 
+        if (currentMonthExpenses.Count > 0)
+        {
+            var highestCategory = currentMonthExpenses
+                .GroupBy(expense => expense.Category)
+                .Select(group => new
+                {
+                    Category = group.Key,
+                    Total = group.Sum(expense => expense.Amount)
+                })
+                .OrderByDescending(group => group.Total)
+                .First();
+
+            Console.WriteLine("Biggest Spending Category:");
+            Console.WriteLine($"{highestCategory.Category}: {highestCategory.Total:C}");
             Console.WriteLine();
 
-            //Finds the biggest spending category for the current Month 
-            if (currentMonthExpenses.Count > 0)
-            {
-                var highestCategory = currentMonthExpenses
-                    .GroupBy(expense => expense.Category)
-                    .Select(group => new
-                    {
-                        Category = group.Key,
-                        Total = group.Sum(expense => expense.Amount)
-                    })
-                    .OrderByDescending(group => group.Total)
-                    .First();
-
-                Console.WriteLine("Biggest Spending Category:");
-                Console.WriteLine($"{highestCategory.Category}: {highestCategory.Total:C}");
-                Console.WriteLine();
-
-                GiveCategoryAdvice(highestCategory.Category, highestCategory.Total);
-            }
-            else
-            {
-                Console.WriteLine("No expenses found for the current month.");
-                Console.WriteLine("Add expenses so PocketAI can give better advice");
-            }
-
-                Console.WriteLine();
-            Console.WriteLine("Press Enter to continue.");
-            Console.ReadLine();
+            GiveCategoryAdvice(highestCategory.Category, highestCategory.Total);
         }
-        
-        
+        else
+        {
+            Console.WriteLine("No expenses found for the current month.");
+            Console.WriteLine("Add expenses so PocketAI can give better advice.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
     }
 
     //Method that gives simple advice on a spending category(Fake AI Going to implemt AI in Python after fully done with C#)
-    //(Working on this next)
     static void GiveCategoryAdvice(string category, double total)
     {
         Console.Clear();
