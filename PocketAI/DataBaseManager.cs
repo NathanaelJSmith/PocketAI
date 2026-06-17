@@ -1,8 +1,9 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 
-  class DataBaseManager
+class DataBaseManager
 {
     //Creates file named pocketaid
     private string connectionString = "Data Source=pocketai.db";
@@ -50,6 +51,15 @@ using System.Collections.Generic;
             );
         ";
 
+        string createAccountBalanceTable = @"
+        CREATE TABLE IF NOT EXISTS AccountBalance (
+            Id INTEGER PRIMARY KEY, 
+            CheckingBalance REAL NOT NULL,
+            SavingsBalance REAL NOT NULL,
+            CashBalance REAL NOT NULL
+            );
+        ";
+
         using SqliteCommand command = new SqliteCommand(createExpenseTable, connection);
         command.ExecuteNonQuery();
 
@@ -61,6 +71,9 @@ using System.Collections.Generic;
 
         using SqliteCommand budgetLimitsCommand = new SqliteCommand(createBudgetLimitsTable, connection);
         budgetLimitsCommand.ExecuteNonQuery();
+
+        using SqliteCommand accountBalanceCommand = new SqliteCommand(createAccountBalanceTable, connection);
+        accountBalanceCommand.ExecuteNonQuery();
     }
 
     //Saves a new expense in the database 
@@ -301,6 +314,56 @@ using System.Collections.Generic;
         }
 
         return budgetLimits;
+    }
+
+    public void SaveAccountBalance(AccountBalance accountBalance)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string saveAccountBalance = @"
+            INSERT OR REPLACE INTO AccountBalance (Id, CheckingBalance, SavingsBalance, CashBalance)
+            VALUES (1, @CheckingBalance, @SavingsBalance, @CashBalance);
+        ";
+
+        using SqliteCommand command = new SqliteCommand(saveAccountBalance, connection);
+
+        //Adds account balance values safely into the SQL command
+        command.Parameters.AddWithValue("@CheckingBalance", accountBalance.CheckingBalance);
+        command.Parameters.AddWithValue("@SavingsBalance", accountBalance.SavingsBalance);
+        command.Parameters.AddWithValue("@CashBalance", accountBalance.CashBalance);
+
+        command.ExecuteNonQuery();
+
+    }
+
+    public AccountBalance GetAccountBalance()
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+
+        connection.Open();
+
+        string selectAccountBalance = @"
+            SELECT CheckingBalance, SavingsBalance, CashBalance
+            FROM AccountBalance
+            WHERE Id = 1;
+        ";
+
+        using SqliteCommand command = new SqliteCommand(selectAccountBalance, connection);
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        if (reader.Read())
+        {
+            double checkingBalance = reader.GetDouble(0);
+            double savingsBalance = reader.GetDouble(1);
+            double cashBalance = reader.GetDouble(2);
+
+            //Builds an account balance object from the database row
+            return new AccountBalance(checkingBalance, savingsBalance, cashBalance);
+        }
+
+        return null;
     }
 
 }

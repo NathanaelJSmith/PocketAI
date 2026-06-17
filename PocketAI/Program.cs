@@ -50,7 +50,11 @@ class Progam
         //Loads the savings goal from the database
         userSavingsGoal = dataBaseManager.GetSavingsGoal();
 
+        //Loads saved budget limits from the database
         budgetLimits = dataBaseManager.GetBudgetLimits();
+
+        //Loads saved account balance from the database
+        userAccountBalance = dataBaseManager.GetAccountBalance();
 
         bool running = true;
 
@@ -79,7 +83,9 @@ class Progam
             Console.WriteLine("18. View Current Month Spending");
             Console.WriteLine("19. Set Account Balance");
             Console.WriteLine("20. View Account Balance");
-            Console.WriteLine("21. Exit");
+            Console.WriteLine("21. Add Money to Savings Goal");
+            Console.WriteLine("22. With draw From Savings Goal");
+            Console.WriteLine("23. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -147,6 +153,12 @@ class Progam
                     ViewAccountBalance();
                     break;
                 case "21":
+                    AddMoneyTosavingsGoal();
+                    break;
+                case "22":
+                    WithDrawFromSavingsGoal();
+                    break;
+                case "23":
                     running = false;
                     break;
 
@@ -322,7 +334,11 @@ class Progam
             return;
         }
 
+        //Stores the account balance while the app is running 
         userAccountBalance = new AccountBalance(checkingBalance, savingsBalance, cashBalance);
+
+        //Saves the account balance permanently in the database
+        dataBaseManager.SaveAccountBalance(userAccountBalance);
 
         Console.WriteLine("Account balance saved successfully.");
         Console.WriteLine("Press Enter to continue.");
@@ -330,6 +346,7 @@ class Progam
 
     }
 
+    //Method that shows the user account balance
     static void ViewAccountBalance()
     {
         Console.Clear();
@@ -345,21 +362,128 @@ class Progam
             return;
         }
 
-        /**
-         * This is where I left off 
-         * Add savings balance
-         * Add Cash Balance 
-         * Add Total Balance
-         * All from AccountBalance 
-         * 
-         *//
         Console.WriteLine($"Checking: {userAccountBalance.CheckingBalance:C}");
-        Console.WriteLine("");
-        Console.WriteLine("")
+        Console.WriteLine($"Savings: {userAccountBalance.SavingsBalance:C}");
+        Console.WriteLine($"Cash: {userAccountBalance.CashBalance:C}");
+        Console.WriteLine("------------------------");
+        Console.WriteLine($"Total Balance: {userAccountBalance.GetTotalBalance():C}");
+
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
 
     }
 
+    //Adds money to users current savings goal
+    static void AddMoneyTosavingsGoal()
+    {
+        Console.Clear();
 
+        Console.WriteLine("=== Add Money to Savings Goal ===");
+
+        if (userSavingsGoal == null) 
+        {
+            Console.WriteLine("No savings goal has been added yet.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine($"Goal: {userSavingsGoal.Name}");
+        Console.WriteLine($"Current Saved: {userSavingsGoal.CurrentAmount:C}");
+        Console.WriteLine($"Target Amount: {userSavingsGoal.TargetAmount}");
+        Console.WriteLine();
+
+        Console.WriteLine("Amount to add: ");
+        bool amountIsValid = double.TryParse(Console.ReadLine(), out double amountToAdd);
+
+        if(!amountIsValid)
+        {
+            Console.WriteLine("Invalid amount. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        if (amountToAdd <= 0)
+        {
+            Console.WriteLine("Amount must be greater than 0. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //Adds money to the current saved amount
+        userSavingsGoal.CurrentAmount += amountToAdd;
+
+        //Prevents the saved amount from going way past the target without warning
+        if(userSavingsGoal.CurrentAmount >= userSavingsGoal.TargetAmount)
+        {
+            Console.WriteLine();
+            Console.WriteLine("Congratualtions! You reached or passed your savings goal.");
+        }
+
+        //Saved the updated savings goal permanently 
+        dataBaseManager.SaveSavingsGoal(userSavingsGoal);
+
+        Console.WriteLine();
+        Console.WriteLine($"New Saved Amount: {userSavingsGoal.CurrentAmount:C}");
+        Console.WriteLine("Savings goal updated successfully.");
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+    static void WithDrawFromSavingsGoal()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Withdraw From Savings Goal ===");
+
+        if(userSavingsGoal == null)
+        {
+            Console.WriteLine("No savings goal set up yet.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine($"Goal: {userSavingsGoal.Name}");
+        Console.WriteLine($"Current Saved: {userSavingsGoal.CurrentAmount}");
+        Console.WriteLine($"Target Amount: {userSavingsGoal.TargetAmount}");
+
+        Console.WriteLine("Amount to withdraw: ");
+        bool amountIsValid = double.TryParse(Console.ReadLine(), out double amountToWithdraw);
+
+        if(!amountIsValid)
+        {
+            Console.WriteLine("Invalid amount. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        if (amountToWithdraw <= 0)
+        {
+            Console.WriteLine("Amount must be greater than 0. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        if(amountToWithdraw > userSavingsGoal.CurrentAmount)
+        {
+            Console.WriteLine("You cannot withdraw more than your current saved amount.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //subtracts money grom the current saved amount 
+        userSavingsGoal.CurrentAmount -= amountToWithdraw;
+
+        //Saves the updated savings goal permenantly.
+        dataBaseManager.SaveSavingsGoal(userSavingsGoal);
+
+        Console.WriteLine();
+        Console.WriteLine($"New Savings Amount: {userSavingsGoal.CurrentAmount:C}");
+        Console.WriteLine("Savings goal updated successfully.");
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
     //Method to be able to Delete expense
     static void DeleteExpense()
     {
