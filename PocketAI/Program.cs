@@ -85,11 +85,17 @@ class Progam
             Console.WriteLine("20. View Account Balance");
             Console.WriteLine("21. Add Money to Savings Goal");
             Console.WriteLine("22. With draw From Savings Goal");
-            Console.WriteLine("23. Exit");
+            Console.WriteLine("23. Delete Budget Limit");
+            Console.WriteLine("24. Edit Budget Limit");
+            Console.WriteLine("25. View Financial Sumamry");
+            Console.WriteLine("26. View Safe-to-Spend Amount");
+            Console.WriteLine("27. View Daily Safe-to-Spend");
+            Console.WriteLine("27. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
 
+            //Choices for the user
             switch (choice)
             {
                 case "1":
@@ -159,6 +165,21 @@ class Progam
                     WithDrawFromSavingsGoal();
                     break;
                 case "23":
+                    DeleteBudgetLimit();
+                    break;
+                case "24":
+                    EditBudgetLimits();
+                    break;
+                case "25":
+                    ViewFinancialSummary();
+                    break;
+                case "26":
+                    ViewSafeToSpend();
+                    break;
+                case "27":
+                    ViewDailySafeToSpend();
+                    break;
+                case "28":
                     running = false;
                     break;
 
@@ -1029,6 +1050,118 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that allows user to delete there BudgetLimits
+    static void DeleteBudgetLimit()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Budget Limits ===");
+
+        if(budgetLimits.Count == 0)
+        {
+            Console.WriteLine("No budget limits found.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //Lists the budget limits
+        foreach(BudgetLimit limit in budgetLimits)
+        {
+            Console.WriteLine($"{limit.Category}: {limit.LimitAmount:C}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Enter the category to delete: ");
+        string category = Console.ReadLine();
+
+        //Finds the budget limit with the matching category
+        BudgetLimit limitToDelete = budgetLimits.Find(limit =>limit.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+
+        if(limitToDelete == null)
+        {
+            Console.WriteLine("Budget limit not found or miss spelled.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //Removes the budget limit while the app is running
+        budgetLimits.Remove(limitToDelete);
+
+        //Deleted the budgetlimit from the database 
+
+        dataBaseManager.DeleteBudgetLimitsByCategory(limitToDelete.Category);
+
+        Console.WriteLine("Budget limit deleted successfully.");
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+        return;
+
+    }
+
+    //Method that allows user to Edit there Budget Limits 
+    static void EditBudgetLimits()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Edit Budget Limits");
+
+        if (budgetLimits.Count == 0)
+        {
+            Console.WriteLine("No budget limits found.");
+            Console.WriteLine("Press Enter to Continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        //Shows all current budget limits
+        foreach(BudgetLimit limit in budgetLimits)
+        {
+            Console.WriteLine($"{limit.Category}: {limit.LimitAmount:C}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Enter the category to edit: ");
+        string category = Console.ReadLine();
+
+        BudgetLimit limitToEdit = budgetLimits.Find(limit => limit.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+
+        if (limitToEdit == null)
+        {
+            Console.WriteLine("Budget limit not found or misspelled.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine($"New monthly limit amount ({limitToEdit.LimitAmount:C})");
+        bool limitIsValid = double.TryParse(Console.ReadLine(), out double newLimitAmount);
+
+        if (!limitIsValid)
+        {
+            Console.WriteLine("Limit amount must be greater than 0. Press enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        if (newLimitAmount <= 0)
+        {
+            Console.WriteLine("Limit must be greater than 0. Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        limitToEdit.LimitAmount = newLimitAmount;
+
+        dataBaseManager.SaveBudgetLimit(limitToEdit);
+
+        Console.WriteLine("Budget limit updated successfully.");
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+    }
+
     //Method that compares each of the users Budget limit
     static void CheckBudgetLimits()
     {
@@ -1288,6 +1421,244 @@ class Progam
         {
             Console.WriteLine("No expenses found for the current month.");
             Console.WriteLine("Add expenses so PocketAI can give better advice.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    //Builds a financial summary from the user's current data
+    static FinancialSummary BuildFinancialSummary()
+    {
+        FinancialSummary summary = new FinancialSummary();
+
+        //Gets only current month expenses
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+
+        double totalSpent = 0;
+
+        //Adds current month expenses together
+        foreach (Expense expense in currentMonthExpenses)
+        {
+            totalSpent += expense.Amount;
+        }
+
+        //Adds income information if it exists
+        if (userIncome != null)
+        {
+            summary.MonthlyIncome = userIncome.MonthlyAmount;
+            summary.MoneyLeft = userIncome.MonthlyAmount - totalSpent;
+        }
+
+        summary.CurrentMonthSpent = totalSpent;
+
+        //Adds account balance information if it exists
+        if (userAccountBalance != null)
+        {
+            summary.TotalAccountBalance = userAccountBalance.GetTotalBalance();
+        }
+
+        //Adds savings goal information if it exits
+        if (userSavingsGoal != null)
+        {
+            summary.SavingsGoalName = userSavingsGoal.Name;
+            summary.SavingsTargetAmount = userSavingsGoal.TargetAmount;
+            summary.CurrentSavedAmount = userSavingsGoal.CurrentAmount;
+            summary.SavingsAmountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
+
+            summary.DaysLeft = (userSavingsGoal.DeadLine - DateTime.Today).TotalDays;
+
+            if (summary.DaysLeft > 0 && summary.SavingsAmountRemaining > 0)
+            {
+                double weeksLeft = summary.DaysLeft / 7;
+                summary.WeeklySavingsNeeded = summary.SavingsAmountRemaining / weeksLeft;
+            }
+        }
+
+        //Finds biggest spending category
+        if (currentMonthExpenses.Count > 0)
+        {
+            var highestCategory = currentMonthExpenses
+                .GroupBy(expense => expense.Category)
+                .Select(group => new
+                {
+                    Category = group.Key,
+                    Total = group.Sum(expense => expense.Amount)
+                })
+                .OrderByDescending(group => group.Total)
+                .First();
+
+            summary.BiggestSpendingCategory = highestCategory.Category;
+            summary.BiggestCategoryAmount = highestCategory.Total;
+        }
+
+        //Counts how mnay budget categorys are over budget
+        foreach(BudgetLimit limit in budgetLimits)
+        {
+            double categoryTotal = 0;
+
+            foreach(Expense expense in currentMonthExpenses)
+            {
+                if(expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
+                {
+                    categoryTotal += expense.Amount;
+                }
+            }
+
+            if(categoryTotal > limit.LimitAmount)
+            {
+                summary.OverBudgetCount++;
+            }
+        }
+
+        return summary;
+        
+    }
+
+    //Method that shows the Financial Sumamry
+    static void ViewFinancialSummary()
+    {
+        Console.Clear();
+        Console.WriteLine("=== View Financial Summary ===");
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        Console.WriteLine($"Monthly Income: {summary.MonthlyIncome:C}");
+        Console.WriteLine($"Current Month Spent: {summary.CurrentMonthSpent:C}");
+        Console.WriteLine($"Money Left: {summary.MoneyLeft:C}");
+        Console.WriteLine($"Total Account Balance: {summary.TotalAccountBalance:C}");
+        Console.WriteLine();
+
+        if(userSavingsGoal != null)
+        {
+            Console.WriteLine("Savings Goal");
+            Console.WriteLine($"Goal Name: {summary.SavingsGoalName}");
+            Console.WriteLine($"Target Amount: {summary.SavingsTargetAmount:C}");
+            Console.WriteLine($"Current Saved: {summary.CurrentSavedAmount:C}");
+            Console.WriteLine($"Amount Remaining: {summary.SavingsAmountRemaining:C}");
+            Console.WriteLine($"Days Left: {summary.DaysLeft:F0}");
+            Console.WriteLine($"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}");
+            Console.WriteLine();
+        }
+
+        if(summary.BiggestCategoryAmount != null)
+        {
+            Console.WriteLine("Spending:");
+            Console.WriteLine($"Biggest Category: {summary.BiggestSpendingCategory}");
+            Console.WriteLine($"Biggest Category Amount: {summary.BiggestCategoryAmount:C}");
+        }
+
+        Console.WriteLine($"Over Budget Categories: {summary.OverBudgetCount}");
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    static void ViewSafeToSpend()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Safe-to-Spend Amount ===");
+
+        if(userIncome == null)
+        {
+            Console.WriteLine("Set your monthly income first.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        double savingsNeeded = 0;
+
+        //Uses the remaining savings goal amount if a goal exists
+        if(userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded = summary.SavingsAmountRemaining;
+        }
+
+        //Calculates money that is safe to spend 
+        double safeToSpend = summary.MoneyLeft - savingsNeeded;
+
+        //Left off here (need to add Monthly Income, current month spent, money left before savings, and savings needed)
+        Console.WriteLine($"Monthy Income: {summary.MonthlyIncome:C}");
+        Console.WriteLine($"Currently Monthly Spent: {summary.CurrentMonthSpent:C}");
+        Console.WriteLine($"Money Left Before Saving: {summary.MoneyLeft:C} ");
+        Console.WriteLine($"Savings Needed: {savingsNeeded:C}");
+        Console.WriteLine("----------------");
+
+        if (safeToSpend >= 0)
+        {
+            Console.WriteLine($"Safe to Spend: {safeToSpend:C}");
+            Console.WriteLine($"This is the amount you can spend after protecting your savings goal.");
+        }
+        else
+        {
+            Console.WriteLine($"Shortfall: {Math.Abs(safeToSpend):C}");
+            Console.WriteLine("You do not currently have enough left to fully protect your savings goal.");
+        }
+
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    static void ViewDailySafeToSpend()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== View Daily Safe to Spend ===");
+        if (userIncome == null)
+        {
+            Console.WriteLine("Set your monthly income first.");
+            Console.WriteLine("Press Enter to Continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        FinancialSummary summary = BuildFinancialSummary();
+        
+        double savingsNeeded = 0;
+
+        //Uses remainging savings gaol amount if a goal exists
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded = summary.SavingsAmountRemaining;
+        }
+
+        //Calculates safe-to-spend amount that is safe to spend
+        double safeToSpend = summary.MoneyLeft - savingsNeeded; 
+
+        DateTime today = DateTime.Today;
+
+        //Gets the last day of the current month
+        int daysLeftInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+
+        //Calculates how many days are left in the month
+        double dailySafeToSpend = 0;
+
+        if(daysLeftInMonth > 0)
+        {
+            dailySafeToSpend = safeToSpend / daysLeftInMonth;
+        }
+
+        Console.WriteLine($"Safe to Spend: {safeToSpend:C}");
+        Console.WriteLine($"Days Left This Month: {daysLeftInMonth}");
+        Console.WriteLine("---------------------");
+
+        if(safeToSpend >= 0)
+        {
+            Console.WriteLine($"Daily Safe-to-Spend: {dailySafeToSpend:C}");
+            Console.WriteLine("This is about how much you can safely spend each day for the rest of the month.");
+        }
+        else
+        {
+            Console.WriteLine($"ShortFall: {Math.Abs(safeToSpend):C}");
+            Console.WriteLine("You do not have a safe daily spending amount right now.");
         }
 
         Console.WriteLine();

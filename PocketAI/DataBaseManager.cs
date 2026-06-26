@@ -316,6 +316,25 @@ class DataBaseManager
         return budgetLimits;
     }
 
+    //Delete a budget limit from the database by category name
+    public void DeleteBudgetLimitsByCategory(string category)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string deleteBudgetLimit = @"
+            DELETE FROM BudgetLimits
+            WHERE Category = @Category;
+        ";
+
+        using SqliteCommand command = new SqliteCommand(deleteBudgetLimit, connection);
+
+        //Adds category name safely into the SQL command
+        command.Parameters.AddWithValue("@Category", category);
+        command.ExecuteNonQuery();
+
+    }
+
     public void SaveAccountBalance(AccountBalance accountBalance)
     {
         using SqliteConnection connection = new SqliteConnection(connectionString);
