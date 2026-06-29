@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Diagnostics;
 
 class Progam
 {
@@ -90,7 +91,10 @@ class Progam
             Console.WriteLine("25. View Financial Sumamry");
             Console.WriteLine("26. View Safe-to-Spend Amount");
             Console.WriteLine("27. View Daily Safe-to-Spend");
-            Console.WriteLine("27. Exit");
+            Console.WriteLine("28. View Weekly Safe-to-Spend Limit");
+            Console.WriteLine("29. View AI Prompt");
+            Console.WriteLine("30. View Python AI Advice");
+            Console.WriteLine("31. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -180,6 +184,15 @@ class Progam
                     ViewDailySafeToSpend();
                     break;
                 case "28":
+                    ViewWeeklySafeToSpend();
+                    break;
+                case "29":
+                        ViewAIPrompt();
+                    break;
+                case"30":
+                        ViewPythonAIAdivce();
+                    break;
+                case "31":
                     running = false;
                     break;
 
@@ -1277,6 +1290,63 @@ class Progam
         Console.WriteLine($"Money left before savings {moneyLeft:C}");
         Console.WriteLine();
 
+        //Calculates safe to spend money after protecting savings goal
+        double savingsNeeded = 0;
+
+        if (userSavingsGoal != null)
+        {
+            double amountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
+
+            if(amountRemaining > 0)
+            {
+                savingsNeeded = amountRemaining;
+            }
+        }
+
+        double safeToSpend = moneyLeft - savingsNeeded;
+
+        DateTime today = DateTime.Today;
+
+        //Gets the number of days in the current month
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+
+        //Calculates how many days are left in the month including today
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
+        //Converts days left into weeks left
+        double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0);
+
+        double dailySafeToSpend = 0;
+        double weeklySafeToSpend = 0;
+
+        if (daysLeftInMonth > 0)
+        {
+            dailySafeToSpend = safeToSpend / daysLeftInMonth;
+        }
+
+        if (weeksLeftInMonth > 0)
+        {
+            weeklySafeToSpend = safeToSpend / weeksLeftInMonth;
+        }
+
+        Console.WriteLine("Safe-to-Spend Check:");
+        Console.WriteLine($"Savings needed: {savingsNeeded:C}");
+
+        if (safeToSpend >= 0)
+        {
+            Console.WriteLine($"Safe to Spend: {safeToSpend:C}");
+            Console.WriteLine($"Daily Safe to Spend: {dailySafeToSpend:C}");
+            Console.WriteLine($"Weekly Safe to Spend: {weeklySafeToSpend:C}");
+        }
+        else
+        {
+            Console.WriteLine($"ShortFall: {Math.Abs(safeToSpend):C}");
+            Console.WriteLine("You do not currently have enough left to fully protect your savings goal.");
+        }
+
+        Console.WriteLine("Press Enter to see general Spending Advice.");
+        Console.ReadLine();
+
         //Gives general spending advice 
         if (moneyLeft < 0)
         {
@@ -1516,6 +1586,177 @@ class Progam
         
     }
 
+    //Builds a clean text prompt that can later be sent to AI
+    static string BuildAIPrompt()
+    {
+        FinancialSummary summary = BuildFinancialSummary();
+
+        double savingsNeeded = 0;
+
+        //Uses remaining savings goal amount if a goal exists
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded = summary.SavingsAmountRemaining;
+        }
+
+        //Calculates safe-to-spend amount
+        double safeToSpend = summary.MoneyLeft - savingsNeeded;
+
+        DateTime today = DateTime.Today;
+
+        //Gets how many days are left in the current month
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
+        //Converts days left into weeks
+        double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0); //Math.Ceiling so it rounds up during the last week of the month and doesn't just show decimals.
+
+        double dailySafeToSpend = 0;
+        double weeklySafeToSpend = 0;
+
+        if (daysLeftInMonth > 0)
+        {
+            dailySafeToSpend = safeToSpend + daysLeftInMonth;
+        }
+
+        if (weeksLeftInMonth > 0)
+        {
+            weeklySafeToSpend = safeToSpend / weeksLeftInMonth;
+        }
+
+        string prompt = "";
+
+        prompt += "You are PocketAI, a helpful money coach.\n";
+        prompt += "Use the user's financial summary to give clear practical budgeting advice.\n\n";
+
+        prompt += "Financial Summary:\n";
+        prompt += $"Monthly Income: {summary.MonthlyIncome:C}\n";
+        prompt += $"Current Month Spend: {summary.CurrentMonthSpent:C}\n";
+        prompt += $"Money Left Before Savings: {summary.MoneyLeft:C}\n";
+        prompt += $"Savings Needd: {savingsNeeded:C}\n";
+        prompt += $"Safe to Spend: {safeToSpend:C}\n";
+        prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
+        prompt += $"Weekly Safe To Spend: {weeklySafeToSpend:C} \n";
+        prompt += $"Total Account Balance: {summary.TotalAccountBalance:C} \n\n";
+
+        if (userSavingsGoal != null)
+        {
+            prompt += "Savings Goal:\n";
+            prompt += $"Goal Name: {summary.SavingsGoalName}\n";
+            prompt += $"Target Amount: {summary.SavingsTargetAmount:C}\n";
+            prompt += $"Current Saved: {summary.CurrentSavedAmount:C}\n";
+            prompt += $"Amount Remaining: {summary.SavingsAmountRemaining}\n";
+            prompt += $"Days Left: {summary.DaysLeft:F0}\n";
+            prompt += $"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}\n\n";
+        }
+
+        if (summary.BiggestSpendingCategory != null)
+        {
+            prompt += "Spending:\n";
+            prompt += $"Biggest Spending Category: {summary.BiggestSpendingCategory}\n";
+            prompt += $"Biggest Category Amount: {summary.BiggestCategoryAmount:C}\n\n";
+        }
+
+        prompt += $"OverBudget Categories: {summary.OverBudgetCount}\n\n";
+
+        prompt += "Give the user advice in this format:\n";
+        prompt += "1. Quick Summary\n";
+        prompt += "2. Biggest concern\n";
+        prompt += "3. What they are doing well\n";
+        prompt += "4. What they should do next\n";
+
+        return prompt;
+    }
+
+    // Sends the AI prompt to the Python script and gets advice back
+    static string GetPythonAIAdvice(string prompt)
+    {
+        // Sets up Python process information
+        ProcessStartInfo startInfo = new ProcessStartInfo();
+
+        // Use "python" first. If it does not work, change this to "py"
+        startInfo.FileName = "py";
+        
+        // Name of the Python file
+        startInfo.Arguments = "ai_coach.py";
+
+        startInfo.WorkingDirectory = @"C:\Users\Nate Smith\source\repos\PocketAI\PocketAI";
+
+        // Allows C# to send text into Python
+        startInfo.RedirectStandardInput = true;
+
+        // Allows C# to read Python's response
+        startInfo.RedirectStandardOutput = true;
+
+        // Allows C# to read Python errors
+        startInfo.RedirectStandardError = true;
+
+        // Prevents opening a separate window
+        startInfo.UseShellExecute = false;
+
+        // Keeps the process hidden
+        startInfo.CreateNoWindow = true;
+
+        // Starts Python
+        using Process process = new Process();
+        process.StartInfo = startInfo;
+        process.Start();
+
+        // Sends the prompt into Python
+        process.StandardInput.Write(prompt);
+        process.StandardInput.Close();
+
+        // Reads what Python printed
+        string output = process.StandardOutput.ReadToEnd();
+
+        // Reads errors if Python failed
+        string error = process.StandardError.ReadToEnd();
+
+        process.WaitForExit();
+
+        if (!string.IsNullOrWhiteSpace(error))
+        {
+            return "Python error:\n" + error;
+        }
+
+        return output;
+    }
+
+    static void ViewPythonAIAdivce()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Python AI Adivce ===");
+
+        Console.WriteLine();
+
+        //Build the financial prompt from C# data
+        string prompt = BuildAIPrompt();
+
+        //Send the prompt to Python and gets the response
+        string adivce = GetPythonAIAdvice(prompt);
+
+        Console.WriteLine(adivce);
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+    static void ViewAIPrompt()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Ai Prompt Preview ===");
+        Console.WriteLine();
+
+        string prompt = BuildAIPrompt();
+
+        Console.WriteLine(prompt);
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
     //Method that shows the Financial Sumamry
     static void ViewFinancialSummary()
     {
@@ -1556,6 +1797,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that shows how much money is left to spend after each protection savings
     static void ViewSafeToSpend()
     {
         Console.Clear();
@@ -1607,6 +1849,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that allows user to see what they can safely spend per day for the rest of the month. 
     static void ViewDailySafeToSpend()
     {
         Console.Clear();
@@ -1659,6 +1902,70 @@ class Progam
         {
             Console.WriteLine($"ShortFall: {Math.Abs(safeToSpend):C}");
             Console.WriteLine("You do not have a safe daily spending amount right now.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    //Method that shows user what they can safely spend per week for the rest of the month. 
+    static void ViewWeeklySafeToSpend()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Weekly Safe to Spend Limit ===");
+
+        if (userIncome == null)
+        {
+            Console.WriteLine("Set youu monthly income first.");
+            Console.WriteLine("Press Enter to continue.");
+            return;
+        }
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        double savingsNeeded = 0;
+
+        //Uses remainging savings goal amount if goal exists
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0) ;
+        {
+            savingsNeeded = summary.SavingsAmountRemaining;
+        }
+
+        double safeToSpend = summary.MoneyLeft - savingsNeeded;
+
+        DateTime today = DateTime.Today;
+
+        //Gets Last day of the current month 
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
+        //Converts days left into weeks left
+        double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0);
+
+        double weeklySafeToSpend = 0;
+
+        if (weeksLeftInMonth > 0)
+        {
+            weeklySafeToSpend = safeToSpend / weeksLeftInMonth;
+        }
+
+        Console.WriteLine($"Safe to Spend: {safeToSpend:C}");
+        Console.WriteLine($"Days Left of this Month: {daysLeftInMonth}");
+        Console.WriteLine($"Weeks Left of this Month: {weeksLeftInMonth}");
+        Console.WriteLine("------------------------");
+
+        if (safeToSpend >= 0 )
+        {
+            Console.WriteLine($"Weekly Safe-to-Spend: {weeklySafeToSpend:C}");
+            Console.WriteLine($"This is about how much you can safely spend each week for the rest of the month.");
+        }
+        else
+        {
+            Console.WriteLine($"ShortFall: {Math.Abs(safeToSpend):C}");
+            Console.WriteLine("You do not havve a safe weekly spending amount right now.");
         }
 
         Console.WriteLine();
