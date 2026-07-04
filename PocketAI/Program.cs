@@ -61,9 +61,16 @@ class Progam
 
         while (running)
         {
+
+            /*
+             * Going to Orginize the Menu next 
+             */
             Console.Clear();
 
-            Console.WriteLine("---- PocketAI ----");
+            Console.WriteLine("==== PocketAI ====");
+            Console.WriteLine();
+
+            Console.WriteLine("--- Expenses ---");
             Console.WriteLine("1. Add Expense");
             Console.WriteLine("2. View Expense");
             Console.WriteLine("3. View Total Expenses");
@@ -72,8 +79,12 @@ class Progam
             Console.WriteLine("6. Filtered by Categories");
             Console.WriteLine("7. Total by Category");
             Console.WriteLine("8. Category BreakDown");
+            Console.WriteLine();
+
+            Console.WriteLine("--- Income ---");
             Console.WriteLine("9. Set Monthly Income");
             Console.WriteLine("10. View Monthly Income");
+
             Console.WriteLine("11. Set Savings Goal");
             Console.WriteLine("12. View Savings Goal");
             Console.WriteLine("13. View Savings Plan");
@@ -94,7 +105,8 @@ class Progam
             Console.WriteLine("28. View Weekly Safe-to-Spend Limit");
             Console.WriteLine("29. View AI Prompt");
             Console.WriteLine("30. View Python AI Advice");
-            Console.WriteLine("31. Exit");
+            Console.WriteLine("31. View AI ADvice History");
+            Console.WriteLine("32. Exit");
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -193,6 +205,9 @@ class Progam
                         ViewPythonAIAdivce();
                     break;
                 case "31":
+                    ViewAIAdviceHistory();
+                    break;
+                case "32":
                     running = false;
                     break;
 
@@ -1631,7 +1646,7 @@ class Progam
 
         prompt += "Financial Summary:\n";
         prompt += $"Monthly Income: {summary.MonthlyIncome:C}\n";
-        prompt += $"Current Month Spend: {summary.CurrentMonthSpent:C}\n";
+        prompt += $"Current Month Spent: {summary.CurrentMonthSpent:C}\n";
         prompt += $"Money Left Before Savings: {summary.MoneyLeft:C}\n";
         prompt += $"Savings Needd: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
@@ -1722,6 +1737,7 @@ class Progam
         return output;
     }
 
+    //Method that allows user to View AI advice from Python AI Coach
     static void ViewPythonAIAdivce()
     {
         Console.Clear();
@@ -1734,14 +1750,19 @@ class Progam
         string prompt = BuildAIPrompt();
 
         //Send the prompt to Python and gets the response
-        string adivce = GetPythonAIAdvice(prompt);
+        string advice = GetPythonAIAdvice(prompt);
 
-        Console.WriteLine(adivce);
+        //Save the AI advice to the database
+        dataBaseManager.SaveAIAdvice(prompt, advice);
+
+        Console.WriteLine(advice);
 
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
     }
+
+    //AI Prompt to connection Python to C#
     static void ViewAIPrompt()
     {
         Console.Clear();
@@ -1751,6 +1772,37 @@ class Progam
         string prompt = BuildAIPrompt();
 
         Console.WriteLine(prompt);
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    static void ViewAIAdviceHistory()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== AI Advice History ===");
+        Console.WriteLine();
+
+        List<AIAdvice> adviceHistory = dataBaseManager.GetAIAdviceHistory();
+
+        if (adviceHistory.Count == 0)
+        {
+            Console.WriteLine("No AI advice history saved yet.");
+        }
+        else
+        {
+            foreach(AIAdvice advice in adviceHistory)
+            {
+                Console.WriteLine($"ID: {advice.Id}");
+                Console.WriteLine($"Date: {advice.DateCreated}");
+                Console.WriteLine();
+                Console.WriteLine("Advice:");
+                Console.WriteLine(advice.AdviceText);
+                Console.WriteLine("----------------------------------");
+            }
+        }
 
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");

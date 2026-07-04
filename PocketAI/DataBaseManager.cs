@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Runtime.InteropServices.Marshalling;
 
 class DataBaseManager
 {
@@ -60,6 +61,15 @@ class DataBaseManager
             );
         ";
 
+        string createAIAdviceHistoryTable = @"
+        CREATE TABLE IF NOT EXISTS AIAdviceHistory (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Prompt TEXT NOT NULL,
+            AdviceText TEXT NOT NULL,
+            DateCreated TEXT NOT NULL
+        );";
+
+
         using SqliteCommand command = new SqliteCommand(createExpenseTable, connection);
         command.ExecuteNonQuery();
 
@@ -74,6 +84,10 @@ class DataBaseManager
 
         using SqliteCommand accountBalanceCommand = new SqliteCommand(createAccountBalanceTable, connection);
         accountBalanceCommand.ExecuteNonQuery();
+
+        using SqliteCommand aICommand = new SqliteCommand(createAIAdviceHistoryTable, connection); 
+        aICommand.ExecuteNonQuery();
+        
     }
 
     //Saves a new expense in the database 
@@ -355,7 +369,6 @@ class DataBaseManager
         command.ExecuteNonQuery();
 
     }
-
     public AccountBalance GetAccountBalance()
     {
         using SqliteConnection connection = new SqliteConnection(connectionString);
@@ -383,6 +396,55 @@ class DataBaseManager
         }
 
         return null;
+    }
+
+    public void SaveAIAdvice(string prompt, string adviceText)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string insertAIAdvice = @"
+        INSERT INTO AIAdviceHistory (Prompt, AdviceText, DateCreated)
+        VALUES (@Prompt, @AdviceText, @DateCreated);";
+
+        using SqliteCommand command = new SqliteCommand(@insertAIAdvice, connection);
+        command.Parameters.AddWithValue("@Prompt", prompt);
+        command.Parameters.AddWithValue("@AdviceText", adviceText);
+        command.Parameters.AddWithValue(@"DateCreated", DateTime.Now.ToString());
+            command.ExecuteNonQuery();
+
+        
+    }
+
+    public List<AIAdvice> GetAIAdviceHistory()
+    {
+        List<AIAdvice> adviceHistory = new List<AIAdvice>();
+
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string selectAIAdvice = @"
+        SELECT Id, Prompt, AdviceText, DateCreated
+        FROM AIAdviceHistory
+        ORDER BY Id DESC;";
+
+        using SqliteCommand command = new SqliteCommand(selectAIAdvice, connection);
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        while(reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            string prompt = reader.GetString(1);
+            string adviceText = reader.GetString(2);
+            DateTime dateCreated = DateTime.Parse(reader.GetString(3));
+
+            AIAdvice advice = new AIAdvice(id, prompt, adviceText, dateCreated);
+
+            adviceHistory.Add(advice);
+        }
+
+        return adviceHistory;
     }
 
 }
