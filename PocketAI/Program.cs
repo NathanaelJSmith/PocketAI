@@ -81,51 +81,55 @@ class Progam
             Console.WriteLine("7. Total by Category");
             Console.WriteLine("8. Category BreakDown");
             Console.WriteLine("9. View Current Month Spending");
+            Console.WriteLine("10. Add Recurring Expense");
             Console.WriteLine();
 
             Console.WriteLine("--- Income ---");
-            Console.WriteLine("10. Set Monthly Income");
-            Console.WriteLine("11. View Monthly Income");
+            Console.WriteLine("11. Set Monthly Income");
+            Console.WriteLine("12. View Monthly Income");
             Console.WriteLine();
 
             Console.WriteLine("--- Savings ---");
-            Console.WriteLine("12. Set Savings Goal");
-            Console.WriteLine("13. View Savings Goal");
-            Console.WriteLine("14. View Savings Plan");
-            Console.WriteLine("15. Add Money to Savings Goal");
-            Console.WriteLine("16. With draw From Savings Goal");
+            Console.WriteLine("13. Set Savings Goal");
+            Console.WriteLine("14. View Savings Goal");
+            Console.WriteLine("15. View Savings Plan");
+            Console.WriteLine("16. Add Money to Savings Goal");
+            Console.WriteLine("17. With draw From Savings Goal");
             Console.WriteLine();
 
             Console.WriteLine("--- Budget Limits ---");
-            Console.WriteLine("17. Add Budget Limit");
-            Console.WriteLine("18. View Budget Limits");
-            Console.WriteLine("19. Check Budget Limits");
-            Console.WriteLine("20. Delete Budget Limit");
-            Console.WriteLine("21. Edit Budget Limit");
+            Console.WriteLine("18. Add Budget Limit");
+            Console.WriteLine("19. View Budget Limits");
+            Console.WriteLine("20. Check Budget Limits");
+            Console.WriteLine("21. Delete Budget Limit");
+            Console.WriteLine("22. Edit Budget Limit");
             Console.WriteLine();
 
             Console.WriteLine("--- Account Balance ---");
-            Console.WriteLine("22. Set Account Balance");
-            Console.WriteLine("23. View Account Balance");
+            Console.WriteLine("23. Set Account Balance");
+            Console.WriteLine("24. View Account Balance");
             Console.WriteLine();
 
             Console.WriteLine("--- PocketAI Coach ---");
-            Console.WriteLine("24. AI Money Coach");
-            Console.WriteLine("25. View Financial Sumamry");
-            Console.WriteLine("26. View Safe-to-Spend Amount");
-            Console.WriteLine("27. View Daily Safe-to-Spend");
-            Console.WriteLine("28. View Weekly Safe-to-Spend Limit");
-            Console.WriteLine("29. View AI Prompt");
-            Console.WriteLine("30. View Python AI Advice");
-            Console.WriteLine("31. View AI Advice History");
-            Console.WriteLine("32. View Monthly Report");
-            Console.WriteLine("33. View AI Advice History Summary");
-            Console.WriteLine("34. View AI Advice by ID");
-            Console.WriteLine("35. Delete AI Advice.");
-            Console.WriteLine("36. Search AI Advice History.");
+            Console.WriteLine("25. AI Money Coach");
+            Console.WriteLine("26. View Financial Sumamry");
+            Console.WriteLine("27. View Safe-to-Spend Amount");
+            Console.WriteLine("28. View Daily Safe-to-Spend");
+            Console.WriteLine("29. View Weekly Safe-to-Spend Limit");
+            Console.WriteLine("30. View AI Prompt");
+            Console.WriteLine("31. View Python AI Advice");
+            Console.WriteLine("32. View AI Advice History");
+            Console.WriteLine("33. View Monthly Report");
+            Console.WriteLine("34. View AI Advice History Summary");
+            Console.WriteLine("35. View AI Advice by ID");
+            Console.WriteLine("36. Delete AI Advice.");
+            Console.WriteLine("37. Search AI Advice History.");
             Console.WriteLine();
 
-            Console.WriteLine("37. Exit");
+            Console.WriteLine("--- Recently Added Going to Orginize later ---");
+            Console.WriteLine("38. View Recurring Expenses");
+
+            Console.WriteLine("39. Exit");
             Console.WriteLine();
             Console.WriteLine("Choose an option");
 
@@ -169,110 +173,117 @@ class Progam
                 case "9":
                     ViewCurrentMonthSpending();
                     break;
-
                 case "10":
-                    SetMonthlyIncome();
+                    AddRecurringExpenseMenu();
                     break;
 
                 case "11":
-                    ViewMonthlyIncome();
+                    SetMonthlyIncome();
                     break;
 
                 case "12":
-                    SetSavingsGoal();
+                    ViewMonthlyIncome();
                     break;
 
                 case "13":
-                    ViewSavingsGoal();
+                    SetSavingsGoal();
                     break;
 
                 case "14":
-                    ViewSavingsPlan();
+                    ViewSavingsGoal();
                     break;
 
                 case "15":
-                    AddMoneyTosavingsGoal();
+                    ViewSavingsPlan();
                     break;
 
                 case "16":
-                    WithDrawFromSavingsGoal();
+                    AddMoneyTosavingsGoal();
                     break;
 
                 case "17":
-                    AddBudgetLimits();
+                    WithDrawFromSavingsGoal();
                     break;
 
                 case "18":
-                    ViewBudgetLimits();
+                    AddBudgetLimits();
                     break;
 
                 case "19":
-                    CheckBudgetLimits();
+                    ViewBudgetLimits();
                     break;
 
                 case "20":
-                    DeleteBudgetLimit();
+                    CheckBudgetLimits();
                     break;
 
                 case "21":
-                    EditBudgetLimits();
+                    DeleteBudgetLimit();
                     break;
 
                 case "22":
-                    SetAccountBalance();
+                    EditBudgetLimits();
                     break;
 
                 case "23":
-                    ViewAccountBalance();
+                    SetAccountBalance();
                     break;
 
                 case "24":
-                    AIMoneyCoach();
+                    ViewAccountBalance();
                     break;
 
                 case "25":
-                    ViewFinancialSummary();
+                    AIMoneyCoach();
                     break;
 
                 case "26":
-                    ViewSafeToSpend();
+                    ViewFinancialSummary();
                     break;
 
                 case "27":
-                    ViewDailySafeToSpend();
+                    ViewSafeToSpend();
                     break;
 
                 case "28":
-                    ViewWeeklySafeToSpend();
+                    ViewDailySafeToSpend();
                     break;
 
                 case "29":
-                    ViewAIPrompt();
+                    ViewWeeklySafeToSpend();
                     break;
 
                 case "30":
-                    ViewPythonAIAdivce();
+                    ViewAIPrompt();
                     break;
 
                 case "31":
+                    ViewPythonAIAdivce();
+                    break;
+
+                case "32":
                     ViewAIAdviceHistory();
                     break;
-                case "32":
+                case "33":
                     ViewMonthlyReport();
                     break;
-                case "33":
+                case "34":
                     ViewAIAdviceHistorySummary();
                     break;
-                case "34":
+                case "35":
                     VewAIAdviceById();
                     break;
-                case "35":
+                case "36":
                     DeleteAIAdvice();
                     break;
-                case "36":
+                case "37":
                     SearchAIAdviceHistory();
                     break;
-                case "37":
+
+                case "38":
+                        ViewRecurringExpenses();
+                    break;
+                case "39":
                     running = false;
                     break;
 
@@ -467,7 +478,7 @@ class Progam
 
         Console.WriteLine("=== View Account Balance: ");
 
-        if(userAccountBalance == null)
+        if (userAccountBalance == null)
         {
             Console.WriteLine("No account balance has been seet yet.");
             Console.WriteLine("Go to option 19. to set Account Balance.");
@@ -494,7 +505,7 @@ class Progam
 
         Console.WriteLine("=== Add Money to Savings Goal ===");
 
-        if (userSavingsGoal == null) 
+        if (userSavingsGoal == null)
         {
             Console.WriteLine("No savings goal has been added yet.");
             Console.WriteLine("Press Enter to continue.");
@@ -510,7 +521,7 @@ class Progam
         Console.WriteLine("Amount to add: ");
         bool amountIsValid = double.TryParse(Console.ReadLine(), out double amountToAdd);
 
-        if(!amountIsValid)
+        if (!amountIsValid)
         {
             Console.WriteLine("Invalid amount. Press Enter to continue.");
             Console.ReadLine();
@@ -528,7 +539,7 @@ class Progam
         userSavingsGoal.CurrentAmount += amountToAdd;
 
         //Prevents the saved amount from going way past the target without warning
-        if(userSavingsGoal.CurrentAmount >= userSavingsGoal.TargetAmount)
+        if (userSavingsGoal.CurrentAmount >= userSavingsGoal.TargetAmount)
         {
             Console.WriteLine();
             Console.WriteLine("Congratualtions! You reached or passed your savings goal.");
@@ -549,7 +560,7 @@ class Progam
 
         Console.WriteLine("=== Withdraw From Savings Goal ===");
 
-        if(userSavingsGoal == null)
+        if (userSavingsGoal == null)
         {
             Console.WriteLine("No savings goal set up yet.");
             Console.WriteLine("Press Enter to continue.");
@@ -564,7 +575,7 @@ class Progam
         Console.WriteLine("Amount to withdraw: ");
         bool amountIsValid = double.TryParse(Console.ReadLine(), out double amountToWithdraw);
 
-        if(!amountIsValid)
+        if (!amountIsValid)
         {
             Console.WriteLine("Invalid amount. Press Enter to continue.");
             Console.ReadLine();
@@ -578,7 +589,7 @@ class Progam
             return;
         }
 
-        if(amountToWithdraw > userSavingsGoal.CurrentAmount)
+        if (amountToWithdraw > userSavingsGoal.CurrentAmount)
         {
             Console.WriteLine("You cannot withdraw more than your current saved amount.");
             Console.WriteLine("Press Enter to continue.");
@@ -1150,7 +1161,7 @@ class Progam
 
         Console.WriteLine("=== Budget Limits ===");
 
-        if(budgetLimits.Count == 0)
+        if (budgetLimits.Count == 0)
         {
             Console.WriteLine("No budget limits found.");
             Console.WriteLine("Press Enter to continue.");
@@ -1159,7 +1170,7 @@ class Progam
         }
 
         //Lists the budget limits
-        foreach(BudgetLimit limit in budgetLimits)
+        foreach (BudgetLimit limit in budgetLimits)
         {
             Console.WriteLine($"{limit.Category}: {limit.LimitAmount:C}");
         }
@@ -1169,9 +1180,9 @@ class Progam
         string category = Console.ReadLine();
 
         //Finds the budget limit with the matching category
-        BudgetLimit limitToDelete = budgetLimits.Find(limit =>limit.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
+        BudgetLimit limitToDelete = budgetLimits.Find(limit => limit.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
 
-        if(limitToDelete == null)
+        if (limitToDelete == null)
         {
             Console.WriteLine("Budget limit not found or miss spelled.");
             Console.WriteLine("Press Enter to continue.");
@@ -1209,7 +1220,7 @@ class Progam
         }
 
         //Shows all current budget limits
-        foreach(BudgetLimit limit in budgetLimits)
+        foreach (BudgetLimit limit in budgetLimits)
         {
             Console.WriteLine($"{limit.Category}: {limit.LimitAmount:C}");
         }
@@ -1300,14 +1311,14 @@ class Progam
             double percentUsed = 0;
 
             //Calculates what percent of the budget has been used z
-            if(limit.LimitAmount > 0)
+            if (limit.LimitAmount > 0)
             {
                 percentUsed = categoryTotal / limit.LimitAmount * 100;
             }
 
             Console.WriteLine($"Used: {percentUsed:F1}%");
 
-            if(amountLeft >= 0)
+            if (amountLeft >= 0)
             {
                 Console.WriteLine($"Remaining: {amountLeft:C}");
 
@@ -1354,7 +1365,7 @@ class Progam
 
         //Adds current month expenses together
         List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
-        
+
         double totalSpent = 0;
 
         //Adds current month expenses together 
@@ -1377,7 +1388,7 @@ class Progam
         {
             double amountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
 
-            if(amountRemaining > 0)
+            if (amountRemaining > 0)
             {
                 savingsNeeded = amountRemaining;
             }
@@ -1583,33 +1594,50 @@ class Progam
     {
         FinancialSummary summary = new FinancialSummary();
 
-        //Gets only current month expenses
+        // Gets only current month expenses
         List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
 
         double totalSpent = 0;
 
-        //Adds current month expenses together
+        // Adds current month expenses together
         foreach (Expense expense in currentMonthExpenses)
         {
             totalSpent += expense.Amount;
         }
 
-        //Adds income information if it exists
+        // Gets active recurring expenses from the database
+        List<RecurringExpenses> recurringExpenses = dataBaseManager.GetRecuringExpenses();
+
+        double monthlyRecurringExpenses = 0;
+
+        // Adds recurring expenses together
+        foreach (RecurringExpenses expense in recurringExpenses)
+        {
+            monthlyRecurringExpenses += expense.Amount;
+        }
+
+        // Saves recurring expense information into the summary
+        summary.MonthlyRecurringExpenses = monthlyRecurringExpenses;
+        summary.RecurringExpenses = recurringExpenses;
+
+        // Adds income information if it exists
         if (userIncome != null)
         {
             summary.MonthlyIncome = userIncome.MonthlyAmount;
-            summary.MoneyLeft = userIncome.MonthlyAmount - totalSpent;
+
+            // Income minus regular spending minus recurring expenses
+            summary.MoneyLeft = userIncome.MonthlyAmount - totalSpent - monthlyRecurringExpenses;
         }
 
         summary.CurrentMonthSpent = totalSpent;
 
-        //Adds account balance information if it exists
+        // Adds account balance information if it exists
         if (userAccountBalance != null)
         {
             summary.TotalAccountBalance = userAccountBalance.GetTotalBalance();
         }
 
-        //Adds savings goal information if it exits
+        // Adds savings goal information if it exists
         if (userSavingsGoal != null)
         {
             summary.SavingsGoalName = userSavingsGoal.Name;
@@ -1626,7 +1654,7 @@ class Progam
             }
         }
 
-        //Finds biggest spending category
+        // Finds biggest spending category
         if (currentMonthExpenses.Count > 0)
         {
             var highestCategory = currentMonthExpenses
@@ -1643,27 +1671,27 @@ class Progam
             summary.BiggestCategoryAmount = highestCategory.Total;
         }
 
-        //Counts how mnay budget categorys are over budget
-        foreach(BudgetLimit limit in budgetLimits)
+        // Counts how many budget categories are over budget
+        foreach (BudgetLimit limit in budgetLimits)
         {
             double categoryTotal = 0;
 
-            foreach(Expense expense in currentMonthExpenses)
+            foreach (Expense expense in currentMonthExpenses)
             {
-                if(expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
+                if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
                 {
                     categoryTotal += expense.Amount;
                 }
             }
 
-            if(categoryTotal > limit.LimitAmount)
+            if (categoryTotal > limit.LimitAmount)
             {
                 summary.OverBudgetCount++;
             }
         }
 
         return summary;
-        
+
     }
 
     //Builds a clean text prompt that can later be sent to AI
@@ -1713,6 +1741,7 @@ class Progam
         prompt += $"Monthly Income: {summary.MonthlyIncome:C}\n";
         prompt += $"Current Month Spent: {summary.CurrentMonthSpent:C}\n";
         prompt += $"Money Left Before Savings: {summary.MoneyLeft:C}\n";
+        prompt += $"Monthly Recurring Expenses: {summary.MonthlyRecurringExpenses}";
         prompt += $"Savings Needed: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
         prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
@@ -1756,7 +1785,7 @@ class Progam
 
         // Use "python" first. If it does not work, change this to "py"
         startInfo.FileName = "py";
-        
+
         // Name of the Python file
         startInfo.Arguments = "ai_coach.py";
 
@@ -1843,6 +1872,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that allows user to look at AIHistory
     static void ViewAIAdviceHistory()
     {
         Console.Clear();
@@ -1858,7 +1888,7 @@ class Progam
         }
         else
         {
-            foreach(AIAdvice advice in adviceHistory)
+            foreach (AIAdvice advice in adviceHistory)
             {
                 Console.WriteLine($"ID: {advice.Id}");
                 Console.WriteLine($"Date: {advice.DateCreated}");
@@ -1874,6 +1904,7 @@ class Progam
         Console.ReadLine();
     }
 
+    
     static void VewAIAdviceById()
     {
         Console.Clear();
@@ -1884,7 +1915,7 @@ class Progam
         Console.WriteLine("Enter AI Advice ID: ");
         string input = Console.ReadLine();
 
-        if(!int.TryParse(input, out int id))
+        if (!int.TryParse(input, out int id))
         {
             Console.WriteLine("Invalid ID.");
             Console.WriteLine("Press enter to continue.");
@@ -1894,7 +1925,7 @@ class Progam
 
         AIAdvice? advice = dataBaseManager.GetAIAdviceById(id);
 
-        if(advice == null)
+        if (advice == null)
         {
             Console.WriteLine("No AI advice found with that ID.");
         }
@@ -1959,10 +1990,11 @@ class Progam
             }
         }
 
-            Console.WriteLine();
-            Console.WriteLine("Press Enter to continue.");
-            Console.ReadLine();
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
     }
+
 
     //Deleted useres saved AI advice 
     static void DeleteAIAdvice()
@@ -2034,7 +2066,7 @@ class Progam
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
-}
+    }
 
     //Method that shows the Financial Sumamry
     static void ViewFinancialSummary()
@@ -2050,7 +2082,7 @@ class Progam
         Console.WriteLine($"Total Account Balance: {summary.TotalAccountBalance:C}");
         Console.WriteLine();
 
-        if(userSavingsGoal != null)
+        if (userSavingsGoal != null)
         {
             Console.WriteLine("Savings Goal");
             Console.WriteLine($"Goal Name: {summary.SavingsGoalName}");
@@ -2062,7 +2094,7 @@ class Progam
             Console.WriteLine();
         }
 
-        if(summary.BiggestCategoryAmount != null)
+        if (summary.BiggestCategoryAmount != null)
         {
             Console.WriteLine("Spending:");
             Console.WriteLine($"Biggest Category: {summary.BiggestSpendingCategory}");
@@ -2078,7 +2110,7 @@ class Progam
 
     static void ViewAIAdviceHistorySummary()
     {
-               Console.Clear();
+        Console.Clear();
         Console.WriteLine("=== AI Advice History Summary ===");
         Console.WriteLine();
         List<AIAdvice> adviceHistory = dataBaseManager.GetAIAdviceHistory();
@@ -2092,7 +2124,7 @@ class Progam
             {
                 string preview = advice.AdviceText;
 
-                if(preview.Length > 120)
+                if (preview.Length > 120)
                 {
                     preview = preview.Substring(0, 120) + "...";
                 }
@@ -2116,7 +2148,7 @@ class Progam
 
         Console.WriteLine("=== Safe-to-Spend Amount ===");
 
-        if(userIncome == null)
+        if (userIncome == null)
         {
             Console.WriteLine("Set your monthly income first.");
             Console.WriteLine("Press Enter to continue.");
@@ -2129,7 +2161,7 @@ class Progam
         double savingsNeeded = 0;
 
         //Uses the remaining savings goal amount if a goal exists
-        if(userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
         {
             savingsNeeded = summary.SavingsAmountRemaining;
         }
@@ -2176,7 +2208,7 @@ class Progam
         }
 
         FinancialSummary summary = BuildFinancialSummary();
-        
+
         double savingsNeeded = 0;
 
         //Uses remainging savings gaol amount if a goal exists
@@ -2186,7 +2218,7 @@ class Progam
         }
 
         //Calculates safe-to-spend amount that is safe to spend
-        double safeToSpend = summary.MoneyLeft - savingsNeeded; 
+        double safeToSpend = summary.MoneyLeft - savingsNeeded;
 
         DateTime today = DateTime.Today;
 
@@ -2196,7 +2228,7 @@ class Progam
         //Calculates how many days are left in the month
         double dailySafeToSpend = 0;
 
-        if(daysLeftInMonth > 0)
+        if (daysLeftInMonth > 0)
         {
             dailySafeToSpend = safeToSpend / daysLeftInMonth;
         }
@@ -2205,7 +2237,7 @@ class Progam
         Console.WriteLine($"Days Left This Month: {daysLeftInMonth}");
         Console.WriteLine("---------------------");
 
-        if(safeToSpend >= 0)
+        if (safeToSpend >= 0)
         {
             Console.WriteLine($"Daily Safe-to-Spend: {dailySafeToSpend:C}");
             Console.WriteLine("This is about how much you can safely spend each day for the rest of the month.");
@@ -2269,7 +2301,7 @@ class Progam
         Console.WriteLine($"Weeks Left of this Month: {weeksLeftInMonth}");
         Console.WriteLine("------------------------");
 
-        if (safeToSpend >= 0 )
+        if (safeToSpend >= 0)
         {
             Console.WriteLine($"Weekly Safe-to-Spend: {weeklySafeToSpend:C}");
             Console.WriteLine($"This is about how much you can safely spend each week for the rest of the month.");
@@ -2285,6 +2317,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //method that shows a monthlyReport
     static void ViewMonthlyReport()
     {
         Console.Clear();
@@ -2294,7 +2327,7 @@ class Progam
 
         FinancialSummary summary = BuildFinancialSummary();
 
-        double savingsNeeded = 0;   
+        double savingsNeeded = 0;
 
         //Uses remaining savings goal amount if a goal exists
         if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
@@ -2305,7 +2338,7 @@ class Progam
         //Calculates safe to spend amount
         double safeToSpend = summary.MoneyLeft - savingsNeeded;
 
-        DateTime today= DateTime.Today;
+        DateTime today = DateTime.Today;
 
         //Gets how many days are in the current month 
         int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
@@ -2351,6 +2384,110 @@ class Progam
         Console.WriteLine($"Over Budget Categories: {summary.OverBudgetCount}");
 
         Console.WriteLine();
+
+    }
+
+    static void AddRecurringExpenseMenu()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Add Recuring Expense ===");
+
+        Console.WriteLine("Name: ");
+        string name = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Console.WriteLine("Name cannont be empty.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine("Category: ");
+        string category = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(category))
+        {
+            Console.WriteLine("Category cannot be empty.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine("Monthly Amount: ");
+        string amountInput = Console.ReadLine();
+
+        if (!double.TryParse(amountInput, out double amount) || amount <= 0)
+        {
+            Console.WriteLine("Invalid amount. Please enter a number greater than 0.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+        }
+
+        Console.WriteLine("Due Day (1-31): ");
+        string dueDayInput = Console.ReadLine();
+
+        if (!int.TryParse(dueDayInput, out int dueDay) || dueDay > 31)
+        {
+            Console.WriteLine("Invalud due date. Please enter one number from 1 to 31");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+        }
+
+
+
+        RecurringExpenses expense = new RecurringExpenses(
+            0,
+            name,
+            category,
+            amount,
+            dueDay,
+            true
+            );
+
+        dataBaseManager.AddRecurringExpense(expense);
+
+        Console.WriteLine();
+        Console.WriteLine("Reccuring expense added successfully.");
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+    }
+
+    static void ViewRecurringExpenses()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== View Recurring Expenses");
+
+        List<RecurringExpenses> expenses = dataBaseManager.GetRecuringExpenses();
+
+        if (expenses.Count == 0)
+        {
+            Console.WriteLine("No recurring expenses ");
+        }
+        else
+        {
+            double total = 0;
+
+            foreach (RecurringExpenses expense in expenses)
+            {
+                Console.WriteLine($"Id: {expense.Id}");
+                Console.WriteLine($"Name: {expense.Name}");
+                Console.WriteLine($"Category: {expense.Category}");
+                Console.WriteLine($"Amount: {expense.Amount:C}");
+                Console.WriteLine($"Due Day: {expense.DueDay}");
+
+                total += expense.Amount;
+            }
+
+            Console.WriteLine($"Monthly Recurring Total: {total:C}");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
 
     }
 

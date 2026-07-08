@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Dynamic;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices.Marshalling;
 
 class DataBaseManager
@@ -70,6 +71,15 @@ class DataBaseManager
             DateCreated TEXT NOT NULL
         );";
 
+        string createRecurringExpensesTable = @"
+        CREATE TABLE IF NOT EXISTS RecurringExpenses (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name TEXT NOT NULL,
+            Category TEXT NOT NULL,
+            Amount REAL NOT NULL,
+            DueDay INTEGER NOT NULL,
+            IsActive INTEGER NOT NULL
+            );";
 
         using SqliteCommand command = new SqliteCommand(createExpenseTable, connection);
         command.ExecuteNonQuery();
@@ -88,7 +98,10 @@ class DataBaseManager
 
         using SqliteCommand aICommand = new SqliteCommand(createAIAdviceHistoryTable, connection); 
         aICommand.ExecuteNonQuery();
-        
+
+        using SqliteCommand recurringExpensesCommand = new SqliteCommand(createRecurringExpensesTable, connection);
+        recurringExpensesCommand.ExecuteNonQuery();
+
     }
 
     //Saves a new expense in the database 
@@ -526,6 +539,61 @@ class DataBaseManager
         }
 
         return results;
+    }
+
+    //Add a recurring expense to the database
+    public void AddRecurringExpense(RecurringExpenses expense)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+        
+        string insertRecurringExpense = @"
+        INSERT INTO RecurringExpenses (Name, Category, Amount, DueDay, IsActive)
+        VALUES (@Name, @Category, @Amount, @DueDay, @IsActive);
+        ";
+        using SqliteCommand command = new SqliteCommand(insertRecurringExpense, connection);
+
+        command.Parameters.AddWithValue("@Name", expense.Name);
+        command.Parameters.AddWithValue("@Category", expense.Category);
+        command.Parameters.AddWithValue("@Amount", expense.Amount);
+        command.Parameters.AddWithValue("@DueDay", expense.DueDay);
+        command.Parameters.AddWithValue("@IsActive", expense.IsActive ? 1 : 0);
+
+        command.ExecuteNonQuery();  
+    }
+
+    //gets all recurring expenses from the database
+    public List<RecurringExpenses> GetRecuringExpenses()
+    {
+        List<RecurringExpenses> expenses = new List<RecurringExpenses>();
+
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+
+        connection.Open();
+
+        string query = @"
+        SELECT Id, Name, Category, Amount, DueDay, IsActive
+        FROM RecurringExpenses;
+        WHERE IsActive = 1;
+        ";
+
+        using SqliteCommand command = new SqliteCommand(query, connection);
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            expenses.Add(new RecurringExpenses(
+                reader.GetInt32(0),
+                reader.GetString(1),
+                reader.GetString(2),
+                reader.GetDouble(3),
+                reader.GetInt32(4),
+                reader.GetInt32(5) == 1
+            ));
+        }
+
+        return expenses;
     }
 
 }

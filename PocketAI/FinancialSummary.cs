@@ -41,4 +41,8 @@ class FinancialSummary
 
     // Stores number of budget categories over limit
     public int OverBudgetCount { get; set; }
+
+    public double MonthlyRecurringExpenses { get; set; }
+
+    public List<RecurringExpenses> RecurringExpenses { get; set; }
 }
