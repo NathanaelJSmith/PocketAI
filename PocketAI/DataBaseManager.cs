@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Dynamic;
 using System.Runtime.InteropServices.Marshalling;
 
@@ -445,6 +446,86 @@ class DataBaseManager
         }
 
         return adviceHistory;
+    }
+
+    public AIAdvice? GetAIAdviceById(int id)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string selectAIAdviceById = @"
+        SELECT Id, Prompt, AdviceText, DateCreated
+        FROM AIAdviceHistory
+        WHERE Id = @Id;";
+
+        using SqliteCommand command = new SqliteCommand(selectAIAdviceById, connection);
+        command.Parameters.AddWithValue("@Id", id);
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        if (reader.Read())
+        {
+            int adviceId = reader.GetInt32(0);
+            string prompt = reader.GetString(1);
+            string adviceText = reader.GetString(2);
+            DateTime dateCreated = DateTime.Parse(reader.GetString(3));
+
+            return new AIAdvice(adviceId, prompt, adviceText, dateCreated);
+        }
+        return null;
+    }
+
+    public bool DeleteAIAdviceById(int id)
+    {
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string deleteAIAdvice = @"
+        DELETE FROM AIAdviceHistory
+        WHERE Id = @Id;";
+
+        using SqliteCommand command = new SqliteCommand(deleteAIAdvice, connection);
+
+        command.Parameters.AddWithValue("@Id", id);
+
+        int rowsAffected = command.ExecuteNonQuery();
+
+        return rowsAffected > 0;
+    }
+
+    //Searches saved AI advice records by keyword 
+    public List<AIAdvice> SearchAIAdvice(string keyword)
+    {
+        List<AIAdvice> results = new List<AIAdvice>();
+
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string searchAIAdvice = @"
+        Select Id, Prompt, AdviceText, DateCreated
+        FROM AIAdviceHistory
+        WHERE AdviceText LIKE @Keyword
+        OR PROMPT LIKE @Keyword
+        ORDER BY Id DESC;";
+
+        using SqliteCommand command = new SqliteCommand(searchAIAdvice, connection);
+
+        command.Parameters.AddWithValue("@Keyword", "%" + keyword + "%");
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            int id = reader.GetInt32(0);
+            string prompt = reader.GetString(1);
+            string adviceText = reader.GetString(2);
+            DateTime dateCreated = DateTime.Parse(reader.GetString(3));
+            AIAdvice advice = new AIAdvice(id, prompt, adviceText, dateCreated);
+
+            results.Add(advice);
+        }
+
+        return results;
     }
 
 }

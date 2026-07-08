@@ -4,6 +4,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
+using System.Transactions;
 
 class Progam
 {
@@ -79,34 +80,53 @@ class Progam
             Console.WriteLine("6. Filtered by Categories");
             Console.WriteLine("7. Total by Category");
             Console.WriteLine("8. Category BreakDown");
+            Console.WriteLine("9. View Current Month Spending");
             Console.WriteLine();
 
             Console.WriteLine("--- Income ---");
-            Console.WriteLine("9. Set Monthly Income");
-            Console.WriteLine("10. View Monthly Income");
+            Console.WriteLine("10. Set Monthly Income");
+            Console.WriteLine("11. View Monthly Income");
+            Console.WriteLine();
 
-            Console.WriteLine("11. Set Savings Goal");
-            Console.WriteLine("12. View Savings Goal");
-            Console.WriteLine("13. View Savings Plan");
-            Console.WriteLine("14. Add Budget Limit");
-            Console.WriteLine("15. View Budget Limits");
-            Console.WriteLine("16. Check Budget Limits");
-            Console.WriteLine("17. AI Money Coach");
-            Console.WriteLine("18. View Current Month Spending");
-            Console.WriteLine("19. Set Account Balance");
-            Console.WriteLine("20. View Account Balance");
-            Console.WriteLine("21. Add Money to Savings Goal");
-            Console.WriteLine("22. With draw From Savings Goal");
-            Console.WriteLine("23. Delete Budget Limit");
-            Console.WriteLine("24. Edit Budget Limit");
+            Console.WriteLine("--- Savings ---");
+            Console.WriteLine("12. Set Savings Goal");
+            Console.WriteLine("13. View Savings Goal");
+            Console.WriteLine("14. View Savings Plan");
+            Console.WriteLine("15. Add Money to Savings Goal");
+            Console.WriteLine("16. With draw From Savings Goal");
+            Console.WriteLine();
+
+            Console.WriteLine("--- Budget Limits ---");
+            Console.WriteLine("17. Add Budget Limit");
+            Console.WriteLine("18. View Budget Limits");
+            Console.WriteLine("19. Check Budget Limits");
+            Console.WriteLine("20. Delete Budget Limit");
+            Console.WriteLine("21. Edit Budget Limit");
+            Console.WriteLine();
+
+            Console.WriteLine("--- Account Balance ---");
+            Console.WriteLine("22. Set Account Balance");
+            Console.WriteLine("23. View Account Balance");
+            Console.WriteLine();
+
+            Console.WriteLine("--- PocketAI Coach ---");
+            Console.WriteLine("24. AI Money Coach");
             Console.WriteLine("25. View Financial Sumamry");
             Console.WriteLine("26. View Safe-to-Spend Amount");
             Console.WriteLine("27. View Daily Safe-to-Spend");
             Console.WriteLine("28. View Weekly Safe-to-Spend Limit");
             Console.WriteLine("29. View AI Prompt");
             Console.WriteLine("30. View Python AI Advice");
-            Console.WriteLine("31. View AI ADvice History");
-            Console.WriteLine("32. Exit");
+            Console.WriteLine("31. View AI Advice History");
+            Console.WriteLine("32. View Monthly Report");
+            Console.WriteLine("33. View AI Advice History Summary");
+            Console.WriteLine("34. View AI Advice by ID");
+            Console.WriteLine("35. Delete AI Advice.");
+            Console.WriteLine("36. Search AI Advice History.");
+            Console.WriteLine();
+
+            Console.WriteLine("37. Exit");
+            Console.WriteLine();
             Console.WriteLine("Choose an option");
 
             string choice = Console.ReadLine();
@@ -117,97 +137,142 @@ class Progam
                 case "1":
                     AddExpense();
                     break;
+
                 case "2":
                     ViewExpenses();
                     break;
+
                 case "3":
                     ViewTotalSpent();
                     break;
+
                 case "4":
                     DeleteExpense();
                     break;
+
                 case "5":
                     EditExpense();
                     break;
+
                 case "6":
                     FilteredbyCategory();
                     break;
+
                 case "7":
                     TotalByCategory();
                     break;
+
                 case "8":
                     CategoryBreakdown();
                     break;
+
                 case "9":
-                    SetMonthlyIncome();
-                    break;
-                case "10":
-                    ViewMonthlyIncome();
-                    break;
-                case "11":
-                    SetSavingsGoal();
-                    break;
-                case "12":
-                    ViewSavingsGoal();
-                    break;
-                case "13":
-                    ViewSavingsPlan();
-                    break;
-                case "14":
-                    AddBudgetLimits();
-                    break;
-                case "15":
-                    ViewBudgetLimits();
-                    break;
-                case "16":
-                    CheckBudgetLimits();
-                    break;
-                case "17":
-                    AIMoneyCoach();
-                    break;
-                case "18":
                     ViewCurrentMonthSpending();
                     break;
-                case "19":
-                    SetAccountBalance();
+
+                case "10":
+                    SetMonthlyIncome();
                     break;
-                case "20":
-                    ViewAccountBalance();
+
+                case "11":
+                    ViewMonthlyIncome();
                     break;
-                case "21":
+
+                case "12":
+                    SetSavingsGoal();
+                    break;
+
+                case "13":
+                    ViewSavingsGoal();
+                    break;
+
+                case "14":
+                    ViewSavingsPlan();
+                    break;
+
+                case "15":
                     AddMoneyTosavingsGoal();
                     break;
-                case "22":
+
+                case "16":
                     WithDrawFromSavingsGoal();
                     break;
-                case "23":
+
+                case "17":
+                    AddBudgetLimits();
+                    break;
+
+                case "18":
+                    ViewBudgetLimits();
+                    break;
+
+                case "19":
+                    CheckBudgetLimits();
+                    break;
+
+                case "20":
                     DeleteBudgetLimit();
                     break;
-                case "24":
+
+                case "21":
                     EditBudgetLimits();
                     break;
+
+                case "22":
+                    SetAccountBalance();
+                    break;
+
+                case "23":
+                    ViewAccountBalance();
+                    break;
+
+                case "24":
+                    AIMoneyCoach();
+                    break;
+
                 case "25":
                     ViewFinancialSummary();
                     break;
+
                 case "26":
                     ViewSafeToSpend();
                     break;
+
                 case "27":
                     ViewDailySafeToSpend();
                     break;
+
                 case "28":
                     ViewWeeklySafeToSpend();
                     break;
+
                 case "29":
-                        ViewAIPrompt();
+                    ViewAIPrompt();
                     break;
-                case"30":
-                        ViewPythonAIAdivce();
+
+                case "30":
+                    ViewPythonAIAdivce();
                     break;
+
                 case "31":
                     ViewAIAdviceHistory();
                     break;
                 case "32":
+                    ViewMonthlyReport();
+                    break;
+                case "33":
+                    ViewAIAdviceHistorySummary();
+                    break;
+                case "34":
+                    VewAIAdviceById();
+                    break;
+                case "35":
+                    DeleteAIAdvice();
+                    break;
+                case "36":
+                    SearchAIAdviceHistory();
+                    break;
+                case "37":
                     running = false;
                     break;
 
@@ -1648,7 +1713,7 @@ class Progam
         prompt += $"Monthly Income: {summary.MonthlyIncome:C}\n";
         prompt += $"Current Month Spent: {summary.CurrentMonthSpent:C}\n";
         prompt += $"Money Left Before Savings: {summary.MoneyLeft:C}\n";
-        prompt += $"Savings Needd: {savingsNeeded:C}\n";
+        prompt += $"Savings Needed: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
         prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
         prompt += $"Weekly Safe To Spend: {weeklySafeToSpend:C} \n";
@@ -1809,6 +1874,168 @@ class Progam
         Console.ReadLine();
     }
 
+    static void VewAIAdviceById()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== View AI Advice by ID ===");
+        Console.WriteLine();
+
+        Console.WriteLine("Enter AI Advice ID: ");
+        string input = Console.ReadLine();
+
+        if(!int.TryParse(input, out int id))
+        {
+            Console.WriteLine("Invalid ID.");
+            Console.WriteLine("Press enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        AIAdvice? advice = dataBaseManager.GetAIAdviceById(id);
+
+        if(advice == null)
+        {
+            Console.WriteLine("No AI advice found with that ID.");
+        }
+        else
+        {
+            Console.WriteLine($"ID: {advice.Id}");
+            Console.WriteLine($"Date: {advice.DateCreated}");
+            Console.WriteLine();
+
+            Console.WriteLine("Advice:");
+            Console.WriteLine(advice.AdviceText);
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+    }
+
+    static void SearchAIAdviceHistory()
+    {
+        Console.Clear();
+        Console.WriteLine("=== Search AI Advice ===");
+        Console.WriteLine();
+
+        Console.WriteLine("Enter seach keyword: ");
+        string keyword = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(keyword))
+        {
+            Console.WriteLine("Search keyword cannot be found.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        List<AIAdvice> results = dataBaseManager.SearchAIAdvice(keyword);
+
+        if (results.Count == 0)
+        {
+            Console.WriteLine("No saved AI advice matched that keyword");
+        }
+        else
+        {
+            foreach (AIAdvice advice in results)
+            {
+                string preview = advice.AdviceText;
+
+                if (preview.Length > 150)
+                {
+                    preview = preview.Substring(0, 150) + "...";
+                }
+
+                Console.WriteLine($"ID: {advice.Id}");
+                Console.WriteLine($"Date: {advice.DateCreated}");
+                Console.WriteLine($"Preview: {preview}");
+                Console.WriteLine("-------------------------------");
+
+
+
+
+            }
+        }
+
+            Console.WriteLine();
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+    }
+
+    //Deleted useres saved AI advice 
+    static void DeleteAIAdvice()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Delete AI Advice ===");
+        Console.WriteLine();
+
+        Console.Write("Enter AI advice ID to delete: ");
+        string input = Console.ReadLine();
+
+        if (!int.TryParse(input, out int id))
+        {
+            Console.WriteLine("Invalid ID.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        AIAdvice? advice = dataBaseManager.GetAIAdviceById(id);
+
+        if (advice == null)
+        {
+            Console.WriteLine("No AI advice found with that ID.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        Console.WriteLine();
+        Console.WriteLine($"ID: {advice.Id}");
+        Console.WriteLine($"Date: {advice.DateCreated}");
+        Console.WriteLine();
+
+        string preview = advice.AdviceText;
+
+        if (preview.Length > 200)
+        {
+            preview = preview.Substring(0, 200) + "...";
+        }
+
+        Console.WriteLine("Preview:");
+        Console.WriteLine(preview);
+        Console.WriteLine();
+
+        Console.Write("Are you sure you want to delete this AI advice? yes/no: ");
+        string confirm = Console.ReadLine().ToLower();
+
+        if (confirm != "yes")
+        {
+            Console.WriteLine("Delete canceled.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+            return;
+        }
+
+        bool deleted = dataBaseManager.DeleteAIAdviceById(id);
+
+        if (deleted)
+        {
+            Console.WriteLine("AI advice deleted successfully.");
+        }
+        else
+        {
+            Console.WriteLine("No AI advice found with that ID.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+}
+
     //Method that shows the Financial Sumamry
     static void ViewFinancialSummary()
     {
@@ -1847,6 +2074,39 @@ class Progam
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
+    }
+
+    static void ViewAIAdviceHistorySummary()
+    {
+               Console.Clear();
+        Console.WriteLine("=== AI Advice History Summary ===");
+        Console.WriteLine();
+        List<AIAdvice> adviceHistory = dataBaseManager.GetAIAdviceHistory();
+        if (adviceHistory.Count == 0)
+        {
+            Console.WriteLine("No AI advice history saved yet.");
+        }
+        else
+        {
+            foreach (AIAdvice advice in adviceHistory)
+            {
+                string preview = advice.AdviceText;
+
+                if(preview.Length > 120)
+                {
+                    preview = preview.Substring(0, 120) + "...";
+                }
+
+                Console.WriteLine($"ID: {advice.Id}");
+                Console.WriteLine($"Date: {advice.DateCreated}");
+                Console.WriteLine($"Preview: {preview}");
+                Console.WriteLine("------------------------------------------------------------");
+            }
+        }
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
     }
 
     //Method that shows how much money is left to spend after each protection savings
@@ -2023,6 +2283,75 @@ class Progam
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
+    }
+
+    static void ViewMonthlyReport()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Monthly Report ===");
+        Console.WriteLine();
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        double savingsNeeded = 0;   
+
+        //Uses remaining savings goal amount if a goal exists
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded = summary.SavingsAmountRemaining;
+        }
+
+        //Calculates safe to spend amount
+        double safeToSpend = summary.MoneyLeft - savingsNeeded;
+
+        DateTime today= DateTime.Today;
+
+        //Gets how many days are in the current month 
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
+        //Converts days left into weeks left 
+        double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0);
+
+        double dailySafeToSpend = 0;
+        double weeklySafeToSpend = 0;
+
+        if (daysLeftInMonth > 0)
+        {
+            //Divides safe to spend money by days left 
+            dailySafeToSpend = safeToSpend / daysLeftInMonth;
+        }
+
+        if (weeksLeftInMonth > 0)
+        {
+            //Divdes safe to spend money by weeks left
+            weeklySafeToSpend = safeToSpend / weeksLeftInMonth;
+        }
+
+
+
+        Console.WriteLine($"Monthly Income: {summary.MonthlyIncome:C}");
+        Console.WriteLine($"Current Month Spent: {summary.CurrentMonthSpent:C}");
+        Console.WriteLine($"Money Left Before Savings: {summary.MoneyLeft:C}");
+        Console.WriteLine();
+
+        Console.WriteLine("--- Savings ---");
+        Console.WriteLine($"Savings Goal: {summary.SavingsGoalName}");
+        Console.WriteLine($"Target Amount: {summary.SavingsTargetAmount:C}");
+        Console.WriteLine($"Current Saved: {summary.CurrentSavedAmount:C}");
+        Console.WriteLine($"Savings Needed: {summary.SavingsAmountRemaining:C}");
+        Console.WriteLine($"Days Left: {summary.DaysLeft:F0}");
+        Console.WriteLine($"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}");
+        Console.WriteLine();
+
+        Console.WriteLine("--- Spending ---");
+        Console.WriteLine($"Top Spending Category: {summary.BiggestSpendingCategory}");
+        Console.WriteLine($"Top Category Amount: {summary.BiggestCategoryAmount:C}");
+        Console.WriteLine($"Over Budget Categories: {summary.OverBudgetCount}");
+
+        Console.WriteLine();
+
     }
 
     //Method that gives simple advice on a spending category(Fake AI Going to implemt AI in Python after fully done with C#)
