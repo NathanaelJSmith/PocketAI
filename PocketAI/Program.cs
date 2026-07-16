@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Diagnostics;
 using System.Transactions;
+using Microsoft.VisualBasic;
 
 class Progam
 {
@@ -128,8 +129,10 @@ class Progam
 
             Console.WriteLine("--- Recently Added Going to Orginize later ---");
             Console.WriteLine("38. View Recurring Expenses");
+            Console.WriteLine("39. View Upcoming Bills");
+            Console.WriteLine("40. Weekly Spending Report");
 
-            Console.WriteLine("39. Exit");
+            Console.WriteLine("41. Exit");
             Console.WriteLine();
             Console.WriteLine("Choose an option");
 
@@ -279,11 +282,16 @@ class Progam
                 case "37":
                     SearchAIAdviceHistory();
                     break;
-
                 case "38":
                         ViewRecurringExpenses();
                     break;
                 case "39":
+                    ViewUpComingBill();
+                    break;
+                case "40":
+                    ViewWeeklyReport();
+                    break;
+                case "41":
                     running = false;
                     break;
 
@@ -1737,11 +1745,31 @@ class Progam
         prompt += "You are PocketAI, a helpful money coach.\n";
         prompt += "Use the user's financial summary to give clear practical budgeting advice.\n\n";
 
+        //Financial Summary
         prompt += "Financial Summary:\n";
         prompt += $"Monthly Income: {summary.MonthlyIncome:C}\n";
         prompt += $"Current Month Spent: {summary.CurrentMonthSpent:C}\n";
         prompt += $"Money Left Before Savings: {summary.MoneyLeft:C}\n";
-        prompt += $"Monthly Recurring Expenses: {summary.MonthlyRecurringExpenses}";
+        prompt += $"Monthly Recurring Expenses: {summary.MonthlyRecurringExpenses}\n";
+
+        //Upcoming Bills/ Recurring Expenses
+        prompt += "\nUpcoming Bills:\n";
+        List <RecurringExpenses> upcomingBills = dataBaseManager.GetRecuringExpenses();
+        if (upcomingBills.Count > 0)
+        {
+            foreach (RecurringExpenses bill in upcomingBills)
+            {
+                int daysUntilDue = GetDaysUntilDue(bill.DueDay);
+
+                prompt += $"{bill.Name}: {bill.Amount}, due in {daysUntilDue} days(s)\n";
+            }
+        }
+        else
+        {
+            prompt += "No upcoming recurring bills.";
+        }
+
+        prompt += "\n";
         prompt += $"Savings Needed: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
         prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
@@ -1904,7 +1932,7 @@ class Progam
         Console.ReadLine();
     }
 
-    
+    //Views AI advice history by Id
     static void VewAIAdviceById()
     {
         Console.Clear();
@@ -1945,6 +1973,7 @@ class Progam
 
     }
 
+    //Allows user to search there AI advice history with a keyword
     static void SearchAIAdviceHistory()
     {
         Console.Clear();
@@ -1994,7 +2023,6 @@ class Progam
         Console.WriteLine("Press Enter to continue.");
         Console.ReadLine();
     }
-
 
     //Deleted useres saved AI advice 
     static void DeleteAIAdvice()
@@ -2384,9 +2412,74 @@ class Progam
         Console.WriteLine($"Over Budget Categories: {summary.OverBudgetCount}");
 
         Console.WriteLine();
+        Console.WriteLine("Press Enter to Continue.");
+        Console.ReadLine();
 
     }
+    
+    // Gets expenses from the current week
+    static List<Expense> GetCurrentWeekExpenses()
+    {
+        DateTime today = DateTime.Today;
 
+        //Monday is the first day of the week
+        int difference = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+
+        DateTime startOfWeek = today.AddDays(-difference);
+
+        return expenses
+            .Where(expense => expense.Date >= startOfWeek)
+            .ToList();
+    }
+    
+    //Shows weekly spending report
+    static void ViewWeeklyReport()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Weekly Spending Report ===");
+        Console.WriteLine();
+
+        List<Expense> weeklyExpenses = GetCurrentWeekExpenses();
+
+    double totalSpent = 0;
+
+    foreach (Expense expense in weeklyExpenses)
+    {
+        totalSpent += expense.Amount;
+    }
+
+    Console.WriteLine($"Spent This Week: {totalSpent:C}");
+
+    if (weeklyExpenses.Count > 0)
+    {
+        var highestCategory = weeklyExpenses
+            .GroupBy(expense => expense.Category)
+            .Select(group => new
+            {
+                Category = group.Key,
+                Total = group.Sum(expense => expense.Amount)
+            })
+            .OrderByDescending(group => group.Total)
+            .First();
+
+        Console.WriteLine($"Biggest Category: {highestCategory.Category}");
+        Console.WriteLine($"Category Amount: {highestCategory.Total:C}");
+    }
+    else
+    {
+        Console.WriteLine("No expenses recorded this week.");
+    }
+
+    double dailyAverage = totalSpent / 7;
+
+    Console.WriteLine($"Daily Average Spending: {dailyAverage:C}");
+
+    Console.WriteLine();
+    Console.WriteLine("Press Enter to continue.");
+    Console.ReadLine();
+    }
+    //Method that allows user to Add Recurring Expenses like subscriptions
     static void AddRecurringExpenseMenu()
     {
         Console.Clear();
@@ -2455,6 +2548,7 @@ class Progam
         Console.ReadLine();
     }
 
+    //Method that allows user to view all recurring expenses
     static void ViewRecurringExpenses()
     {
         Console.Clear();
@@ -2491,6 +2585,69 @@ class Progam
 
     }
 
+    //Calculates how many days until a recurring expense is due
+    static int GetDaysUntilDue(int dueDay)
+
+    {
+        DateTime today = DateTime.Today;
+
+        DateTime dueDate;
+
+        //If the due day already passed this month, move to next month
+        if (today.Day >= dueDay)
+        {
+            DateTime nextMonth = today.AddMonths(1);
+
+            dueDate = new DateTime(
+                nextMonth.Year,
+                nextMonth.Month,
+                dueDay
+            );
+        }
+        else
+        {
+            dueDate = new DateTime(
+                today.Year,
+                today.Month,
+                dueDay
+            );
+        }
+        return (dueDate - today).Days;
+    }
+
+    //Shows upcoming bills
+    static void ViewUpComingBill()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Upcoming Bills");
+        Console.WriteLine();
+
+        List<RecurringExpenses> expenses = dataBaseManager.GetRecuringExpenses();
+
+        if(expenses.Count == 0)
+        {
+            Console.WriteLine("No Recurring Expenses");
+        }
+        else
+        {
+            foreach (RecurringExpenses expense in expenses)
+            {
+                int daysUntilDue = GetDaysUntilDue(expense.DueDay);
+
+                Console.WriteLine($"Name: {expense.Name}");
+                Console.WriteLine($"Category: {expense.Category}");
+                Console.WriteLine($"Amount: {expense.Amount:C}");
+                Console.WriteLine($"Due Day: {expense.DueDay}");
+                Console.WriteLine($"Due In: {daysUntilDue} days(s)");
+                Console.WriteLine("---------------------------------");
+            }
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to Continue.");
+        Console.ReadLine();
+    }
     //Method that gives simple advice on a spending category(Fake AI Going to implemt AI in Python after fully done with C#)
     static void GiveCategoryAdvice(string category, double total)
     {
