@@ -131,8 +131,10 @@ class Progam
             Console.WriteLine("38. View Recurring Expenses");
             Console.WriteLine("39. View Upcoming Bills");
             Console.WriteLine("40. Weekly Spending Report");
+            Console.WriteLine("41. Weekly Spending Comparison");
+            Console.WriteLine("42. Monthly Spending Comparison");
 
-            Console.WriteLine("41. Exit");
+            Console.WriteLine("43. Exit");
             Console.WriteLine();
             Console.WriteLine("Choose an option");
 
@@ -292,6 +294,12 @@ class Progam
                     ViewWeeklyReport();
                     break;
                 case "41":
+                    ViewWeeklyComparison();
+                    break;
+                case "42":
+                    ViewMonthComparison();
+                    break;
+                case "43":
                     running = false;
                     break;
 
@@ -1761,13 +1769,71 @@ class Progam
             {
                 int daysUntilDue = GetDaysUntilDue(bill.DueDay);
 
-                prompt += $"{bill.Name}: {bill.Amount}, due in {daysUntilDue} days(s)\n";
+                prompt += $"{bill.Name}: {bill.Amount:C}, due in {daysUntilDue} days(s)\n";
             }
         }
         else
         {
             prompt += "No upcoming recurring bills.";
         }
+
+        //Adds Weekly spending information for AI
+        List<Expense> weeklyExpenses = GetCurrentWeekExpenses();
+
+        double weeklySpent = 0;
+
+        foreach(Expense expense in weeklyExpenses)
+        {
+            weeklySpent += expense.Amount;
+        }
+
+        prompt += "\nWeekly Spending:\n";
+        prompt += $"Spent This Week: {weeklySpent:C}\n";
+        prompt += $"Daily Average Spending: {(weeklySpent / 7):C}\n";
+
+        if (weeklyExpenses.Count > 0)
+        {
+            var weeklyCategory = weeklyExpenses
+            .GroupBy(expense => expense.Category)
+            .Select(group => new
+            {
+                Category = group.Key,
+                Total = group.Sum(expense => expense.Amount)
+            })
+            .OrderByDescending(group => group.Total)
+            .First();
+
+            prompt += $"Biggest Weekly Category {weeklyCategory.Category:C}\n";
+            prompt += $"Weekly Category Amount {weeklyCategory.Total:C}\n";
+        }
+
+        prompt += "\n";
+
+        List<Expense> currentWeekExpenses = GetCurrentWeekExpenses();
+        List<Expense> lastWeekExpenses = GetLastWeekExpenses();
+
+        double currentWeekTotal = currentWeekExpenses.Sum(expense => expense.Amount);
+        double lastWeekTotal = lastWeekExpenses.Sum(expense => expense.Amount);
+
+        double spendingDifference = currentWeekTotal - lastWeekTotal;
+
+        prompt += "\nWeekly Comparison:\n";
+        prompt += $"This Week Spending: {currentWeekTotal:C}\n";
+        prompt += $"Last Week Spending: {lastWeekTotal:C}\n";
+
+        if (spendingDifference > 0)
+        {
+            prompt = $"Spending Increased By: {spendingDifference:C}\n";
+        }
+        else if (spendingDifference < 0)
+        {
+            prompt += $"Spending Decreased By: {Math.Abs(spendingDifference):C}";
+        }
+        else
+        {
+            prompt += $"Spending stayed the same as last week.\n";
+        }
+
 
         prompt += "\n";
         prompt += $"Savings Needed: {savingsNeeded:C}\n";
@@ -2478,6 +2544,128 @@ class Progam
     Console.WriteLine();
     Console.WriteLine("Press Enter to continue.");
     Console.ReadLine();
+    }
+    
+    // Gets expenses from previous month
+    static List<Expense> GetLastMonthExpense()
+    {
+        DateTime today = DateTime.Today;
+
+        DateTime firstDayOfCurrentMonth = new DateTime(
+            today.Year,
+            today.Month,
+            1
+        );
+
+        DateTime lastDayOfPreviousMonth = firstDayOfCurrentMonth.AddDays(-1);
+
+        DateTime firstDayOfPreviousMonth = new DateTime(
+            lastDayOfPreviousMonth.Year,
+            lastDayOfPreviousMonth.Month,
+            1
+        );
+
+        return expenses
+        .Where(expenses => expenses.Date >= firstDayOfPreviousMonth
+        && expenses.Date <= lastDayOfPreviousMonth)
+        .ToList();
+    }
+    
+    //Shows spending compared to last month
+    static void ViewMonthComparison()
+    {
+        Console.Clear();
+        
+        Console.WriteLine("=== Monthly Spending Comparison ===");
+        Console.WriteLine();
+
+        List<Expense> currentMonth = GetCurrentMonthExpense();
+        List<Expense> lastMonth = GetLastMonthExpense();
+
+        double currentTotal = currentMonth.Sum(expense => expense.Amount);
+        double lastTotal = lastMonth.Sum(expense => expense.Amount);
+
+        double difference = currentTotal - lastTotal;
+
+        Console.WriteLine($"This Month: {currentTotal:C}");
+        Console.WriteLine($"Last Month: {lastTotal:C}");
+
+        if (difference > 0)
+        {
+            Console.WriteLine($"You spent {difference:C} more than last week.");
+        }
+        else if (difference < 0)
+        {
+            Console.WriteLine($"You spent {Math.Abs(difference):C} less than last month");
+        }
+        else
+        {
+            Console.WriteLine("Your spending is the same as last month.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+    }
+    
+    //Gets expenses from previoues week
+    static List<Expense> GetLastWeekExpenses()
+    {
+         DateTime today = DateTime.Today;
+
+        int difference = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+
+        DateTime startOfCurrentWeek = today.AddDays(-difference);
+
+        DateTime startOfLastWeek = startOfCurrentWeek.AddDays(-7);
+        DateTime endOfLastWeek = startOfCurrentWeek.AddDays(-1);
+
+        return expenses
+            .Where(expense => expense.Date >= startOfLastWeek 
+                             && expense.Date <= endOfLastWeek)
+            .ToList();
+    }
+    
+    //Shows spending trends compared to last week
+    static void ViewWeeklyComparison()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Spending Trends ===");
+        Console.WriteLine();
+
+        List<Expense> currentWeek = GetCurrentWeekExpenses();
+        List<Expense> lastWeek = GetLastWeekExpenses();
+
+        double currentWeekTotal = currentWeek.Sum(expense => expense.Amount);
+        double lastWeekTotal = lastWeek.Sum(expense => expense.Amount);
+
+        double difference = currentWeekTotal - lastWeekTotal;
+
+        Console.WriteLine($"This Week: {currentWeekTotal:C}");
+        Console.WriteLine($"Last Week: {lastWeekTotal:C}");
+        Console.WriteLine();
+
+        if (difference > 0)
+        {
+            Console.WriteLine($"You spent {difference:C} more than last week.");
+        } 
+        else if (difference < 0)
+        {
+            Console.WriteLine($"You spent {Math.Abs(difference):C} less than last week");
+        }
+        else
+        {
+            Console.WriteLine("Your spending is the same last week.");
+        }
+
+        Console.WriteLine();
+
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+        
     }
     //Method that allows user to Add Recurring Expenses like subscriptions
     static void AddRecurringExpenseMenu()
