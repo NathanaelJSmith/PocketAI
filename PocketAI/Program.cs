@@ -133,8 +133,9 @@ class Progam
             Console.WriteLine("40. Weekly Spending Report");
             Console.WriteLine("41. Weekly Spending Comparison");
             Console.WriteLine("42. Monthly Spending Comparison");
+            Console.WriteLine("43. Cash Flow Forecast");
 
-            Console.WriteLine("43. Exit");
+            Console.WriteLine("44. Exit");
             Console.WriteLine();
             Console.WriteLine("Choose an option");
 
@@ -299,7 +300,10 @@ class Progam
                 case "42":
                     ViewMonthComparison();
                     break;
-                case "43":
+                    case "43":
+                    ViewCashFlowForecast();
+                    break;
+                case "44":
                     running = false;
                     break;
 
@@ -1809,6 +1813,7 @@ class Progam
 
         prompt += "\n";
 
+        //Weekly Spending Comparison
         List<Expense> currentWeekExpenses = GetCurrentWeekExpenses();
         List<Expense> lastWeekExpenses = GetLastWeekExpenses();
 
@@ -1834,8 +1839,69 @@ class Progam
             prompt += $"Spending stayed the same as last week.\n";
         }
 
+        //Monthly spending Comparison
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        List<Expense> lastMonthExpenses = GetLastMonthExpense();
+
+        double currentMonthTotal = currentMonthExpenses.Sum(expense => expense.Amount);
+        double lastMonthTotal = lastMonthExpenses.Sum(expense => expense.Amount);
+
+        double monthlyDifference = currentMonthTotal - lastMonthTotal;
+
+        prompt += "\nMonthly Spending Comparison:\n";
+        prompt += $"This Month Spending: {currentMonthTotal:C}\n";
+        prompt += $"Last Month Spending: {lastMonthTotal:C}\n";
+        
+        if (monthlyDifference > 0)
+        {
+            prompt += $"Spending increased by {monthlyDifference:C}\n";
+        }
+        else if (monthlyDifference < 0)
+        {
+            prompt += $"Spending Decreased By: {Math.Abs(monthlyDifference):C}\n";
+        }
+        else
+        {
+            prompt += "Spending was the same as last month.\n";
+        }
 
         prompt += "\n";
+
+        //Adds cash flow forecast information for AI
+        int daysPassed = today.Day;
+        int daysLeft = daysLeftInMonth;
+
+        double AverageDailySpending = 0;
+
+        if (daysPassed > 0)
+        {
+            AverageDailySpending = summary.CurrentMonthSpent / daysPassed;
+        }
+
+        double projectedAddtionalSpending = AverageDailySpending * daysLeft;
+        double projectedEndOfMonthMoney = summary.MoneyLeft - projectedAddtionalSpending;
+
+        prompt += "\nCash Flow Forecast\n";
+        prompt += $"Average Daily Spending: {AverageDailySpending:C}\n";
+        prompt += $"Days Left This Month: {daysLeft}\n";
+        prompt += $"Projected Additional Spending: {projectedAddtionalSpending:C}\n";
+        prompt += $"Porjected End-of-Month Spending: {projectedEndOfMonthMoney:C}\n";
+
+        if (projectedEndOfMonthMoney > 0)
+        {
+            prompt += "Forecast Status: User is projected to end the month with money left.\n";
+        }
+        else if (projectedEndOfMonthMoney == 0)
+        {
+            prompt += "Forecast Status: User is projected to break even this month.\n";
+        }
+        else
+        {
+            prompt += "Forecast Status: User is projected to go negative if spending continues at this pace.\n";
+        }
+
+prompt += "\n";
+
         prompt += $"Savings Needed: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
         prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
@@ -1883,7 +1949,7 @@ class Progam
         // Name of the Python file
         startInfo.Arguments = "ai_coach.py";
 
-        startInfo.WorkingDirectory = @"C:\Users\Nate Smith\source\repos\PocketAI\PocketAI";
+        startInfo.WorkingDirectory = @"C:\Users\Owner\Documents\GitHub\PocketAI\PocketAI";
 
         // Allows C# to send text into Python
         startInfo.RedirectStandardInput = true;
@@ -2545,7 +2611,62 @@ class Progam
     Console.WriteLine("Press Enter to continue.");
     Console.ReadLine();
     }
-    
+
+    //Shows a simple end of the month flow forecast 
+    static void ViewCashFlowForecast()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Cash Flow Forecast ===");
+        Console.WriteLine();
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        DateTime today = DateTime.Today;
+
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+        int daysPassed = today.Day;
+        int DaysLeft = daysInMonth - today.Day;
+
+        double averageDailySpending = 0;
+
+        if (daysPassed > 0)
+        {
+            averageDailySpending = summary.CurrentMonthSpent / daysPassed;
+        }
+
+        double projectedAdditionalSpending = averageDailySpending * DaysLeft;
+
+        double projectedEndOfMonthMoney = summary.MoneyLeft - projectedAdditionalSpending;
+
+        Console.WriteLine($"Monthly Income: {summary.MonthlyIncome:C}");
+        Console.WriteLine($"Current Month Spent: {summary.CurrentMonthSpent:C}");
+        Console.WriteLine($"Monthly Recurring Expenses: {summary.MonthlyRecurringExpenses:C}");
+        Console.WriteLine($"Average Daily Spending: {averageDailySpending:C}");
+        Console.WriteLine($"Days Left This Month: {DaysLeft}");
+        Console.WriteLine();
+
+        Console.WriteLine($"Projected Additional Spending: {projectedAdditionalSpending:C}");
+        Console.WriteLine($"Projected End-of-Month Money: {projectedEndOfMonthMoney:C}");
+
+        if (projectedEndOfMonthMoney > 0)
+        {
+            Console.WriteLine("Forecast: You are projected to break even this month");
+        }
+        else if (projectedEndOfMonthMoney < 0)
+        {
+            Console.WriteLine("Forecast: You are projected to break even this month.");
+        }
+        else
+        {
+            Console.WriteLine("Forcast: You are projected to go negative if spending continues at this pace.");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to Continue.");
+        Console.ReadLine();
+
+    }
     // Gets expenses from previous month
     static List<Expense> GetLastMonthExpense()
     {

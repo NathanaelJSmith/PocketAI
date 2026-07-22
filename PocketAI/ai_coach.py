@@ -26,6 +26,12 @@ def main():
 	biggest_category = get_value(prompt, "Biggest Spending Category:")
 	biggest_category_amount = money_to_float(get_value(prompt, "Biggest Category Amount:"))
 	over_budget_categories = get_value(prompt, "Over-Budget Categories:")
+	monthly_recurring_expenses = money_to_float(get_value(prompt, "Monthly Recurring Expenses:"))
+	projected_end_money = money_to_float(get_value(prompt, "Projected End-of-Month Money:"))
+	this_week_spending = money_to_float(get_value(prompt, "This Week Spending:"))
+	last_week_spending = money_to_float(get_value(prompt, "Last Week Spending:"))
+	this_month_spending = money_to_float(get_value(prompt, "This Month Spending:"))
+	last_month_spending = money_to_float(get_value(prompt, "Last Month Spending:"))
 
 	print("PocketAI Python Coach Response:")
 	print()
@@ -59,6 +65,21 @@ def main():
 	else:
 		print("Your budget does not look out control right now, but you still need to stay consistent.")
 
+
+
+	if projected_end_money < 0:
+		print("Your biggest concern is your cash flow forecast. If your spending continues at this pace, you may end the month negative.")
+	elif monthly_recurring_expenses > 0 and safe_to_spend < monthly_recurring_expenses:
+		print("Your recurring expenses are taking up a lot of your available money. Keep enough money reserved for upcoming bills.")
+	elif over_budget_categories != "" and over_budget_categories != "0":
+		print(f"You have {over_budget_categories} category/categories over budget, so you should slow down spending in those areas.")
+	elif this_week_spending > last_week_spending and last_week_spending > 0:
+		print("Your spending is higher this week than last week. Watch your recent spending before it becomes a pattern.")
+	elif this_month_spending > last_month_spending and last_month_spending > 0:
+		print("Your spending is higher this month than last month. Look for what category increased the most.")
+	else:
+		print("Your budget does not look out of control right now, but you still need to stay consistent.")
+        
 	print()
 
 	#3. What are you doing well
@@ -72,7 +93,14 @@ def main():
 	print()
 
 	#4. What to do next
-	print("What You Should Do Next")
+	print("4. What You Should Do Next")
+	if projected_end_money < 0:
+		print("Cut non-essential spending immediately to avoid going negative at the end of the month.")
+	elif safe_to_spend <= 0:
+		print("Do not make extra purchases right now. Your safe-to-spend amount is too low.")
+	elif monthly_recurring_expenses > 0:
+		print(f"Keep at least ${monthly_recurring_expenses:.2f} protected for recurring expenses before spending extra money.")
+    	
 
 	if biggest_category.lower() in ["food", "restaurants", "eating out"]:
 		print("Try settings food limit for the next 7 days. Eat at home more and avoid small random food purchases.")
