@@ -30,6 +30,10 @@ class Progam
     //Does the saving and loading data from Sqlite
     static DataBaseManager dataBaseManager = new DataBaseManager();
 
+    static AIService aiService = new AIService(
+        @"C:\Users\Owner\Documents\GitHub\PocketAI\PocketAI"
+    );
+
 
 
     static void Main()
@@ -2004,7 +2008,7 @@ prompt += "\n";
         string prompt = BuildAIPrompt();
 
         //Send the prompt to Python and gets the response
-        string advice = GetPythonAIAdvice(prompt);
+        string advice = aiService.GetPythonAIAdvice(prompt);
 
         //Save the AI advice to the database
         dataBaseManager.SaveAIAdvice(prompt, advice);

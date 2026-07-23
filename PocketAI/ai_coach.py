@@ -51,44 +51,80 @@ def main():
 	#2. Biggest Concern
 	print("2. Biggest Concern")
 
-	if biggest_category:
-		print(f"Your biggest spending category is {biggest_category} at ${biggest_category_amount:.2f}.")
-	else:
-		print("I could not find a biggest spending category yet.")
-
-	if over_budget_categories != "" and over_budget_categories != "0":
-		print(f"You also have {over_budget_categories} category/categories over budget.")
-	elif safe_to_spend <= 0:
-		print("Your safe-to-spend amount is to low, so extra purchases may hurt your plan.")
-	elif weekly_savings_needed > 100:
-		print("Your weekly savings needed is high, so savings needs to be a priority.")
-	else:
-		print("Your budget does not look out control right now, but you still need to stay consistent.")
-
-
-
 	if projected_end_money < 0:
-		print("Your biggest concern is your cash flow forecast. If your spending continues at this pace, you may end the month negative.")
-	elif monthly_recurring_expenses > 0 and safe_to_spend < monthly_recurring_expenses:
-		print("Your recurring expenses are taking up a lot of your available money. Keep enough money reserved for upcoming bills.")
+		print(
+			"Your cash flow forecast is the biggest concern. "
+			"At your current spending pace, you may end the month negative."
+		)
+	elif safe_to_spend <= 0:
+		print(
+			"Your safe to spend amount is too low, so extra purchases "
+			"could interfere with your bills or savings goal."
+		)
 	elif over_budget_categories != "" and over_budget_categories != "0":
-		print(f"You have {over_budget_categories} category/categories over budget, so you should slow down spending in those areas.")
+		print(
+			f"You currently have {over_budget_categories} category/categories "
+			"over budget."
+		)
 	elif this_week_spending > last_week_spending and last_week_spending > 0:
-		print("Your spending is higher this week than last week. Watch your recent spending before it becomes a pattern.")
+		difference = this_week_spending - last_week_spending
+		print(
+			f"You spent ${difference:.2f} more this week than last week."
+		)
 	elif this_month_spending > last_month_spending and last_month_spending > 0:
-		print("Your spending is higher this month than last month. Look for what category increased the most.")
+		difference = this_month_spending - last_month_spending
+		print(
+			f"You spent ${difference:.2f} more this month than last month"
+		)
+	elif monthly_recurring_expenses > 0:
+		print(
+			f"You have ${monthly_recurring_expenses:.2f} recurring expenses. "
+			"Keep enough money reserved for those payments."
+		)
+	elif biggest_category:
+		print(
+			f"Your biggest spending category is {biggest_category} "
+			f"at ${biggest_category_amount:.2f}."
+		)
 	else:
-		print("Your budget does not look out of control right now, but you still need to stay consistent.")
-        
+		print(
+			"Your budget does not appear out of control, "
+			"but you still need to stay consistent."
+		)
+		
 	print()
 
 	#3. What are you doing well
 	print("3. What You Are Doing Well")
 
-	if weekly_savings_needed > 0:
-		print(f"You have savings plan started, and you know you need about ${weekly_savings_needed:.2f} per week.")
+	if this_week_spending < last_week_spending and last_week_spending > 0:
+		difference = last_week_spending - this_week_spending
+		print(
+			f"Your spending improved this week. "
+			f"You spent ${difference:.2f} less than last week." 
+		)
+	elif this_month_spending < last_month_spending and last_month_spending > 0:
+		difference = last_month_spending - this_month_spending
+		print(
+			f"Your monthly spending is improving. "
+			f"You spent ${difference:.2f} less than last month."
+		)
+	elif weekly_savings_needed > 0:
+		print(
+			f"You have a savings plan started, and you know you need "
+			f"about ${weekly_savings_needed:.2f} per week."
+		)
+	elif money_left > 0:
+		f"You currently have ${money_left:.2f} left after expenses, "
+		"which give you flexibility."
 	else:
-		print("You have a savings goal information set up, which is a good start.")
+		print(
+			"You are tracking your finances, which is the first step "
+			"toward improving your."
+		)
+			
+		
+	
 
 	print()
 
