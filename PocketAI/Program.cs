@@ -34,6 +34,8 @@ class Progam
         @"C:\Users\Owner\Documents\GitHub\PocketAI\PocketAI"
     );
 
+    static AnalyticsService analyticsService = new AnalyticsService();
+
 
 
     static void Main()
@@ -387,15 +389,6 @@ class Progam
         Console.ReadLine();
     }
 
-    //Gets only expenses from the current month and year
-    static List<Expense> GetCurrentMonthExpense()
-    {
-        DateTime today = DateTime.Today;
-        return expenses
-            .Where(expense => expense.Date.Month == today.Month && expense.Date.Year == today.Year)
-            .ToList();
-    }
-
     //Method to view the total of your expenses 
     static void ViewTotalSpent()
     {
@@ -424,7 +417,7 @@ class Progam
 
         Console.WriteLine("=== Current Month Spending ===");
 
-        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
 
         if (currentMonthExpenses.Count == 0)
         {
@@ -1099,7 +1092,7 @@ class Progam
         Console.WriteLine("To reach your goal, you need to save about: ");
         Console.WriteLine($"Per month: {savePerMonth:C}");
         Console.WriteLine($"Per Week: {savePerWeek:C}");
-        Console.WriteLine($"Per Day: {savePerDay}");
+        Console.WriteLine($"Per Day: Math.Ceiling{savePerDay}");
 
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
@@ -1304,7 +1297,7 @@ class Progam
             return;
         }
 
-        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
         if (currentMonthExpenses.Count == 0)
         {
             Console.WriteLine("No expenses found.");
@@ -1388,7 +1381,7 @@ class Progam
         }
 
         //Adds current month expenses together
-        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
 
         double totalSpent = 0;
 
@@ -1619,7 +1612,7 @@ class Progam
         FinancialSummary summary = new FinancialSummary();
 
         // Gets only current month expenses
-        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
+        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
 
         double totalSpent = 0;
 
@@ -1732,7 +1725,7 @@ class Progam
         }
 
         //Calculates safe-to-spend amount
-        double safeToSpend = summary.MoneyLeft - savingsNeeded;
+        double safeToSpend = analyticsService.GetSafeToSpend(summary.MoneyLeft, savingsNeeded);
 
         DateTime today = DateTime.Today;
 
@@ -1743,18 +1736,12 @@ class Progam
         //Converts days left into weeks
         double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0); //Math.Ceiling so it rounds up during the last week of the month and doesn't just show decimals.
 
-        double dailySafeToSpend = 0;
-        double weeklySafeToSpend = 0;
-
-        if (daysLeftInMonth > 0)
-        {
-            dailySafeToSpend = safeToSpend + daysLeftInMonth;
-        }
-
-        if (weeksLeftInMonth > 0)
-        {
-            weeklySafeToSpend = safeToSpend / weeksLeftInMonth;
-        }
+        //Calculates daily safe to spend 
+        double dailySafeToSpend = analyticsService.GetDailySafeToSpend(safeToSpend, daysInMonth);
+        
+        //Calculates the weekly safe-to-spend amount
+        double weeklySafeToSpend = analyticsService.GetWeeklySafeToSpend(safeToSpend, weeksLeftInMonth);
+        
 
         string prompt = "";
 
@@ -1786,7 +1773,7 @@ class Progam
         }
 
         //Adds Weekly spending information for AI
-        List<Expense> weeklyExpenses = GetCurrentWeekExpenses();
+        List<Expense> weeklyExpenses = analyticsService.GetCurrentWeekExpenses(expenses);;
 
         double weeklySpent = 0;
 
@@ -1818,8 +1805,8 @@ class Progam
         prompt += "\n";
 
         //Weekly Spending Comparison
-        List<Expense> currentWeekExpenses = GetCurrentWeekExpenses();
-        List<Expense> lastWeekExpenses = GetLastWeekExpenses();
+        List<Expense> currentWeekExpenses = analyticsService.GetCurrentWeekExpenses(expenses);;
+        List<Expense> lastWeekExpenses = analyticsService.GetLastWeekExpenses(expenses);;
 
         double currentWeekTotal = currentWeekExpenses.Sum(expense => expense.Amount);
         double lastWeekTotal = lastWeekExpenses.Sum(expense => expense.Amount);
@@ -1844,8 +1831,8 @@ class Progam
         }
 
         //Monthly spending Comparison
-        List<Expense> currentMonthExpenses = GetCurrentMonthExpense();
-        List<Expense> lastMonthExpenses = GetLastMonthExpense();
+        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
+        List<Expense> lastMonthExpenses = analyticsService.GetLastMonthExpense(expenses);
 
         double currentMonthTotal = currentMonthExpenses.Sum(expense => expense.Amount);
         double lastMonthTotal = lastMonthExpenses.Sum(expense => expense.Amount);
@@ -1875,21 +1862,19 @@ class Progam
         int daysPassed = today.Day;
         int daysLeft = daysLeftInMonth;
 
-        double AverageDailySpending = 0;
+        double averageDailySpending =
+        analyticsService.GetAverageDailySpending(summary.CurrentMonthSpent, daysPassed);
 
-        if (daysPassed > 0)
-        {
-            AverageDailySpending = summary.CurrentMonthSpent / daysPassed;
-        }
+        double projectedAdditionalSpending = analyticsService.GetProjectedAdditionalSpending(averageDailySpending, daysLeft);
 
-        double projectedAddtionalSpending = AverageDailySpending * daysLeft;
-        double projectedEndOfMonthMoney = summary.MoneyLeft - projectedAddtionalSpending;
+        double projectedEndOfMonthMoney =
+        analyticsService.GetProjectedEndOfMonthMoney(summary.MoneyLeft, projectedAdditionalSpending);
 
         prompt += "\nCash Flow Forecast\n";
-        prompt += $"Average Daily Spending: {AverageDailySpending:C}\n";
+        prompt += $"Average Daily Spending: {averageDailySpending:C}\n";
         prompt += $"Days Left This Month: {daysLeft}\n";
-        prompt += $"Projected Additional Spending: {projectedAddtionalSpending:C}\n";
-        prompt += $"Porjected End-of-Month Spending: {projectedEndOfMonthMoney:C}\n";
+        prompt += $"Projected Additional Spending: {projectedAdditionalSpending:C}\n";
+        prompt += $"Projected End-of-Month Balance: {projectedEndOfMonthMoney:C}\n";
 
         if (projectedEndOfMonthMoney > 0)
         {
@@ -1918,8 +1903,8 @@ prompt += "\n";
             prompt += $"Goal Name: {summary.SavingsGoalName}\n";
             prompt += $"Target Amount: {summary.SavingsTargetAmount:C}\n";
             prompt += $"Current Saved: {summary.CurrentSavedAmount:C}\n";
-            prompt += $"Amount Remaining: {summary.SavingsAmountRemaining}\n";
-            prompt += $"Days Left: {summary.DaysLeft:F0}\n";
+            prompt += $"Amount Remaining: {summary.SavingsAmountRemaining:C}\n";
+            prompt += $"Days Until Goal Deadline: {summary.DaysLeft:F0}\n";
             prompt += $"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}\n\n";
         }
 
@@ -2553,21 +2538,6 @@ prompt += "\n";
 
     }
     
-    // Gets expenses from the current week
-    static List<Expense> GetCurrentWeekExpenses()
-    {
-        DateTime today = DateTime.Today;
-
-        //Monday is the first day of the week
-        int difference = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
-
-        DateTime startOfWeek = today.AddDays(-difference);
-
-        return expenses
-            .Where(expense => expense.Date >= startOfWeek)
-            .ToList();
-    }
-    
     //Shows weekly spending report
     static void ViewWeeklyReport()
     {
@@ -2576,7 +2546,7 @@ prompt += "\n";
         Console.WriteLine("=== Weekly Spending Report ===");
         Console.WriteLine();
 
-        List<Expense> weeklyExpenses = GetCurrentWeekExpenses();
+        List<Expense> weeklyExpenses = analyticsService.GetCurrentWeekExpenses(expenses);
 
     double totalSpent = 0;
 
@@ -2632,16 +2602,11 @@ prompt += "\n";
         int daysPassed = today.Day;
         int DaysLeft = daysInMonth - today.Day;
 
-        double averageDailySpending = 0;
+        double averageDailySpending = analyticsService.GetAverageDailySpending(summary.CurrentMonthSpent, daysPassed);
 
-        if (daysPassed > 0)
-        {
-            averageDailySpending = summary.CurrentMonthSpent / daysPassed;
-        }
+        double projectedAdditionalSpending = analyticsService.GetProjectedAdditionalSpending(averageDailySpending, DaysLeft);
 
-        double projectedAdditionalSpending = averageDailySpending * DaysLeft;
-
-        double projectedEndOfMonthMoney = summary.MoneyLeft - projectedAdditionalSpending;
+        double projectedEndOfMonthMoney = analyticsService.GetProjectedEndOfMonthMoney(summary.MoneyLeft, projectedAdditionalSpending);
 
         Console.WriteLine($"Monthly Income: {summary.MonthlyIncome:C}");
         Console.WriteLine($"Current Month Spent: {summary.CurrentMonthSpent:C}");
@@ -2671,30 +2636,6 @@ prompt += "\n";
         Console.ReadLine();
 
     }
-    // Gets expenses from previous month
-    static List<Expense> GetLastMonthExpense()
-    {
-        DateTime today = DateTime.Today;
-
-        DateTime firstDayOfCurrentMonth = new DateTime(
-            today.Year,
-            today.Month,
-            1
-        );
-
-        DateTime lastDayOfPreviousMonth = firstDayOfCurrentMonth.AddDays(-1);
-
-        DateTime firstDayOfPreviousMonth = new DateTime(
-            lastDayOfPreviousMonth.Year,
-            lastDayOfPreviousMonth.Month,
-            1
-        );
-
-        return expenses
-        .Where(expenses => expenses.Date >= firstDayOfPreviousMonth
-        && expenses.Date <= lastDayOfPreviousMonth)
-        .ToList();
-    }
     
     //Shows spending compared to last month
     static void ViewMonthComparison()
@@ -2704,8 +2645,8 @@ prompt += "\n";
         Console.WriteLine("=== Monthly Spending Comparison ===");
         Console.WriteLine();
 
-        List<Expense> currentMonth = GetCurrentMonthExpense();
-        List<Expense> lastMonth = GetLastMonthExpense();
+        List<Expense> currentMonth = analyticsService.GetCurrentMonthExpense(expenses);
+        List<Expense> lastMonth = analyticsService.GetLastMonthExpense(expenses);
 
         double currentTotal = currentMonth.Sum(expense => expense.Amount);
         double lastTotal = lastMonth.Sum(expense => expense.Amount);
@@ -2717,7 +2658,7 @@ prompt += "\n";
 
         if (difference > 0)
         {
-            Console.WriteLine($"You spent {difference:C} more than last week.");
+            Console.WriteLine($"You spent {difference:C} more than last month.");
         }
         else if (difference < 0)
         {
@@ -2734,24 +2675,6 @@ prompt += "\n";
 
     }
     
-    //Gets expenses from previoues week
-    static List<Expense> GetLastWeekExpenses()
-    {
-         DateTime today = DateTime.Today;
-
-        int difference = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
-
-        DateTime startOfCurrentWeek = today.AddDays(-difference);
-
-        DateTime startOfLastWeek = startOfCurrentWeek.AddDays(-7);
-        DateTime endOfLastWeek = startOfCurrentWeek.AddDays(-1);
-
-        return expenses
-            .Where(expense => expense.Date >= startOfLastWeek 
-                             && expense.Date <= endOfLastWeek)
-            .ToList();
-    }
-    
     //Shows spending trends compared to last week
     static void ViewWeeklyComparison()
     {
@@ -2760,18 +2683,23 @@ prompt += "\n";
         Console.WriteLine("=== Spending Trends ===");
         Console.WriteLine();
 
-        List<Expense> currentWeek = GetCurrentWeekExpenses();
-        List<Expense> lastWeek = GetLastWeekExpenses();
+        List<Expense> currentWeek = analyticsService.GetCurrentWeekExpenses(expenses);;
+        List<Expense> lastWeek = analyticsService.GetLastWeekExpenses(expenses);;
 
         double currentWeekTotal = currentWeek.Sum(expense => expense.Amount);
         double lastWeekTotal = lastWeek.Sum(expense => expense.Amount);
 
-        double difference = currentWeekTotal - lastWeekTotal;
+        double difference = analyticsService.GetSpendingDifference(currentWeekTotal, lastWeekTotal);
+
+        double percentageChange = analyticsService.GetSpendingPercentageChange(currentWeekTotal, lastWeekTotal);
 
         Console.WriteLine($"This Week: {currentWeekTotal:C}");
         Console.WriteLine($"Last Week: {lastWeekTotal:C}");
         Console.WriteLine();
 
+        /**
+        I stopped here. Need to update with percentage 
+        **/
         if (difference > 0)
         {
             Console.WriteLine($"You spent {difference:C} more than last week.");

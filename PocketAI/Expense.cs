@@ -1,7 +1,7 @@
 ﻿using System;
 
 // Represents one expense the user adds
-class Expense
+public class Expense
 {
     public int Id { get; set; }
     // Stores the expense name
