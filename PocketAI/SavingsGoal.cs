@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-class SavingsGoal
+public class SavingsGoal
 {
 
     public string Name {  get; set; }

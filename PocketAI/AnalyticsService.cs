@@ -138,4 +138,126 @@ public class AnalyticsService
 
         return ((currentSpending - previousSpending) / previousSpending) * 100;
     }
+
+
+    //Methods for Financial Summary
+    //Adds all expenses amounts together
+    public double GetTotalSpent(List<Expense> expenses)
+    {
+        return expenses.Sum(expense => expense.Amount);
+    }
+
+    public string GetBiggestSpendingCategory(List<Expense> expenses)
+    {
+        if (expenses.Count == 0)
+        {
+            return "";
+        }
+
+        return expenses
+        .GroupBy(expense => expense.Category)
+        .Select(group => new
+        {
+            Category = group.Key,
+            Total = group.Sum(expense => expense.Amount)
+        })
+        .OrderByDescending(group => group.Total)
+        .First()
+        .Category;
+    }
+
+    //Gets total spending for on category
+    public double GetCategoryTotal(List<Expense> expenses, string category)
+    {
+         return expenses
+        .Where(expense =>
+            expense.Category.Equals(
+                category,
+                StringComparison.OrdinalIgnoreCase))
+        .Sum(expense => expense.Amount);
+    }
+
+
+    public FinancialSummary BuildFinancialSummary(
+        List<Expense> expenses, 
+        Income? userIncome, 
+        AccountBalance? userAccountBalance, 
+        SavingsGoal? userSavingsGoal, 
+        List<BudgetLimit> budgetLimits, 
+        List<RecurringExpenses> recurringExpenses)
+    {
+
+        FinancialSummary summary = new FinancialSummary();
+
+        // Gets current month expenses
+        List<Expense> currentMonthExpenses = GetCurrentMonthExpense(expenses);
+
+        //Gets total spending for the current month
+        double totalSpent = GetTotalSpent(currentMonthExpenses);
+
+        //Gets total recurring expenses 
+        double monthlyRecurringExpenses = recurringExpenses.Sum(expense => expense.Amount);
+
+        summary.MonthlyRecurringExpenses = monthlyRecurringExpenses;
+        summary.RecurringExpenses = recurringExpenses;
+
+        //Adds income information
+        if (userIncome != null)
+        {
+            summary.MonthlyIncome = userIncome.MonthlyAmount;
+
+            //Income minus regular spending minus recurring expenses
+            summary.MoneyLeft = userIncome.MonthlyAmount - totalSpent - monthlyRecurringExpenses;
+        }
+
+        summary.CurrentMonthSpent = totalSpent;
+        
+        //Adds account balance information if it exists 
+        if (userAccountBalance != null)
+        {
+            summary.TotalAccountBalance = userAccountBalance.GetTotalBalance();
+        }
+
+        //Adds savings goal information if it exists
+        if (userSavingsGoal != null)
+        {
+            summary.SavingsGoalName = userSavingsGoal.Name;
+            summary.SavingsTargetAmount = userSavingsGoal.TargetAmount;
+            summary.CurrentSavedAmount = userSavingsGoal.CurrentAmount;
+
+            summary.SavingsAmountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
+
+            summary.DaysLeft = (userSavingsGoal.DeadLine - DateTime.Today).TotalDays;  
+        
+
+            if (summary.DaysLeft > 0 && summary.SavingsAmountRemaining > 0)
+            {
+            double weeksLeft = summary.DaysLeft / 7;
+
+            summary.WeeklySavingsNeeded = summary.SavingsAmountRemaining / weeksLeft;
+            }
+        }
+
+        if (currentMonthExpenses.Count > 0)
+        {
+            string biggestCategory = GetBiggestSpendingCategory(currentMonthExpenses);
+
+            summary.BiggestSpendingCategory = biggestCategory;
+
+            summary.BiggestCategoryAmount = GetCategoryTotal(currentMonthExpenses, biggestCategory);
+        }
+
+        //Counts how many budget categories have been over budget
+        foreach(BudgetLimit limit in budgetLimits)
+        {
+            double categoryTotal = GetCategoryTotal(currentMonthExpenses, limit.Category);
+
+            if(categoryTotal > limit.LimitAmount)
+            {
+                summary.OverBudgetCount++;
+            }
+        }
+    
+        return summary;
+    }
 }

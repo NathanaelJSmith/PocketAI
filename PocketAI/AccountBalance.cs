@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 //Represents the account balance of the user
-class AccountBalance
+public class AccountBalance
 {
     public double CheckingBalance { get; set; }
 

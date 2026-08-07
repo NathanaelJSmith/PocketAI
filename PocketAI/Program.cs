@@ -1066,8 +1066,8 @@ class Progam
 
         DateTime today = DateTime.Today;
 
-        TimeSpan timeUnitDeadline = userSavingsGoal.DeadLine - today;
-        double daysLeft = timeUnitDeadline.TotalDays;
+        TimeSpan timeUntilDeadline = userSavingsGoal.DeadLine - today;
+        double daysLeft = timeUntilDeadline.TotalDays;
 
         if (daysLeft <= 0)
         {
@@ -1092,7 +1092,7 @@ class Progam
         Console.WriteLine("To reach your goal, you need to save about: ");
         Console.WriteLine($"Per month: {savePerMonth:C}");
         Console.WriteLine($"Per Week: {savePerWeek:C}");
-        Console.WriteLine($"Per Day: Math.Ceiling{savePerDay}");
+        Console.WriteLine($"Per Day: {Math.Ceiling(savePerDay):C}");
 
         Console.WriteLine();
         Console.WriteLine("Press Enter to continue.");
@@ -1609,106 +1609,16 @@ class Progam
     //Builds a financial summary from the user's current data
     static FinancialSummary BuildFinancialSummary()
     {
-        FinancialSummary summary = new FinancialSummary();
-
-        // Gets only current month expenses
-        List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
-
-        double totalSpent = 0;
-
-        // Adds current month expenses together
-        foreach (Expense expense in currentMonthExpenses)
-        {
-            totalSpent += expense.Amount;
-        }
-
-        // Gets active recurring expenses from the database
         List<RecurringExpenses> recurringExpenses = dataBaseManager.GetRecuringExpenses();
 
-        double monthlyRecurringExpenses = 0;
-
-        // Adds recurring expenses together
-        foreach (RecurringExpenses expense in recurringExpenses)
-        {
-            monthlyRecurringExpenses += expense.Amount;
-        }
-
-        // Saves recurring expense information into the summary
-        summary.MonthlyRecurringExpenses = monthlyRecurringExpenses;
-        summary.RecurringExpenses = recurringExpenses;
-
-        // Adds income information if it exists
-        if (userIncome != null)
-        {
-            summary.MonthlyIncome = userIncome.MonthlyAmount;
-
-            // Income minus regular spending minus recurring expenses
-            summary.MoneyLeft = userIncome.MonthlyAmount - totalSpent - monthlyRecurringExpenses;
-        }
-
-        summary.CurrentMonthSpent = totalSpent;
-
-        // Adds account balance information if it exists
-        if (userAccountBalance != null)
-        {
-            summary.TotalAccountBalance = userAccountBalance.GetTotalBalance();
-        }
-
-        // Adds savings goal information if it exists
-        if (userSavingsGoal != null)
-        {
-            summary.SavingsGoalName = userSavingsGoal.Name;
-            summary.SavingsTargetAmount = userSavingsGoal.TargetAmount;
-            summary.CurrentSavedAmount = userSavingsGoal.CurrentAmount;
-            summary.SavingsAmountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
-
-            summary.DaysLeft = (userSavingsGoal.DeadLine - DateTime.Today).TotalDays;
-
-            if (summary.DaysLeft > 0 && summary.SavingsAmountRemaining > 0)
-            {
-                double weeksLeft = summary.DaysLeft / 7;
-                summary.WeeklySavingsNeeded = summary.SavingsAmountRemaining / weeksLeft;
-            }
-        }
-
-        // Finds biggest spending category
-        if (currentMonthExpenses.Count > 0)
-        {
-            var highestCategory = currentMonthExpenses
-                .GroupBy(expense => expense.Category)
-                .Select(group => new
-                {
-                    Category = group.Key,
-                    Total = group.Sum(expense => expense.Amount)
-                })
-                .OrderByDescending(group => group.Total)
-                .First();
-
-            summary.BiggestSpendingCategory = highestCategory.Category;
-            summary.BiggestCategoryAmount = highestCategory.Total;
-        }
-
-        // Counts how many budget categories are over budget
-        foreach (BudgetLimit limit in budgetLimits)
-        {
-            double categoryTotal = 0;
-
-            foreach (Expense expense in currentMonthExpenses)
-            {
-                if (expense.Category.Equals(limit.Category, StringComparison.OrdinalIgnoreCase))
-                {
-                    categoryTotal += expense.Amount;
-                }
-            }
-
-            if (categoryTotal > limit.LimitAmount)
-            {
-                summary.OverBudgetCount++;
-            }
-        }
-
-        return summary;
-
+        return analyticsService.BuildFinancialSummary(
+            expenses,
+            userIncome,
+            userAccountBalance,
+            userSavingsGoal,
+            budgetLimits,
+            recurringExpenses
+        );
     }
 
     //Builds a clean text prompt that can later be sent to AI
@@ -1811,7 +1721,7 @@ class Progam
         double currentWeekTotal = currentWeekExpenses.Sum(expense => expense.Amount);
         double lastWeekTotal = lastWeekExpenses.Sum(expense => expense.Amount);
 
-        double spendingDifference = currentWeekTotal - lastWeekTotal;
+        double spendingDifference = analyticsService.GetSpendingDifference(currentWeekTotal, lastWeekTotal);
 
         prompt += "\nWeekly Comparison:\n";
         prompt += $"This Week Spending: {currentWeekTotal:C}\n";
@@ -1837,7 +1747,7 @@ class Progam
         double currentMonthTotal = currentMonthExpenses.Sum(expense => expense.Amount);
         double lastMonthTotal = lastMonthExpenses.Sum(expense => expense.Amount);
 
-        double monthlyDifference = currentMonthTotal - lastMonthTotal;
+        double monthlyDifference = analyticsService.GetSpendingDifference(currentMonthTotal, lastMonthTotal);
 
         prompt += "\nMonthly Spending Comparison:\n";
         prompt += $"This Month Spending: {currentMonthTotal:C}\n";
@@ -2371,10 +2281,12 @@ prompt += "\n";
 
         DateTime today = DateTime.Today;
 
-        //Gets the last day of the current month
-        int daysLeftInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+        //Gets total days in current month
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
 
         //Calculates how many days are left in the month
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
         double dailySafeToSpend = 0;
 
         if (daysLeftInMonth > 0)
@@ -2600,7 +2512,7 @@ prompt += "\n";
 
         int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
         int daysPassed = today.Day;
-        int DaysLeft = daysInMonth - today.Day;
+        int DaysLeft = daysInMonth - today.Day + 1;
 
         double averageDailySpending = analyticsService.GetAverageDailySpending(summary.CurrentMonthSpent, daysPassed);
 
@@ -2703,10 +2615,20 @@ prompt += "\n";
         if (difference > 0)
         {
             Console.WriteLine($"You spent {difference:C} more than last week.");
+
+            if (lastWeekTotal > 0)
+            {
+                Console.WriteLine($"That is an increase of {percentageChange:F1}%");
+            }
         } 
         else if (difference < 0)
         {
             Console.WriteLine($"You spent {Math.Abs(difference):C} less than last week");
+
+            if (lastWeekTotal > 0)
+            {
+                Console.WriteLine($"That is a decrease of {Math.Abs(percentageChange):F1}%");
+            }
         }
         else
         {
@@ -2812,7 +2734,7 @@ prompt += "\n";
                 Console.WriteLine($"Name: {expense.Name}");
                 Console.WriteLine($"Category: {expense.Category}");
                 Console.WriteLine($"Amount: {expense.Amount:C}");
-                Console.WriteLine($"Due Day: {expense.DueDay}");
+                Console.WriteLine($"Due Day: {expense.DueDay}th");
 
                 total += expense.Amount;
             }
@@ -2879,7 +2801,7 @@ prompt += "\n";
                 Console.WriteLine($"Name: {expense.Name}");
                 Console.WriteLine($"Category: {expense.Category}");
                 Console.WriteLine($"Amount: {expense.Amount:C}");
-                Console.WriteLine($"Due Day: {expense.DueDay}");
+                Console.WriteLine($"Due Day: {expense.DueDay}th");
                 Console.WriteLine($"Due In: {daysUntilDue} days(s)");
                 Console.WriteLine("---------------------------------");
             }

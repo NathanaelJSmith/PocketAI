@@ -1,7 +1,7 @@
 ﻿using System;
 
 
-class BudgetLimit
+public class BudgetLimit
 {
     public string Category {  get; set; }
 

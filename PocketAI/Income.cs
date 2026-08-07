@@ -1,6 +1,6 @@
 ﻿using System;
 
-class Income
+public class Income
 {
     public string Source { get; set; }
 

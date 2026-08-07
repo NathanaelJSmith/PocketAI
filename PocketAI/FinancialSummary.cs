@@ -1,7 +1,7 @@
 ﻿using System;
 
 // Holds the main financial numbers for PocketAI
-class FinancialSummary
+public class FinancialSummary
 {
     // Stores monthly income
     public double MonthlyIncome { get; set; }
