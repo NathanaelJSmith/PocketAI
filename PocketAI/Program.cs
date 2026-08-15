@@ -140,8 +140,9 @@ class Progam
             Console.WriteLine("41. Weekly Spending Comparison");
             Console.WriteLine("42. Monthly Spending Comparison");
             Console.WriteLine("43. Cash Flow Forecast");
+            Console.WriteLine("44. View Financial Health Score");
 
-            Console.WriteLine("44. Exit");
+            Console.WriteLine("45. Exit");
             Console.WriteLine();
             Console.WriteLine("Choose an option");
 
@@ -310,6 +311,9 @@ class Progam
                     ViewCashFlowForecast();
                     break;
                 case "44":
+                    ViewFinancialHealthScore();
+                    break;
+                case "45":
                     running = false;
                     break;
 
@@ -1624,35 +1628,51 @@ class Progam
     //Builds a clean text prompt that can later be sent to AI
     static string BuildAIPrompt()
     {
+        Console.Clear();
+
         FinancialSummary summary = BuildFinancialSummary();
-
-        double savingsNeeded = 0;
-
-        //Uses remaining savings goal amount if a goal exists
-        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
-        {
-            savingsNeeded = summary.SavingsAmountRemaining;
-        }
-
-        //Calculates safe-to-spend amount
-        double safeToSpend = analyticsService.GetSafeToSpend(summary.MoneyLeft, savingsNeeded);
 
         DateTime today = DateTime.Today;
 
-        //Gets how many days are left in the current month
+        // Gets how many days are left in the current month
         int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
         int daysLeftInMonth = daysInMonth - today.Day + 1;
 
-        //Converts days left into weeks
-        double weeksLeftInMonth = Math.Ceiling(daysLeftInMonth / 7.0); //Math.Ceiling so it rounds up during the last week of the month and doesn't just show decimals.
+        // Calculates how much needs to be saved during the rest of this month
+        double savingsNeeded = 0;
 
-        //Calculates daily safe to spend 
-        double dailySafeToSpend = analyticsService.GetDailySafeToSpend(safeToSpend, daysInMonth);
-        
-        //Calculates the weekly safe-to-spend amount
-        double weeklySafeToSpend = analyticsService.GetWeeklySafeToSpend(safeToSpend, weeksLeftInMonth);
-        
+        if (userSavingsGoal != null &&
+            summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded =
+                analyticsService.GetSavingsNeededThisMonth(
+                    summary.SavingsAmountRemaining,
+                    summary.DaysLeft,
+                    daysLeftInMonth);
+        }
 
+    // Calculates safe-to-spend after this month's savings requirement
+        double safeToSpend =
+            analyticsService.GetSafeToSpend(
+                summary.MoneyLeft,
+                savingsNeeded);
+
+        // Converts days left into weeks
+        double weeksLeftInMonth =
+            Math.Ceiling(daysLeftInMonth / 7.0);
+
+        // Calculates daily safe-to-spend
+        double dailySafeToSpend =
+            analyticsService.GetDailySafeToSpend(
+                safeToSpend,
+                daysLeftInMonth);
+
+        // Calculates weekly safe-to-spend
+        double weeklySafeToSpend =
+            analyticsService.GetWeeklySafeToSpend(
+                safeToSpend,
+                weeksLeftInMonth);
+        
         string prompt = "";
 
         prompt += "You are PocketAI, a helpful money coach.\n";
@@ -1672,7 +1692,7 @@ class Progam
         {
             foreach (RecurringExpenses bill in upcomingBills)
             {
-                int daysUntilDue = GetDaysUntilDue(bill.DueDay);
+                int daysUntilDue = analyticsService.GetDaysUntilDue(bill.DueDay);
 
                 prompt += $"{bill.Name}: {bill.Amount:C}, due in {daysUntilDue} days(s)\n";
             }
@@ -1740,6 +1760,8 @@ class Progam
             prompt += $"Spending stayed the same as last week.\n";
         }
 
+        prompt += "\n";
+
         //Monthly spending Comparison
         List<Expense> currentMonthExpenses = analyticsService.GetCurrentMonthExpense(expenses);
         List<Expense> lastMonthExpenses = analyticsService.GetLastMonthExpense(expenses);
@@ -1801,6 +1823,17 @@ class Progam
 
 prompt += "\n";
 
+        //Calculates financial health score for AI
+        int financialHealthScore = analyticsService.GetFinancialHealthScore(summary, projectedEndOfMonthMoney, safeToSpend);
+
+        string financialHealthStatus = analyticsService.GetFinancialHealthStatus(financialHealthScore);
+
+        prompt += "\nFinancial Health:\n";
+        prompt += $"Financial Health Score: {financialHealthScore}/100\n";
+        prompt += $"Financial Health Status: {financialHealthStatus}\n\n";
+
+prompt += "\n";
+
         prompt += $"Savings Needed: {savingsNeeded:C}\n";
         prompt += $"Safe to Spend: {safeToSpend:C}\n";
         prompt += $"Daily Safe To Spend: {dailySafeToSpend:C} \n";
@@ -1813,6 +1846,7 @@ prompt += "\n";
             prompt += $"Goal Name: {summary.SavingsGoalName}\n";
             prompt += $"Target Amount: {summary.SavingsTargetAmount:C}\n";
             prompt += $"Current Saved: {summary.CurrentSavedAmount:C}\n";
+            prompt += $"Savings Prograss: {summary.SavingsProgressPercentage:F1}%\n";
             prompt += $"Amount Remaining: {summary.SavingsAmountRemaining:C}\n";
             prompt += $"Days Until Goal Deadline: {summary.DaysLeft:F0}\n";
             prompt += $"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}\n\n";
@@ -1834,60 +1868,6 @@ prompt += "\n";
         prompt += "4. What they should do next\n";
 
         return prompt;
-    }
-
-    // Sends the AI prompt to the Python script and gets advice back
-    static string GetPythonAIAdvice(string prompt)
-    {
-        // Sets up Python process information
-        ProcessStartInfo startInfo = new ProcessStartInfo();
-
-        // Use "python" first. If it does not work, change this to "py"
-        startInfo.FileName = "py";
-
-        // Name of the Python file
-        startInfo.Arguments = "ai_coach.py";
-
-        startInfo.WorkingDirectory = @"C:\Users\Owner\Documents\GitHub\PocketAI\PocketAI";
-
-        // Allows C# to send text into Python
-        startInfo.RedirectStandardInput = true;
-
-        // Allows C# to read Python's response
-        startInfo.RedirectStandardOutput = true;
-
-        // Allows C# to read Python errors
-        startInfo.RedirectStandardError = true;
-
-        // Prevents opening a separate window
-        startInfo.UseShellExecute = false;
-
-        // Keeps the process hidden
-        startInfo.CreateNoWindow = true;
-
-        // Starts Python
-        using Process process = new Process();
-        process.StartInfo = startInfo;
-        process.Start();
-
-        // Sends the prompt into Python
-        process.StandardInput.Write(prompt);
-        process.StandardInput.Close();
-
-        // Reads what Python printed
-        string output = process.StandardOutput.ReadToEnd();
-
-        // Reads errors if Python failed
-        string error = process.StandardError.ReadToEnd();
-
-        process.WaitForExit();
-
-        if (!string.IsNullOrWhiteSpace(error))
-        {
-            return "Python error:\n" + error;
-        }
-
-        return output;
     }
 
     //Method that allows user to View AI advice from Python AI Coach
@@ -2150,6 +2130,7 @@ prompt += "\n";
             Console.WriteLine($"Amount Remaining: {summary.SavingsAmountRemaining:C}");
             Console.WriteLine($"Days Left: {summary.DaysLeft:F0}");
             Console.WriteLine($"Weekly Savings Needed: {summary.WeeklySavingsNeeded:C}");
+            Console.WriteLine($"Savings Progress: {summary.SavingsProgressPercentage:F1}%");
             Console.WriteLine();
         }
 
@@ -2748,36 +2729,6 @@ prompt += "\n";
 
     }
 
-    //Calculates how many days until a recurring expense is due
-    static int GetDaysUntilDue(int dueDay)
-
-    {
-        DateTime today = DateTime.Today;
-
-        DateTime dueDate;
-
-        //If the due day already passed this month, move to next month
-        if (today.Day >= dueDay)
-        {
-            DateTime nextMonth = today.AddMonths(1);
-
-            dueDate = new DateTime(
-                nextMonth.Year,
-                nextMonth.Month,
-                dueDay
-            );
-        }
-        else
-        {
-            dueDate = new DateTime(
-                today.Year,
-                today.Month,
-                dueDay
-            );
-        }
-        return (dueDate - today).Days;
-    }
-
     //Shows upcoming bills
     static void ViewUpComingBill()
     {
@@ -2796,7 +2747,7 @@ prompt += "\n";
         {
             foreach (RecurringExpenses expense in expenses)
             {
-                int daysUntilDue = GetDaysUntilDue(expense.DueDay);
+                int daysUntilDue = analyticsService.GetDaysUntilDue(expense.DueDay);
 
                 Console.WriteLine($"Name: {expense.Name}");
                 Console.WriteLine($"Category: {expense.Category}");
@@ -2853,6 +2804,68 @@ prompt += "\n";
         Console.WriteLine();
     }
 
+    //Shows the user's overall financial health score
+    static void ViewFinancialHealthScore()
+    {
+        Console.Clear();
+
+        Console.WriteLine("=== Financial Health Score ===");
+        Console.WriteLine();
+
+        FinancialSummary summary = BuildFinancialSummary();
+
+        DateTime today = DateTime.Today;
+
+        int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
+
+        // Includes today for savings and safe-to-spend calculations
+        int daysLeftInMonth = daysInMonth - today.Day + 1;
+
+        // Used for cash flow forecasting
+        int daysPassed = today.Day;
+        int daysLeft = daysInMonth - today.Day;
+
+        // Calculates how much needs to be saved during the rest of this month
+        double savingsNeeded = 0;
+
+        if (userSavingsGoal != null &&
+            summary.SavingsAmountRemaining > 0)
+        {
+            savingsNeeded = analyticsService.GetSavingsNeededThisMonth(summary.SavingsAmountRemaining, summary.DaysLeft, daysLeftInMonth);
+        }
+
+        // Calculates money that is actually safe to spend
+        double safeToSpend = analyticsService.GetSafeToSpend(summary.MoneyLeft, savingsNeeded);
+
+        // Calculates average daily spending
+        double averageDailySpending = analyticsService.GetAverageDailySpending(summary.CurrentMonthSpent, daysPassed);
+
+        // Estimates additional spending for the rest of the month
+        double projectedAdditionalSpending = analyticsService.GetProjectedAdditionalSpending(averageDailySpending, daysLeft);
+
+        // Estimates money remaining at the end of the month
+        double projectedEndOfMonthMoney = analyticsService.GetProjectedEndOfMonthMoney(summary.MoneyLeft, projectedAdditionalSpending);
+
+        // Calculates financial health score
+        int score = analyticsService.GetFinancialHealthScore(summary, projectedEndOfMonthMoney, safeToSpend);
+
+        string status = analyticsService.GetFinancialHealthStatus(score);
+
+        Console.WriteLine($"Financial Health Score: {score}/100");
+        Console.WriteLine($"Financial Health Status: {status}");
+        Console.WriteLine();
+
+        Console.WriteLine($"Monthly Income: {summary.MonthlyIncome:C}");
+        Console.WriteLine($"Money Left: {summary.MoneyLeft:C}");
+        Console.WriteLine($"Recurring Expenses: {summary.MonthlyRecurringExpenses:C}");
+        Console.WriteLine($"Over Budget Categories: {summary.OverBudgetCount}");
+        Console.WriteLine($"Projected End-of-Month Money: {projectedEndOfMonthMoney:C}");
+
+        Console.WriteLine();
+        Console.WriteLine("Press Enter to continue.");
+        Console.ReadLine();
+
+    }
 }
 
 

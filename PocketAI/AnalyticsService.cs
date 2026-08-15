@@ -177,7 +177,7 @@ public class AnalyticsService
         .Sum(expense => expense.Amount);
     }
 
-
+    //Builds a financial summary object with all the relevant information
     public FinancialSummary BuildFinancialSummary(
         List<Expense> expenses, 
         Income? userIncome, 
@@ -186,7 +186,6 @@ public class AnalyticsService
         List<BudgetLimit> budgetLimits, 
         List<RecurringExpenses> recurringExpenses)
     {
-
         FinancialSummary summary = new FinancialSummary();
 
         // Gets current month expenses
@@ -224,6 +223,7 @@ public class AnalyticsService
             summary.SavingsGoalName = userSavingsGoal.Name;
             summary.SavingsTargetAmount = userSavingsGoal.TargetAmount;
             summary.CurrentSavedAmount = userSavingsGoal.CurrentAmount;
+            summary.SavingsProgressPercentage = GetSavingsProgressPercentage(summary.CurrentSavedAmount, summary.SavingsTargetAmount);
 
             summary.SavingsAmountRemaining = userSavingsGoal.TargetAmount - userSavingsGoal.CurrentAmount;
 
@@ -260,4 +260,182 @@ public class AnalyticsService
     
         return summary;
     }
+    
+    //Calculates how many days until a recurring expense is due
+    public int GetDaysUntilDue(int dueDay)
+    {
+        DateTime today = DateTime.Today;
+        DateTime dueDate;
+
+        //Bill is still coming up this month
+        if(today.Day <= dueDay)
+        {
+            int validDueDay = Math.Min(dueDay, DateTime.DaysInMonth(today.Year, today.Month));
+
+            dueDate = new DateTime(today.Year, today.Month, validDueDay);
+        }
+        else
+        {
+            DateTime nextMonth = today.AddMonths(1);
+
+            int validDueDay = Math.Min(dueDay, DateTime.DaysInMonth(nextMonth.Year, nextMonth.Month));
+
+            dueDate = new DateTime(nextMonth.Year, nextMonth.Month, validDueDay);
+        }
+
+        return (dueDate - today).Days;
+    }
+
+    public int GetFinancialHealthScore(
+        FinancialSummary summary,
+        double projectedEndOfMonthMoney, double safeToSpend)
+    {
+
+        int score = 100;
+
+        //No income 
+        if (summary.MonthlyIncome <= 0)
+        {
+            score -= 30;
+        }
+
+        //End of Month cash flow
+        if (projectedEndOfMonthMoney < 0)
+        {
+            score -= 30;
+        }
+        else if (summary.MonthlyIncome > 0)
+        {
+            double endOfMonthRatio = projectedEndOfMonthMoney / summary.MonthlyIncome;
+
+            if (endOfMonthRatio < 0.10)
+            {
+                score -= 15;
+            }
+            else if (endOfMonthRatio < 0.20)
+            {
+                score -= 8;
+            }
+        }
+        //OverBudget categories
+        int budgetPenalty = Math.Min(summary.OverBudgetCount * 5, 20);
+
+        
+        score -= budgetPenalty;
+
+        if (summary.MonthlyIncome > 0)
+        {
+            double recurringRatio = summary.MonthlyRecurringExpenses / summary.MonthlyIncome;
+
+            if (recurringRatio > 0.5)
+            {
+                score -= 15;
+            }
+            else if (recurringRatio > 0.3)
+            {
+                score -= 8;
+            }
+        }
+
+        //Savings Progress
+        if (summary.SavingsTargetAmount > 0)
+        {
+            double savingsProgress = summary.CurrentSavedAmount / summary.SavingsTargetAmount;
+
+            if (savingsProgress < 0.10)
+            {
+                score -= 10;
+            }
+            else if (savingsProgress < 0.50)
+            {
+                score -= 5;
+            }
+        }
+
+        if (safeToSpend < 0)
+        {
+            score -= 30;
+        }
+        else if (summary.MonthlyIncome > 0)
+        {
+            double safeToSpendRatio = safeToSpend / summary.MonthlyIncome;
+
+            if (safeToSpendRatio < 0.05)
+            {
+                score -= 20;
+            }
+            else if (safeToSpendRatio < 0.10)
+            {
+                score -= 15;
+            }
+            else if (safeToSpendRatio < 0.20)
+            {
+                score -= 10;
+            }
+        }
+       
+       return Math.Clamp(score, 0, 100);
+
+    }
+    
+    public string GetFinancialHealthStatus(int score)
+    {
+        if(score >= 90)
+        {
+            return "Excellent financial health! Keep up the good work.";
+        }
+        else if(score >= 75)
+        {
+            return "Good financial health. You're on the right track.";
+        }
+        else if(score >= 60)
+        {
+            return "Fair financial health. Consider reviewing your budget and spending habits.";
+        }
+        else if(score >= 40)
+        {
+            return "Poor financial health. Immediate action is recommended to improve your finances.";
+        }
+        else
+        {
+            return "Very poor financial health. Seek professional financial advice and take urgent steps to improve your situation.";
+        }
+    }
+
+
+    //Calculates savings goal progress as a percentage
+    public double GetSavingsNeededThisMonth(
+        double savingsAmountRemaining,
+        double daysUntilDeadline,
+        int daysInMonth)
+    {
+        if(savingsAmountRemaining <= 0 || daysUntilDeadline <= 0 || daysInMonth <= 0)
+        {
+            return 0;
+        }
+        
+        //Calculates how much needs to be saved per day
+        double dailySavingsNeeded = savingsAmountRemaining / daysUntilDeadline;
+
+        //Only reserves savings for days remaing in this month
+        double savingDays = Math.Min(daysUntilDeadline, daysInMonth);
+
+        double savingsNeededThisMonth = dailySavingsNeeded * savingDays;
+
+        return Math.Min(savingsNeededThisMonth, savingsAmountRemaining);
+            
+        
+    }
+
+    public double GetSavingsProgressPercentage(double currentSavedAmount, double savingsTargetAmount)
+    {
+        if (savingsTargetAmount <= 0)
+        {
+            return 0;
+        }
+
+        double percentage = (currentSavedAmount / savingsTargetAmount) * 100;
+        return Math.Clamp(percentage, 0, 100);
+    }
+
 }

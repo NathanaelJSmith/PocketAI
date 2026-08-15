@@ -44,5 +44,7 @@ public class FinancialSummary
 
     public double MonthlyRecurringExpenses { get; set; }
 
+    public double SavingsProgressPercentage {get; set;}
+
     public List<RecurringExpenses> RecurringExpenses { get; set; }
 }
