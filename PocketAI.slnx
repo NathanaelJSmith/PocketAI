@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="PocketAI.Core/PocketAI.Core.csproj" />
   <Project Path="PocketAI/PocketAI.csproj" />
 </Solution>

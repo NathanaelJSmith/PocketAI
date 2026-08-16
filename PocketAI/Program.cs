@@ -71,7 +71,7 @@ class Progam
         {
 
             /*
-             * Going to Orginize the Menu next 
+             * Going to Orginize the Menu later 
              */
             Console.Clear();
 
@@ -2239,6 +2239,7 @@ prompt += "\n";
         Console.Clear();
 
         Console.WriteLine("=== View Daily Safe to Spend ===");
+        
         if (userIncome == null)
         {
             Console.WriteLine("Set your monthly income first.");
@@ -2247,18 +2248,9 @@ prompt += "\n";
             return;
         }
 
+        
+
         FinancialSummary summary = BuildFinancialSummary();
-
-        double savingsNeeded = 0;
-
-        //Uses remainging savings gaol amount if a goal exists
-        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
-        {
-            savingsNeeded = summary.SavingsAmountRemaining;
-        }
-
-        //Calculates safe-to-spend amount that is safe to spend
-        double safeToSpend = summary.MoneyLeft - savingsNeeded;
 
         DateTime today = DateTime.Today;
 
@@ -2268,14 +2260,23 @@ prompt += "\n";
         //Calculates how many days are left in the month
         int daysLeftInMonth = daysInMonth - today.Day + 1;
 
-        double dailySafeToSpend = 0;
+        double savingsNeeded = 0;
 
-        if (daysLeftInMonth > 0)
+        //Uses remainging savings gaol amount if a goal exists
+        if (userSavingsGoal != null && summary.SavingsAmountRemaining > 0)
         {
-            dailySafeToSpend = safeToSpend / daysLeftInMonth;
+            savingsNeeded = analyticsService.GetSavingsNeededThisMonth(summary.SavingsAmountRemaining, summary.DaysLeft, daysLeftInMonth);
         }
 
+        //Calculates safe-to-spend amount that is safe to spend
+        double safeToSpend = analyticsService.GetSafeToSpend(summary.MoneyLeft, savingsNeeded);
+
+        //Calculates daily safe to spend
+        double dailySafeToSpend = analyticsService.GetDailySafeToSpend(safeToSpend, daysLeftInMonth);
+
+        
         Console.WriteLine($"Safe to Spend: {safeToSpend:C}");
+        Console.WriteLine($"Savings needed This Month: {savingsNeeded:C}");
         Console.WriteLine($"Days Left This Month: {daysLeftInMonth}");
         Console.WriteLine("---------------------");
 
@@ -2493,7 +2494,7 @@ prompt += "\n";
 
         int daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
         int daysPassed = today.Day;
-        int DaysLeft = daysInMonth - today.Day + 1;
+        int DaysLeft = daysInMonth - today.Day;
 
         double averageDailySpending = analyticsService.GetAverageDailySpending(summary.CurrentMonthSpent, daysPassed);
 
@@ -2513,15 +2514,15 @@ prompt += "\n";
 
         if (projectedEndOfMonthMoney > 0)
         {
-            Console.WriteLine("Forecast: You are projected to break even this month");
+            Console.WriteLine($"Forecast: You are projected to end the month with {projectedEndOfMonthMoney:C} left.");
         }
-        else if (projectedEndOfMonthMoney < 0)
+        else if (projectedEndOfMonthMoney == 0)
         {
             Console.WriteLine("Forecast: You are projected to break even this month.");
         }
         else
         {
-            Console.WriteLine("Forcast: You are projected to go negative if spending continues at this pace.");
+            Console.WriteLine($"Forcast: You are projected to end the month {Math.Abs(projectedEndOfMonthMoney):C} short if spending continues at this pace.");
         }
 
         Console.WriteLine();
