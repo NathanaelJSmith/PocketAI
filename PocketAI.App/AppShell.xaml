@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<Shell
+    x:Class="PocketAI.App.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:PocketAI.App.Pages"
+    FlyoutBehavior="Locked"
+    Title="PocketAI">
+
+    <FlyoutItem
+        Title="Home"
+        Route="Home">
+
+        <ShellContent
+            Title="Home"
+            ContentTemplate="{DataTemplate pages:HomePage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Transactions"
+        Route="Transactions">
+
+        <ShellContent
+            Title="Transactions"
+            ContentTemplate="{DataTemplate pages:TransactionsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Budget"
+        Route="Budget">
+        
+        <ShellContent
+            Title="Budget"
+            ContentTemplate="{DataTemplate pages:BudgetPage}"/>
+        </FlyoutItem>
+
+</Shell>
