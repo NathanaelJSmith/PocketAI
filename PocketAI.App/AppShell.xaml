@@ -6,14 +6,203 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:pages="clr-namespace:PocketAI.App.Pages"
     FlyoutBehavior="Locked"
+    FlyoutWidth="250"
+    Shell.NavBarIsVisible="False"
     Title="PocketAI">
 
+    <!-- Custom Sidebar -->
+    <Shell.FlyoutContent>
+
+        <Grid
+            BackgroundColor="#111827"
+            Padding="18"
+            RowDefinitions="Auto,*">
+
+            <!-- Logo -->
+            <VerticalStackLayout
+                Grid.Row="0"
+                Spacing="4"
+                Margin="0,8,0,24">
+
+                <Label
+                    Text="◉ PocketAI"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="White" />
+
+            </VerticalStackLayout>
+
+
+            <!-- Navigation -->
+            <Grid
+                Grid.Row="1"
+                RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"
+                RowSpacing="6">
+
+                <!-- MAIN -->
+                <Label
+                    Grid.Row="0"
+                    Text="MAIN"
+                    FontSize="11"
+                    FontAttributes="Bold"
+                    TextColor="#9CA3AF"
+                    Margin="8,0,0,4" />
+
+                <Button
+                    x:Name="HomeButton"
+                    Grid.Row="1"
+                    Text="🏠  Home"
+                    Clicked="HomeClicked"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent"
+                    TextColor="#E5E7EB"
+                    CornerRadius="10"
+                    />
+
+                <Button
+                    x:Name="TransactionsButton"
+                    Grid.Row="2"
+                    Text="↕  Transactions"
+                    Clicked="TransactionsClicked"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent"
+                    TextColor="#E5E7EB"
+                    CornerRadius="10"
+                    />
+
+
+                <!-- PLANNING -->
+                <VerticalStackLayout
+                    Grid.Row="3"
+                    Spacing="6"
+                    Margin="0,14,0,0">
+
+                    <Label
+                        Text="PLANNING"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="#9CA3AF"
+                        Margin="8,0,0,4" />
+
+                    <Button
+                        x:Name="BudgetButton"
+                        Text="◫  Budget"
+                        Clicked="BudgetClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                    <Button
+                        x:Name="SavingsButton"
+                        Text="◎  Savings"
+                        Clicked="SavingsClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                    <Button
+                        x:Name="BillsButton"
+                        Text="◷  Bills"
+                        Clicked="BillsClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                    <Button
+                        x:Name="AccountsButton"
+                        Text="💳  Accounts"
+                        Clicked="AccountsClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                </VerticalStackLayout>
+
+
+                <!-- INSIGHTS -->
+                <VerticalStackLayout
+                    Grid.Row="4"
+                    Spacing="6"
+                    Margin="0,14,0,0">
+
+                    <Label
+                        Text="INSIGHTS"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="#9CA3AF"
+                        Margin="8,0,0,4" />
+
+                    <Button
+                        x:Name="AnalyticsButton"
+                        Text="📊  Analytics"
+                        Clicked="AnalyticsClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                    <Button
+                        x:Name="PocketAIButton"
+                        Text="✨  PocketAI"
+                        Clicked="PocketAIClicked"
+                        HorizontalOptions="Fill"
+                        BackgroundColor="Transparent"
+                        TextColor="#E5E7EB"
+                        CornerRadius="10"
+                        />
+
+                </VerticalStackLayout>
+
+
+                <!-- Pushes Settings/Profile to bottom -->
+                <BoxView
+                    Grid.Row="8"
+                    BackgroundColor="Transparent" />
+
+                <Button
+                    x:Name="SettingsButton"
+                    Grid.Row="9"
+                    Text="⚙  Settings"
+                    Clicked="SettingsClicked"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent"
+                    TextColor="#E5E7EB"
+                    CornerRadius="10"
+                    />
+
+                <Button
+                    x:Name="ProfileButton"
+                    Grid.Row="10"
+                    Text="👤  Profile"
+                    Clicked="ProfileClicked"
+                    HorizontalOptions="Fill"
+                    BackgroundColor="Transparent"
+                    TextColor="#E5E7EB"
+                    CornerRadius="10"
+                    />
+
+            </Grid>
+
+        </Grid>
+
+    </Shell.FlyoutContent>
+
+
+    <!-- Pages -->
     <FlyoutItem
         Title="Home"
         Route="Home">
 
         <ShellContent
-            Title="Home"
             ContentTemplate="{DataTemplate pages:HomePage}" />
 
     </FlyoutItem>
@@ -23,7 +212,6 @@
         Route="Transactions">
 
         <ShellContent
-            Title="Transactions"
             ContentTemplate="{DataTemplate pages:TransactionsPage}" />
 
     </FlyoutItem>
@@ -31,10 +219,73 @@
     <FlyoutItem
         Title="Budget"
         Route="Budget">
-        
+
         <ShellContent
-            Title="Budget"
-            ContentTemplate="{DataTemplate pages:BudgetPage}"/>
-        </FlyoutItem>
+            ContentTemplate="{DataTemplate pages:BudgetPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Savings"
+        Route="Savings">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:SavingsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Bills"
+        Route="Bills">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:BillsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Accounts"
+        Route="Accounts">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:AccountsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Analytics"
+        Route="Analytics">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:AnalyticsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="PocketAI"
+        Route="PocketAI">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:PocketAIPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Settings"
+        Route="Settings">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:SettingsPage}" />
+
+    </FlyoutItem>
+
+    <FlyoutItem
+        Title="Profile"
+        Route="Profile">
+
+        <ShellContent
+            ContentTemplate="{DataTemplate pages:ProfilePage}" />
+
+    </FlyoutItem>
 
 </Shell>

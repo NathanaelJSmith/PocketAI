@@ -3,23 +3,24 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="PocketAI.App.Pages.HomePage"
+    x:Class="PocketAI.App.Pages.BillsPage"
     Shell.NavBarIsVisible="False"
-    Title="Home">
+    Title="Bills">
 
     <VerticalStackLayout
         Padding="30"
         Spacing="15">
-
+        
         <Label
-            Text="HOME"
+            Text="Bills &amp; Recurring"
             FontSize="28"
-            FontAttributes="Bold" />
+            FontAttributes="Bold"/>
 
         <Label
-            Text="PocketAI dashboard will go here."
-            FontSize="16" />
+            Text="Tracking recurring expenses and upcoming bills."
+            FontSize="16"/>
 
     </VerticalStackLayout>
+
 
 </ContentPage>

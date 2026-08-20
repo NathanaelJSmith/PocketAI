@@ -3,23 +3,21 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    x:Class="PocketAI.App.Pages.HomePage"
+    x:Class="PocketAI.App.Pages.SavingsPage"
     Shell.NavBarIsVisible="False"
-    Title="Home">
+    Title="Savings">
 
     <VerticalStackLayout
         Padding="30"
         Spacing="15">
-
+        
         <Label
-            Text="HOME"
+            Text="SAVINGS"
             FontSize="28"
             FontAttributes="Bold" />
 
         <Label
-            Text="PocketAI dashboard will go here."
-            FontSize="16" />
-
-    </VerticalStackLayout>
-
+            Text="Track your savings goal and progress."
+            FontSize="16"/>
+        </VerticalStackLayout>
 </ContentPage>
