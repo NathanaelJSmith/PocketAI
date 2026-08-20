@@ -6,93 +6,119 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-		SetActiveButton(HomeButton);
+		SetActiveNav(HomeNav, HomeIndicator);
     }
 
-	private void SetActiveButton(Button activeButton)
-	{
-    	Button[] buttons =
-    	{
-        HomeButton,
-        TransactionsButton,
-        BudgetButton,
-        SavingsButton,
-        BillsButton,
-        AccountsButton,
-        AnalyticsButton,
-        PocketAIButton,
-        SettingsButton,
-        ProfileButton
-    	};
 
-    foreach (Button button in buttons)
-    	{
-        button.BackgroundColor = Colors.Transparent;
-        button.TextColor = Color.FromArgb("#E5E7EB");
-    	}
+	private void SetActiveNav(
+    Border activeNav,
+    BoxView activeIndicator)
+    {
+        Border[] navItems =
+        {
+            HomeNav,
+            TransactionsNav,
+            BudgetNav,
+            SavingsNav,
+            BillsNav,
+            AccountsNav,
+            AnalyticsNav,
+            PocketAINav,
+            SettingsNav,
+            ProfileNav
+        };
 
-    	activeButton.BackgroundColor = Color.FromArgb("#A78BFA");
-    	activeButton.TextColor = Color.FromArgb("#111827");
-	}
+        BoxView[] indicators =
+        {
+            HomeIndicator,
+            TransactionsIndicator,
+            BudgetIndicator,
+            SavingsIndicator,
+            BillsIndicator,
+            AccountsIndicator,
+            AnalyticsIndicator,
+            PocketAIIndicator,
+            SettingsIndicator,
+            ProfileIndicator
+        };
+
+        // Clears every navigation item
+        foreach (Border nav in navItems)
+        {
+            nav.BackgroundColor = Colors.Transparent;
+        }
+
+        // Clears every selection indicator
+        foreach (BoxView indicator in indicators)
+        {
+            indicator.BackgroundColor = Colors.Transparent;
+        }
+
+        activeNav.BackgroundColor =
+            Color.FromArgb("#2A2340");
+
+        activeIndicator.BackgroundColor =
+            Color.FromArgb("#A78BFA");
+    }
 
     private async void HomeClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(HomeButton);
+        SetActiveNav(HomeNav, HomeIndicator);
         
         await GoToAsync("//Home");
     }
 
     private async void TransactionsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(TransactionsButton);
+        SetActiveNav(TransactionsNav, TransactionsIndicator);
         await GoToAsync("//Transactions");
     }
 
     private async void BudgetClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(BudgetButton);
+        SetActiveNav(BudgetNav, BudgetIndicator);
         await GoToAsync("//Budget");
     }
 
     private async void SavingsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(SavingsButton);
+        SetActiveNav(SavingsNav, SavingsIndicator);
         await GoToAsync("//Savings");
     }
 
     private async void BillsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(BillsButton);
+        SetActiveNav(BillsNav, BillsIndicator);
         await GoToAsync("//Bills");
     }
 
     private async void AccountsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton (AccountsButton);
+        SetActiveNav (AccountsNav, AccountsIndicator);
         await GoToAsync("//Accounts");
     }
 
     private async void AnalyticsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(AnalyticsButton);
+        SetActiveNav(AnalyticsNav, AnalyticsIndicator);
         await GoToAsync("//Analytics");
     }
 
     private async void PocketAIClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(PocketAIButton);
+        SetActiveNav(PocketAINav, PocketAIIndicator);
         await GoToAsync("//PocketAI");
     }
 
     private async void SettingsClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(SettingsButton);
+        SetActiveNav(SettingsNav, SettingsIndicator);
         await GoToAsync("//Settings");
     }
 
     private async void ProfileClicked(object? sender, EventArgs e)
     {
-        SetActiveButton(ProfileButton);
+        SetActiveNav(ProfileNav, ProfileIndicator);
         await GoToAsync("//Profile");
     }
 

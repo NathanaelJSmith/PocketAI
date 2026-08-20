@@ -4,22 +4,605 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.HomePage"
-    Shell.NavBarIsVisible="False"
-    Title="Home">
+    BackgroundColor="#F5F7FA">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="15">
+    <ScrollView>
 
-        <Label
-            Text="HOME"
-            FontSize="28"
-            FontAttributes="Bold" />
+        <VerticalStackLayout
+            Padding="32"
+            Spacing="28">
 
-        <Label
-            Text="PocketAI dashboard will go here."
-            FontSize="16" />
 
-    </VerticalStackLayout>
+            <!-- ===================================== -->
+            <!-- PAGE HEADER                           -->
+            <!-- ===================================== -->
+
+            <Grid
+                ColumnDefinitions="*,Auto"
+                ColumnSpacing="20">
+
+                <VerticalStackLayout
+                    Grid.Column="0"
+                    Spacing="5">
+
+                    <Label
+                        Text="HOME"
+                        FontSize="28"
+                        FontAttributes="Bold"
+                        TextColor="#111827" />
+
+                    <Label
+                        x:Name="GreetingLabel"
+                        Text="Good afternoon"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        TextColor="#111827"
+                        Margin="0,10,0,0" />
+
+                    <Label
+                        Text="Here's how your money is looking."
+                        FontSize="14"
+                        TextColor="#6B7280" />
+
+                </VerticalStackLayout>
+
+
+                <Button
+                    Grid.Column="1"
+                    Text="+ Add Expense"
+                    BackgroundColor="#7C3AED"
+                    TextColor="White"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    Padding="18,12"
+                    VerticalOptions="Start" />
+
+            </Grid>
+
+
+
+            <!-- ===================================== -->
+            <!-- MAIN FINANCIAL CARDS                  -->
+            <!-- ===================================== -->
+
+            <Grid
+                ColumnDefinitions="1.3*,1*"
+                ColumnSpacing="18">
+
+
+                <!-- SAFE TO SPEND -->
+
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout
+                        Spacing="10">
+
+                        <Label
+                            Text="SAFE TO SPEND TODAY"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="DailySafeToSpendLabel"
+                            Text="$0.00"
+                            FontSize="40"
+                            FontAttributes="Bold"
+                            TextColor="#111827"
+                            Margin="0,8,0,0" />
+
+                        <Label
+                            x:Name="WeeklySafeToSpendLabel"
+                            Text="$0.00 safe this week"
+                            FontSize="15"
+                            TextColor="#374151" />
+
+                        <Label
+                            x:Name="SafeToSpendStatusLabel"
+                            Text="Calculating..."
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#15803D" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- FINANCIAL HEALTH -->
+
+                <Border
+                    Grid.Column="1"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout
+                        Spacing="10">
+
+                        <Label
+                            Text="FINANCIAL HEALTH"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="FinancialHealthScoreLabel"
+                            Text="0 / 100"
+                            FontSize="36"
+                            FontAttributes="Bold"
+                            TextColor="#111827"
+                            Margin="0,8,0,0" />
+
+                        <Label
+                            x:Name="FinancialHealthStatusLabel"
+                            Text="Calculating..."
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            TextColor="#15803D" />
+
+                        <Label
+                            Text="View Breakdown →"
+                            FontSize="14"
+                            TextColor="#7C3AED"
+                            Margin="0,8,0,0" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </Grid>
+
+
+
+            <!-- ===================================== -->
+            <!-- YOUR MONEY                            -->
+            <!-- ===================================== -->
+
+            <VerticalStackLayout
+                Spacing="14">
+
+                <Label
+                    Text="YOUR MONEY"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    TextColor="#374151" />
+
+
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="14">
+
+
+                    <!-- TOTAL BALANCE -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="TOTAL BALANCE"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="TotalBalanceLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="All accounts"
+                                FontSize="12"
+                                TextColor="#9CA3AF" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- MONTHLY INCOME -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="MONTHLY INCOME"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="MonthlyIncomeLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="This month"
+                                FontSize="12"
+                                TextColor="#9CA3AF" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- SPENT -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="SPENT"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="MonthlySpentLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="This month"
+                                FontSize="12"
+                                TextColor="#9CA3AF" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- MONEY LEFT -->
+
+                    <Border
+                        Grid.Column="3"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="MONEY LEFT"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="MoneyLeftLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="After spending and bills"
+                                FontSize="12"
+                                TextColor="#9CA3AF" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+            </VerticalStackLayout>
+
+
+
+            <!-- ===================================== -->
+            <!-- POCKETAI + SAVINGS                    -->
+            <!-- ===================================== -->
+
+            <Grid
+                ColumnDefinitions="1.4*,1*"
+                ColumnSpacing="18">
+
+
+                <!-- POCKETAI INSIGHT -->
+
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="12">
+
+                        <Label
+                            Text="✦  POCKETAI INSIGHT"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#7C3AED" />
+
+                        <Label
+                            x:Name="PocketAIInsightLabel"
+                            Text="PocketAI is analyzing your finances."
+                            FontSize="16"
+                            TextColor="#374151"
+                            LineBreakMode="WordWrap" />
+
+                        <Label
+                            Text="View Full Advice →"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#7C3AED"
+                            Margin="0,8,0,0" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- SAVINGS GOAL -->
+
+                <Border
+                    Grid.Column="1"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label
+                            Text="SAVINGS GOAL"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="SavingsGoalNameLabel"
+                            Text="No active goal"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                        <Label
+                            x:Name="SavingsProgressAmountLabel"
+                            Text="$0.00 / $0.00"
+                            FontSize="15"
+                            TextColor="#374151" />
+
+
+                        <ProgressBar
+                            x:Name="SavingsProgressBar"
+                            Progress="0"
+                            ProgressColor="#7C3AED"
+                            BackgroundColor="#E5E7EB"
+                            HeightRequest="9" />
+
+
+                        <Label
+                            x:Name="SavingsProgressPercentLabel"
+                            Text="0%"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#7C3AED" />
+
+
+                        <Label
+                            x:Name="SavingsRemainingLabel"
+                            Text="$0.00 remaining"
+                            FontSize="13"
+                            TextColor="#6B7280" />
+
+
+                        <Label
+                            x:Name="WeeklySavingsNeededLabel"
+                            Text="$0.00/week needed"
+                            FontSize="13"
+                            TextColor="#6B7280" />
+
+
+                        <Label
+                            x:Name="SavingsStatusLabel"
+                            Text="No savings goal"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </Grid>
+
+
+
+            <!-- ===================================== -->
+            <!-- BUDGET SNAPSHOT                       -->
+            <!-- ===================================== -->
+
+            <Border
+                BackgroundColor="White"
+                Stroke="#E5E7EB"
+                StrokeThickness="1"
+                Padding="24">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="18">
+
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="BUDGET"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#374151" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="View Budget →"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#7C3AED" />
+
+                    </Grid>
+
+
+                    <Label
+                        x:Name="BudgetEmptyLabel"
+                        Text="No budget information yet."
+                        FontSize="14"
+                        TextColor="#6B7280" />
+
+
+                    <!--
+                    We will dynamically place the user's
+                    top budget categories in this container.
+                    -->
+
+                    <VerticalStackLayout
+                        x:Name="BudgetSnapshotContainer"
+                        Spacing="14" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+
+
+            <!-- ===================================== -->
+            <!-- UPCOMING BILLS                        -->
+            <!-- ===================================== -->
+
+            <Border
+                BackgroundColor="White"
+                Stroke="#E5E7EB"
+                StrokeThickness="1"
+                Padding="24">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <VerticalStackLayout Spacing="18">
+
+
+                    <Grid ColumnDefinitions="*,Auto">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="UPCOMING BILLS"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#374151" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="View All →"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#7C3AED" />
+
+                    </Grid>
+
+
+                    <Label
+                        x:Name="BillsEmptyLabel"
+                        Text="No upcoming bills."
+                        FontSize="14"
+                        TextColor="#6B7280" />
+
+
+                    <!--
+                    Upcoming recurring bills will be
+                    dynamically placed here.
+                    -->
+
+                    <VerticalStackLayout
+                        x:Name="UpcomingBillsContainer"
+                        Spacing="12" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+
+            <!-- Bottom spacing -->
+
+            <BoxView
+                HeightRequest="15"
+                BackgroundColor="Transparent" />
+
+
+        </VerticalStackLayout>
+
+    </ScrollView>
 
 </ContentPage>

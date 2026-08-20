@@ -6,11 +6,22 @@ using System.Dynamic;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices.Marshalling;
 
-class DataBaseManager
+public class DataBaseManager
 {
     //Creates file named pocketaid
-    private string connectionString = "Data Source=pocketai.db";
+    private readonly string connectionString = "Data Source=pocketai.db";
 
+    // Used by the original console application
+    public DataBaseManager()
+    {   
+    connectionString = "Data Source=pocketai.db";
+    }
+
+    // Allows another application to choose where the database is stored
+    public DataBaseManager(string databasePath)
+    {
+    connectionString = $"Data Source={databasePath}";
+    }
     //Creates the database table if the don't already exist
     public void CreateTables()
     {

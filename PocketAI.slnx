@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="PocketAI.App/PocketAI.App.csproj" />
   <Project Path="PocketAI.Core/PocketAI.Core.csproj" />
+  <Project Path="PocketAI.Data/PocketAI.Data.csproj" />
   <Project Path="PocketAI/PocketAI.csproj" />
 </Solution>

@@ -48,27 +48,87 @@
                     TextColor="#9CA3AF"
                     Margin="8,0,0,4" />
 
-                <Button
-                    x:Name="HomeButton"
+                <Border
+                    x:Name="HomeNav"
                     Grid.Row="1"
-                    Text="🏠  Home"
-                    Clicked="HomeClicked"
-                    HorizontalOptions="Fill"
-                    BackgroundColor="Transparent"
-                    TextColor="#E5E7EB"
-                    CornerRadius="10"
-                    />
+                    BackgroundColor="#2A2340"
+                    StrokeThickness="0"
+                    Padding="12,10">
 
-                <Button
-                    x:Name="TransactionsButton"
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="HomeClicked" />
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="4,28,*" ColumnSpacing="10">
+
+                        <BoxView
+                            x:Name="HomeIndicator"
+                            Grid.Column="0"
+                            BackgroundColor="#A78BFA"
+                            CornerRadius="2" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="⌂"
+                            FontSize="18"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="2"
+                            Text="Home"
+                            FontSize="15"
+                            TextColor="White"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <Border
+                    x:Name="TransactionsNav"
                     Grid.Row="2"
-                    Text="↕  Transactions"
-                    Clicked="TransactionsClicked"
-                    HorizontalOptions="Fill"
                     BackgroundColor="Transparent"
-                    TextColor="#E5E7EB"
-                    CornerRadius="10"
-                    />
+                    StrokeThickness="0"
+                    Padding="12,10">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TransactionsClicked" />
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="4,28,*" ColumnSpacing="10">
+
+                        <BoxView
+                            x:Name="TransactionsIndicator"
+                            Grid.Column="0"
+                            BackgroundColor="Transparent"
+                            CornerRadius="2" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="↕"
+                            FontSize="18"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="2"
+                            Text="Transactions"
+                            FontSize="15"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
 
 
                 <!-- PLANNING -->
@@ -84,45 +144,170 @@
                         TextColor="#9CA3AF"
                         Margin="8,0,0,4" />
 
-                    <Button
-                        x:Name="BudgetButton"
-                        Text="◫  Budget"
-                        Clicked="BudgetClicked"
-                        HorizontalOptions="Fill"
+                    <Border
+                        x:Name="BudgetNav"
                         BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        StrokeThickness="0"
+                        Padding="12,10">
 
-                    <Button
-                        x:Name="SavingsButton"
-                        Text="◎  Savings"
-                        Clicked="SavingsClicked"
-                        HorizontalOptions="Fill"
-                        BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
 
-                    <Button
-                        x:Name="BillsButton"
-                        Text="◷  Bills"
-                        Clicked="BillsClicked"
-                        HorizontalOptions="Fill"
-                        BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="BudgetClicked" />
+                        </Border.GestureRecognizers>
 
-                    <Button
-                        x:Name="AccountsButton"
-                        Text="💳  Accounts"
-                        Clicked="AccountsClicked"
-                        HorizontalOptions="Fill"
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="BudgetIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="◫"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="Budget"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+
+                    <Border
+                        x:Name="SavingsNav"
                         BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        StrokeThickness="0"
+                        Padding="12,10">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="SavingsClicked" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="SavingsIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="◎"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="Savings"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+
+                    <Border
+                        x:Name="BillsNav"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        Padding="12,10">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="BillsClicked" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="BillsIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="◷"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="Bills"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+                    
+                    
+                    <Border
+                        x:Name="AccountsNav"
+                        BackgroundColor="Transparent"
+                        StrokeThickness="0"
+                        Padding="12,10">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="AccountsClicked" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="AccountsIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="▣"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="Accounts"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
 
                 </VerticalStackLayout>
 
@@ -140,25 +325,87 @@
                         TextColor="#9CA3AF"
                         Margin="8,0,0,4" />
 
-                    <Button
-                        x:Name="AnalyticsButton"
-                        Text="📊  Analytics"
-                        Clicked="AnalyticsClicked"
-                        HorizontalOptions="Fill"
+                    <Border
+                        x:Name="AnalyticsNav"
                         BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        StrokeThickness="0"
+                        Padding="12,10">
 
-                    <Button
-                        x:Name="PocketAIButton"
-                        Text="✨  PocketAI"
-                        Clicked="PocketAIClicked"
-                        HorizontalOptions="Fill"
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="AnalyticsClicked" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="AnalyticsIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="▥"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="Analytics"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
+
+                    <Border
+                        x:Name="PocketAINav"
                         BackgroundColor="Transparent"
-                        TextColor="#E5E7EB"
-                        CornerRadius="10"
-                        />
+                        StrokeThickness="0"
+                        Padding="12,10">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="10" />
+                        </Border.StrokeShape>
+
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="PocketAIClicked" />
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="4,28,*"
+                            ColumnSpacing="10">
+
+                            <BoxView
+                                x:Name="PocketAIIndicator"
+                                Grid.Column="0"
+                                BackgroundColor="Transparent"
+                                CornerRadius="2" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="✦"
+                                FontSize="18"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                            <Label
+                                Grid.Column="2"
+                                Text="PocketAI"
+                                FontSize="15"
+                                TextColor="#E5E7EB"
+                                VerticalOptions="Center" />
+
+                        </Grid>
+
+                    </Border>
 
                 </VerticalStackLayout>
 
@@ -168,27 +415,89 @@
                     Grid.Row="8"
                     BackgroundColor="Transparent" />
 
-                <Button
-                    x:Name="SettingsButton"
+                <Border
+                    x:Name="SettingsNav"
                     Grid.Row="9"
-                    Text="⚙  Settings"
-                    Clicked="SettingsClicked"
-                    HorizontalOptions="Fill"
                     BackgroundColor="Transparent"
-                    TextColor="#E5E7EB"
-                    CornerRadius="10"
-                    />
+                    StrokeThickness="0"
+                    Padding="12,10">
 
-                <Button
-                    x:Name="ProfileButton"
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="SettingsClicked" />
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="4,28,*"
+                        ColumnSpacing="10">
+
+                        <BoxView
+                            x:Name="SettingsIndicator"
+                            Grid.Column="0"
+                            BackgroundColor="Transparent"
+                            CornerRadius="2" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="⚙"
+                            FontSize="18"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="2"
+                            Text="Settings"
+                            FontSize="15"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
+
+                <Border
+                    x:Name="ProfileNav"
                     Grid.Row="10"
-                    Text="👤  Profile"
-                    Clicked="ProfileClicked"
-                    HorizontalOptions="Fill"
                     BackgroundColor="Transparent"
-                    TextColor="#E5E7EB"
-                    CornerRadius="10"
-                    />
+                    StrokeThickness="0"
+                    Padding="12,10">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10" />
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="ProfileClicked" />
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="4,28,*"
+                        ColumnSpacing="10">
+
+                        <BoxView
+                            x:Name="ProfileIndicator"
+                            Grid.Column="0"
+                            BackgroundColor="Transparent"
+                            CornerRadius="2" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="♙"
+                            FontSize="18"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                        <Label
+                            Grid.Column="2"
+                            Text="Profile"
+                            FontSize="15"
+                            TextColor="#E5E7EB"
+                            VerticalOptions="Center" />
+
+                    </Grid>
+
+                </Border>
 
             </Grid>
 

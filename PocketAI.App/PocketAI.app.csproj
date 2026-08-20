@@ -72,6 +72,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\PocketAI.Core\PocketAI.Core.csproj" />
+	  <ProjectReference Include="..\PocketAI.Data\PocketAI.Data.csproj" />
 	</ItemGroup>
 
 </Project>

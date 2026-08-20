@@ -4,20 +4,243 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.AccountsPage"
-    Shell.NavBarIsVisible="False"
-    Title="Accounts">
+    BackgroundColor="#F5F7FA">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="15">
-        
-        <Label
-            Text="Accounts"
-            FontSize="28"
-            FontAttributes="Bold"/>
+    <ScrollView>
 
-        <Label
-            Text="View and update your account balance."
-            FontSize="16"/>
+        <VerticalStackLayout
+            Padding="32"
+            Spacing="26">
+
+            <!-- HEADER -->
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="ACCOUNTS"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#111827" />
+
+                <Label
+                    Text="Your current balances"
+                    FontSize="14"
+                    TextColor="#6B7280" />
+
+            </VerticalStackLayout>
+
+
+            <!-- ACCOUNT BALANCES -->
+            <Grid
+                ColumnDefinitions="*,*,*"
+                ColumnSpacing="16">
+
+                <!-- CHECKING -->
+                <Border
+                    Grid.Column="0"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="22">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label
+                            Text="CHECKING"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="CheckingBalanceLabel"
+                            Text="$0.00"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+                <!-- SAVINGS -->
+                <Border
+                    Grid.Column="1"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="22">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label
+                            Text="SAVINGS"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="SavingsBalanceLabel"
+                            Text="$0.00"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+                <!-- CASH -->
+                <Border
+                    Grid.Column="2"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="22">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Label
+                            Text="CASH"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="CashBalanceLabel"
+                            Text="$0.00"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </Grid>
+
+
+            <!-- TOTAL BALANCE -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#E5E7EB"
+                StrokeThickness="1"
+                Padding="24">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="20">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="6">
+
+                        <Label
+                            Text="TOTAL BALANCE"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="#6B7280" />
+
+                        <Label
+                            x:Name="TotalBalanceLabel"
+                            Text="$0.00"
+                            FontSize="32"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="Update Balances"
+                        Clicked="UpdateBalancesClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        Padding="18,12"
+                        VerticalOptions="Center" />
+
+                </Grid>
+
+            </Border>
+
+
+            <!-- INCOME -->
+            <Border
+                BackgroundColor="White"
+                Stroke="#E5E7EB"
+                StrokeThickness="1"
+                Padding="24">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16" />
+                </Border.StrokeShape>
+
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="20">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="7">
+
+                        <Label
+                            Text="INCOME"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            TextColor="#374151" />
+
+                        <Label
+                            Text="Monthly Income"
+                            FontSize="13"
+                            TextColor="#6B7280"
+                            Margin="0,8,0,0" />
+
+                        <Label
+                            x:Name="MonthlyIncomeLabel"
+                            Text="$0.00"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="Update Income"
+                        Clicked="UpdateIncomeClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        Padding="18,12"
+                        VerticalOptions="Center" />
+
+                </Grid>
+
+            </Border>
+
         </VerticalStackLayout>
+
+    </ScrollView>
+
 </ContentPage>
