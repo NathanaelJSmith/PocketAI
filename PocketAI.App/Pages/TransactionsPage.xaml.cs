@@ -4,7 +4,10 @@ public partial class TransactionsPage : ContentPage
 {
     private readonly DataBaseManager dataBaseManager;
 
+    // Stores every expense loaded from SQLite
     private List<Expense> allExpenses = new List<Expense>();
+
+    // Stores the expense currently being edited
     private Expense? selectedExpense;
 
 
@@ -12,6 +15,7 @@ public partial class TransactionsPage : ContentPage
     {
         InitializeComponent();
 
+        // Use the same MAUI database as the other pages
         string databasePath = Path.Combine(
             FileSystem.AppDataDirectory,
             "pocketai.db");
@@ -30,12 +34,14 @@ public partial class TransactionsPage : ContentPage
     {
         base.OnAppearing();
 
+        // Refresh every time the user returns
         LoadTransactions();
     }
 
 
+
     // ==========================================
-    // SETUP FILTERS
+    // CATEGORIES
     // ==========================================
 
     private void SetupCategories()
@@ -56,24 +62,39 @@ public partial class TransactionsPage : ContentPage
             "Other"
         };
 
-        CategoryPicker.ItemsSource = categories;
 
+        // Main transaction filter
+        CategoryPicker.ItemsSource =
+            categories;
+
+
+        // Add Expense picker
         ExpenseCategoryPicker.ItemsSource =
             categories.Skip(1).ToList();
-        
+
+
+        // Edit Expense picker
         EditExpenseCategoryPicker.ItemsSource =
             categories.Skip(1).ToList();
+
 
         CategoryPicker.SelectedIndex = 0;
     }
 
 
+
+    // ==========================================
+    // MONTH FILTER
+    // ==========================================
+
     private void SetupMonths()
     {
-        List<string> months = new List<string>
-        {
-            "All Months"
-        };
+        List<string> months =
+            new List<string>
+            {
+                "All Months"
+            };
+
 
         DateTime currentMonth =
             new DateTime(
@@ -81,7 +102,8 @@ public partial class TransactionsPage : ContentPage
                 DateTime.Today.Month,
                 1);
 
-        // Gives the user the most recent 12 months
+
+        // Add the most recent 12 months
         for (int i = 0; i < 12; i++)
         {
             months.Add(
@@ -90,11 +112,15 @@ public partial class TransactionsPage : ContentPage
                     .ToString("MMMM yyyy"));
         }
 
-        MonthPicker.ItemsSource = months;
 
-        // Current month
+        MonthPicker.ItemsSource =
+            months;
+
+
+        // Default to current month
         MonthPicker.SelectedIndex = 1;
     }
+
 
 
     // ==========================================
@@ -106,28 +132,38 @@ public partial class TransactionsPage : ContentPage
         allExpenses =
             dataBaseManager
                 .GetAllExpenses()
-                .OrderByDescending(expense => expense.Date)
-                .ThenByDescending(expense => expense.Id)
+                .OrderByDescending(expense =>
+                    expense.Date)
+                .ThenByDescending(expense =>
+                    expense.Id)
                 .ToList();
+
 
         ApplyFilters();
 
-        DateTime today = DateTime.Today;
+
+        // Calculate total spent this month
+        DateTime today =
+            DateTime.Today;
+
 
         double thisMonthTotal =
             allExpenses
                 .Where(expense =>
                     expense.Date.Year == today.Year &&
                     expense.Date.Month == today.Month)
-                .Sum(expense => expense.Amount);
+                .Sum(expense =>
+                    expense.Amount);
+
 
         ThisMonthTotalLabel.Text =
             thisMonthTotal.ToString("C");
     }
 
 
+
     // ==========================================
-    // SEARCH + FILTER
+    // SEARCH
     // ==========================================
 
     private void TransactionSearchChanged(
@@ -138,6 +174,11 @@ public partial class TransactionsPage : ContentPage
     }
 
 
+
+    // ==========================================
+    // FILTER
+    // ==========================================
+
     private void FilterChanged(
         object? sender,
         EventArgs e)
@@ -146,96 +187,148 @@ public partial class TransactionsPage : ContentPage
     }
 
 
+
+    // ==========================================
+    // APPLY SEARCH + FILTERS
+    // ==========================================
+
     private void ApplyFilters()
     {
         IEnumerable<Expense> filteredExpenses =
             allExpenses;
 
 
-        // Search
+        // --------------------------------------
+        // SEARCH
+        // --------------------------------------
+
         string searchText =
             TransactionSearchBar.Text?.Trim() ?? "";
 
-        if (!string.IsNullOrWhiteSpace(searchText))
+
+        if (!string.IsNullOrWhiteSpace(
+                searchText))
         {
             filteredExpenses =
-                filteredExpenses.Where(expense =>
-                    expense.Name.Contains(
-                        searchText,
-                        StringComparison.OrdinalIgnoreCase) ||
-
-                    expense.Category.Contains(
-                        searchText,
-                        StringComparison.OrdinalIgnoreCase));
+                filteredExpenses.Where(
+                    expense =>
+                        expense.Name.Contains(
+                            searchText,
+                            StringComparison.OrdinalIgnoreCase)
+                        ||
+                        expense.Category.Contains(
+                            searchText,
+                            StringComparison.OrdinalIgnoreCase));
         }
 
 
-        // Category
+        // --------------------------------------
+        // CATEGORY FILTER
+        // --------------------------------------
+
         if (CategoryPicker.SelectedIndex > 0)
         {
             string selectedCategory =
-                CategoryPicker.SelectedItem?.ToString() ?? "";
+                CategoryPicker
+                    .SelectedItem?
+                    .ToString() ?? "";
+
 
             filteredExpenses =
-                filteredExpenses.Where(expense =>
-                    expense.Category.Equals(
-                        selectedCategory,
-                        StringComparison.OrdinalIgnoreCase));
+                filteredExpenses.Where(
+                    expense =>
+                        expense.Category.Equals(
+                            selectedCategory,
+                            StringComparison.OrdinalIgnoreCase));
         }
 
 
-        // Month
+        // --------------------------------------
+        // MONTH FILTER
+        // --------------------------------------
+
         if (MonthPicker.SelectedIndex > 0)
         {
             string selectedMonth =
-                MonthPicker.SelectedItem?.ToString() ?? "";
+                MonthPicker
+                    .SelectedItem?
+                    .ToString() ?? "";
+
 
             if (DateTime.TryParse(
                     $"1 {selectedMonth}",
                     out DateTime monthDate))
             {
                 filteredExpenses =
-                    filteredExpenses.Where(expense =>
-                        expense.Date.Year == monthDate.Year &&
-                        expense.Date.Month == monthDate.Month);
+                    filteredExpenses.Where(
+                        expense =>
+                            expense.Date.Year ==
+                            monthDate.Year
+                            &&
+                            expense.Date.Month ==
+                            monthDate.Month);
             }
         }
 
 
+        // Convert expenses into display items
         List<TransactionDisplayItem> displayItems =
             filteredExpenses
                 .Select(expense =>
-                    new TransactionDisplayItem(expense))
+                    new TransactionDisplayItem(
+                        expense))
                 .ToList();
 
 
         TransactionsCollectionView.ItemsSource =
             displayItems;
 
+
         NoTransactionsLabel.IsVisible =
             displayItems.Count == 0;
+
 
         TransactionsCollectionView.IsVisible =
             displayItems.Count > 0;
     }
 
 
+
     // ==========================================
-    // SHOW ADD EXPENSE
+    // SHOW ADD EXPENSE MODAL
     // ==========================================
 
     private void ShowAddExpenseClicked(
         object? sender,
         EventArgs e)
     {
+        selectedExpense = null;
+
+
+        // Clear old values
         ExpenseNameEntry.Text = "";
         ExpenseAmountEntry.Text = "";
-        ExpenseCategoryPicker.SelectedIndex = -1;
-        ExpenseDatePicker.Date = DateTime.Today;
 
-        ModalBackground.IsVisible = true;
-        AddExpenseModal.IsVisible = true;
+        ExpenseCategoryPicker.SelectedIndex =
+            -1;
+
+        ExpenseDatePicker.Date =
+            DateTime.Today;
+
+
+        // Make sure edit modal is closed
+        EditExpenseModal.IsVisible =
+            false;
+
+
+        // Show Add Expense
+        ModalBackground.IsVisible =
+            true;
+
+        AddExpenseModal.IsVisible =
+            true;
     }
+
 
 
     // ==========================================
@@ -246,17 +339,47 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         EventArgs e)
     {
-        ModalBackground.IsVisible = false;
-        AddExpenseModal.IsVisible = false;
-
-        EditExpenseModal.IsVisible = false;
-
-        selectedExpense = null;
+        CloseModals();
     }
 
 
+
     // ==========================================
-    // ADD REAL EXPENSE
+    // CLOSE MODALS BY CLICKING BACKGROUND
+    // ==========================================
+
+    private void CloseModalsClicked(
+        object? sender,
+        TappedEventArgs e)
+    {
+        CloseModals();
+    }
+
+
+
+    // ==========================================
+    // CLOSE ALL MODALS
+    // ==========================================
+
+    private void CloseModals()
+    {
+        AddExpenseModal.IsVisible =
+            false;
+
+        EditExpenseModal.IsVisible =
+            false;
+
+        ModalBackground.IsVisible =
+            false;
+
+        selectedExpense =
+            null;
+    }
+
+
+
+    // ==========================================
+    // ADD EXPENSE
     // ==========================================
 
     private async void AddExpenseClicked(
@@ -266,14 +389,20 @@ public partial class TransactionsPage : ContentPage
         string expenseName =
             ExpenseNameEntry.Text?.Trim() ?? "";
 
+
         string amountText =
             ExpenseAmountEntry.Text?.Trim() ?? "";
 
+
         string category =
-            ExpenseCategoryPicker.SelectedItem?.ToString() ?? "";
+            ExpenseCategoryPicker
+                .SelectedItem?
+                .ToString() ?? "";
 
 
-        if (string.IsNullOrWhiteSpace(expenseName))
+        // Validate name
+        if (string.IsNullOrWhiteSpace(
+                expenseName))
         {
             await DisplayAlertAsync(
                 "Missing Name",
@@ -284,9 +413,11 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+        // Validate amount
         if (!double.TryParse(
                 amountText,
-                out double amount) ||
+                out double amount)
+            ||
             amount <= 0)
         {
             await DisplayAlertAsync(
@@ -298,7 +429,9 @@ public partial class TransactionsPage : ContentPage
         }
 
 
-        if (string.IsNullOrWhiteSpace(category))
+        // Validate category
+        if (string.IsNullOrWhiteSpace(
+                category))
         {
             await DisplayAlertAsync(
                 "Missing Category",
@@ -309,82 +442,118 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+        // Build the Expense object
         Expense expense =
             new Expense(
                 0,
                 expenseName,
                 amount,
                 category,
-                ExpenseDatePicker.Date ?? DateTime.Today);
+                ExpenseDatePicker.Date
+                    ?? DateTime.Today);
 
 
-        dataBaseManager.AddExpense(expense);
+        // Save to SQLite
+        dataBaseManager.AddExpense(
+            expense);
 
 
-        ModalBackground.IsVisible = false;
-        AddExpenseModal.IsVisible = false;
+        // Close modal
+        CloseModals();
 
 
-        // Reload immediately
+        // Refresh list and monthly total
         LoadTransactions();
     }
 
 
+
     // ==========================================
-    // TRANSACTION SELECTED
+    // TRANSACTION CLICKED
     // ==========================================
 
     private void TransactionSelected(
-    object? sender,
-    SelectionChangedEventArgs e)
+        object? sender,
+        SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.Count == 0)
         {
             return;
         }
 
+
         TransactionDisplayItem? selectedItem =
-            e.CurrentSelection[0] as TransactionDisplayItem;
+            e.CurrentSelection[0]
+                as TransactionDisplayItem;
+
 
         if (selectedItem == null)
         {
             return;
         }
 
-        // Remember which real Expense was selected
-        selectedExpense = selectedItem.Expense;
 
-        // Load its current values into the form
+        // Store real Expense object
+        selectedExpense =
+            selectedItem.Expense;
+
+
+        // Fill edit form
         EditExpenseNameEntry.Text =
             selectedExpense.Name;
 
+
         EditExpenseAmountEntry.Text =
-            selectedExpense.Amount.ToString("0.00");
+            selectedExpense.Amount
+                .ToString("0.00");
+
 
         EditExpenseDatePicker.Date =
             selectedExpense.Date;
 
-        // Select the matching category
+
+        // --------------------------------------
+        // FIND EXISTING CATEGORY
+        // --------------------------------------
+
         List<string>? categories =
-            EditExpenseCategoryPicker.ItemsSource
-            as List<string>;
+            EditExpenseCategoryPicker
+                .ItemsSource
+                as List<string>;
+
 
         if (categories != null)
         {
-            EditExpenseCategoryPicker.SelectedIndex =
-                categories.FindIndex(category =>
-                    category.Equals(
-                        selectedExpense.Category,
-                        StringComparison.OrdinalIgnoreCase));
+            EditExpenseCategoryPicker
+                .SelectedIndex =
+                categories.FindIndex(
+                    category =>
+                        category.Equals(
+                            selectedExpense.Category,
+                            StringComparison.OrdinalIgnoreCase));
         }
 
-        // Show modal
-        ModalBackground.IsVisible = true;
-        EditExpenseModal.IsVisible = true;
 
-        // Remove CollectionView highlight
-        TransactionsCollectionView.SelectedItem = null;
+        // Make sure Add modal is closed
+        AddExpenseModal.IsVisible =
+            false;
+
+
+        // Show Edit modal
+        ModalBackground.IsVisible =
+            true;
+
+        EditExpenseModal.IsVisible =
+            true;
+
+
+        // Remove selection highlight
+        TransactionsCollectionView
+            .SelectedItem = null;
     }
+
+
+
     // ==========================================
     // CANCEL EDIT
     // ==========================================
@@ -393,15 +562,13 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         EventArgs e)
     {
-        EditExpenseModal.IsVisible = false;
-        ModalBackground.IsVisible = false;
-
-        selectedExpense = null;
+        CloseModals();
     }
 
 
+
     // ==========================================
-    // SAVE EDITED EXPENSE
+    // SAVE CHANGES
     // ==========================================
 
     private async void SaveExpenseChangesClicked(
@@ -413,18 +580,26 @@ public partial class TransactionsPage : ContentPage
             return;
         }
 
+
         string name =
-            EditExpenseNameEntry.Text?.Trim() ?? "";
+            EditExpenseNameEntry.Text?
+                .Trim() ?? "";
+
 
         string amountText =
-            EditExpenseAmountEntry.Text?.Trim() ?? "";
+            EditExpenseAmountEntry.Text?
+                .Trim() ?? "";
+
 
         string category =
             EditExpenseCategoryPicker
-                .SelectedItem?.ToString() ?? "";
+                .SelectedItem?
+                .ToString() ?? "";
 
 
-        if (string.IsNullOrWhiteSpace(name))
+        // Validate name
+        if (string.IsNullOrWhiteSpace(
+                name))
         {
             await DisplayAlertAsync(
                 "Missing Name",
@@ -435,9 +610,11 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+        // Validate amount
         if (!double.TryParse(
                 amountText,
-                out double amount) ||
+                out double amount)
+            ||
             amount <= 0)
         {
             await DisplayAlertAsync(
@@ -449,7 +626,9 @@ public partial class TransactionsPage : ContentPage
         }
 
 
-        if (string.IsNullOrWhiteSpace(category))
+        // Validate category
+        if (string.IsNullOrWhiteSpace(
+                category))
         {
             await DisplayAlertAsync(
                 "Missing Category",
@@ -460,8 +639,7 @@ public partial class TransactionsPage : ContentPage
         }
 
 
-        // Keep the original database Id,
-        // but replace the edited information
+        // Keep the original database Id
         Expense updatedExpense =
             new Expense(
                 selectedExpense.Id,
@@ -472,19 +650,19 @@ public partial class TransactionsPage : ContentPage
                     ?? DateTime.Today);
 
 
+        // Update SQLite
         dataBaseManager.UpdateExpense(
             updatedExpense);
 
 
-        EditExpenseModal.IsVisible = false;
-        ModalBackground.IsVisible = false;
-
-        selectedExpense = null;
+        // Close modal
+        CloseModals();
 
 
-        // Reload immediately
+        // Refresh page
         LoadTransactions();
     }
+
 
 
     // ==========================================
@@ -500,6 +678,7 @@ public partial class TransactionsPage : ContentPage
             return;
         }
 
+
         bool deleteConfirmed =
             await DisplayAlertAsync(
                 "Delete Transaction",
@@ -514,37 +693,41 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+        // Delete from SQLite
         dataBaseManager.DeleteExpenseById(
             selectedExpense.Id);
 
 
-        EditExpenseModal.IsVisible = false;
-        ModalBackground.IsVisible = false;
-
-        selectedExpense = null;
+        // Close modal
+        CloseModals();
 
 
-        // Refresh transaction totals and list
+        // Refresh page
         LoadTransactions();
     }
 
 
+
     // ==========================================
-    // DISPLAY MODEL
+    // TRANSACTION DISPLAY MODEL
     // ==========================================
 
     public class TransactionDisplayItem
     {
         public Expense Expense { get; }
 
+
         public string Name =>
             Expense.Name;
+
 
         public string Category =>
             Expense.Category;
 
+
         public string DateText =>
             Expense.Date.ToString("MMM d");
+
 
         public string AmountText =>
             Expense.Amount.ToString("C");
