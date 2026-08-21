@@ -50,8 +50,16 @@ public partial class HomePage : ContentPage
         AccountBalance? accountBalance =
             dataBaseManager.GetAccountBalance();
 
+        // This is the PRIMARY savings goal.
+        // Home uses this one for the savings card.
         SavingsGoal? savingsGoal =
             dataBaseManager.GetSavingsGoal();
+
+
+        // This loads EVERY savings goal.
+        // Safe to Spend will use all of these.
+        List<SavingsGoal> savingsGoals =
+            dataBaseManager.GetSavingsGoals();
 
         List<BudgetLimit> budgetLimits =
             dataBaseManager.GetBudgetLimits();
@@ -98,14 +106,46 @@ public partial class HomePage : ContentPage
 
         double savingsNeededThisMonth = 0;
 
-        if (savingsGoal != null &&
-            summary.SavingsAmountRemaining > 0)
+        // Go through every savings goal
+        foreach (SavingsGoal goal in savingsGoals)
         {
-            savingsNeededThisMonth =
+            // How much money is still needed
+            // to complete this specific goal
+            double amountRemaining =
+                Math.Max(
+                    goal.TargetAmount -
+                    goal.CurrentAmount,
+                    0);
+
+
+            // How many days remain until
+            // this specific goal's deadline
+            double daysUntilDeadline =
+                (goal.DeadLine.Date -
+                DateTime.Today).TotalDays;
+
+
+            // If the goal is already complete,
+            // it should not reduce Safe to Spend
+            if (amountRemaining <= 0)
+            {
+                continue;
+            }
+
+
+            // Calculate how much this one goal
+            // needs during the current month
+            double goalSavingsNeededThisMonth =
                 analyticsService.GetSavingsNeededThisMonth(
-                    summary.SavingsAmountRemaining,
-                    summary.DaysLeft,
+                    amountRemaining,
+                    daysUntilDeadline,
                     daysLeftInMonth);
+
+
+            // Add this goal's requirement to
+            // the total savings commitment
+            savingsNeededThisMonth +=
+                goalSavingsNeededThisMonth;
         }
 
 

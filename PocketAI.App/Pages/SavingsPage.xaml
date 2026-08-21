@@ -4,20 +4,755 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.SavingsPage"
-    Shell.NavBarIsVisible="False"
-    Title="Savings">
+    BackgroundColor="#F5F7FA"
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="15">
-        
-        <Label
-            Text="SAVINGS"
-            FontSize="28"
-            FontAttributes="Bold" />
+    <Grid>
 
-        <Label
-            Text="Track your savings goal and progress."
-            FontSize="16"/>
-        </VerticalStackLayout>
+        <!-- ===================================== -->
+        <!-- MAIN PAGE                             -->
+        <!-- ===================================== -->
+
+        <ScrollView>
+
+            <VerticalStackLayout
+                Padding="32"
+                Spacing="24">
+
+                <!-- HEADER -->
+
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="20">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="5">
+
+                        <Label
+                            Text="SAVINGS"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                        <Label
+                            Text="Track your goals and build your savings."
+                            FontSize="14"
+                            TextColor="#6B7280" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="+ Add Goal"
+                        Clicked="ShowAddGoalClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        Padding="18,12"
+                        VerticalOptions="Start" />
+
+                </Grid>
+
+
+
+                <!-- ===================================== -->
+                <!-- SUMMARY                               -->
+                <!-- ===================================== -->
+
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="16">
+
+                    <!-- TOTAL SAVED -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="TOTAL SAVED"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="TotalSavedLabel"
+                                Text="$0.00"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+                    <!-- TOTAL TARGET -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="TOTAL TARGET"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="TotalTargetLabel"
+                                Text="$0.00"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+                    <!-- REMAINING -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="REMAINING"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="TotalRemainingLabel"
+                                Text="$0.00"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+                    <!-- GOAL COUNT -->
+
+                    <Border
+                        Grid.Column="3"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="GOALS"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="GoalCountLabel"
+                                Text="0"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- ===================================== -->
+                <!-- EMPTY STATE                           -->
+                <!-- ===================================== -->
+
+                <Border
+                    x:Name="SavingsEmptyState"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="45"
+                    IsVisible="False">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+
+                    <VerticalStackLayout
+                        HorizontalOptions="Center"
+                        Spacing="12">
+
+                        <Label
+                            Text="No savings goals yet"
+                            FontSize="21"
+                            FontAttributes="Bold"
+                            TextColor="#111827"
+                            HorizontalTextAlignment="Center" />
+
+                        <Label
+                            Text="Create your first goal and PocketAI will track your progress."
+                            FontSize="14"
+                            TextColor="#6B7280"
+                            HorizontalTextAlignment="Center" />
+
+                        <Button
+                            Text="+ Create Goal"
+                            Clicked="ShowAddGoalClicked"
+                            BackgroundColor="#7C3AED"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            Margin="0,8,0,0"
+                            HorizontalOptions="Center" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ===================================== -->
+                <!-- SAVINGS GOALS                         -->
+                <!-- ===================================== -->
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label
+                        Text="Your Goals"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="#111827" />
+
+
+                    <VerticalStackLayout
+                        x:Name="SavingsGoalsContainer"
+                        Spacing="14">
+
+                        <BindableLayout.ItemTemplate>
+
+                            <DataTemplate>
+
+                                <Border
+                                    BackgroundColor="White"
+                                    Stroke="#E5E7EB"
+                                    StrokeThickness="1"
+                                    Padding="24">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+
+
+                                    <VerticalStackLayout Spacing="17">
+
+                                        <!-- GOAL HEADER -->
+
+                                        <Grid
+                                            ColumnDefinitions="*,Auto"
+                                            ColumnSpacing="20">
+
+                                            <VerticalStackLayout
+                                                Grid.Column="0"
+                                                Spacing="5">
+
+                                                <HorizontalStackLayout Spacing="10">
+
+                                                    <Label
+                                                        Text="{Binding Name}"
+                                                        FontSize="19"
+                                                        FontAttributes="Bold"
+                                                        TextColor="#111827" />
+
+
+                                                    <Border
+                                                        IsVisible="{Binding IsPrimary}"
+                                                        BackgroundColor="#EDE9FE"
+                                                        StrokeThickness="0"
+                                                        Padding="9,3">
+
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="8" />
+                                                        </Border.StrokeShape>
+
+                                                        <Label
+                                                            Text="★ PRIMARY"
+                                                            FontSize="10"
+                                                            FontAttributes="Bold"
+                                                            TextColor="#6D28D9" />
+
+                                                    </Border>
+
+                                                </HorizontalStackLayout>
+
+
+                                                <Label
+                                                    Text="{Binding DeadlineText}"
+                                                    FontSize="13"
+                                                    TextColor="#6B7280" />
+
+                                            </VerticalStackLayout>
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="1"
+                                                HorizontalOptions="End"
+                                                Spacing="4">
+
+                                                <Label
+                                                    Text="{Binding AmountText}"
+                                                    FontSize="16"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#111827"
+                                                    HorizontalTextAlignment="End" />
+
+                                                <Label
+                                                    Text="{Binding PercentText}"
+                                                    FontSize="13"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#7C3AED"
+                                                    HorizontalTextAlignment="End" />
+
+                                            </VerticalStackLayout>
+
+                                        </Grid>
+
+
+                                        <!-- PROGRESS -->
+
+                                        <ProgressBar
+                                            Progress="{Binding Progress}"
+                                            ProgressColor="#7C3AED"
+                                            BackgroundColor="#E5E7EB"
+                                            HeightRequest="9" />
+
+
+                                        <!-- GOAL DETAILS -->
+
+                                        <Grid
+                                            ColumnDefinitions="*,*,*"
+                                            ColumnSpacing="20">
+
+                                            <VerticalStackLayout
+                                                Grid.Column="0"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="REMAINING"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding RemainingText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#374151" />
+
+                                            </VerticalStackLayout>
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="1"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="TIME LEFT"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding DaysLeftText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#374151" />
+
+                                            </VerticalStackLayout>
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="2"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="NEEDED / WEEK"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding WeeklyNeededText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#374151" />
+
+                                            </VerticalStackLayout>
+
+                                        </Grid>
+
+
+                                        <!-- STATUS -->
+
+                                        <Label
+                                            Text="{Binding StatusText}"
+                                            FontSize="13"
+                                            FontAttributes="Bold"
+                                            TextColor="{Binding StatusColor}" />
+
+
+                                        <!-- ACTIONS -->
+
+                                        <HorizontalStackLayout
+                                            Spacing="10"
+                                            HorizontalOptions="End">
+
+                                            <Button
+                                                Text="Make Primary"
+                                                IsVisible="{Binding CanMakePrimary}"
+                                                Clicked="MakePrimaryClicked"
+                                                BackgroundColor="#EDE9FE"
+                                                TextColor="#6D28D9"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+
+
+                                            <Button
+                                                Text="+ Add Savings"
+                                                Clicked="ShowAddSavingsClicked"
+                                                BackgroundColor="#7C3AED"
+                                                TextColor="White"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+
+
+                                            <Button
+                                                Text="Edit"
+                                                Clicked="ShowEditGoalClicked"
+                                                BackgroundColor="#E5E7EB"
+                                                TextColor="#374151"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+
+                                        </HorizontalStackLayout>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+                            </DataTemplate>
+
+                        </BindableLayout.ItemTemplate>
+
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+
+
+        <!-- ===================================== -->
+        <!-- DARK BACKGROUND                       -->
+        <!-- ===================================== -->
+
+        <BoxView
+            x:Name="ModalBackground"
+            ZIndex="10"
+            BackgroundColor="#80000000"
+            IsVisible="False">
+
+            <BoxView.GestureRecognizers>
+                <TapGestureRecognizer
+                    Tapped="CloseSavingsModalsClicked" />
+            </BoxView.GestureRecognizers>
+
+        </BoxView>
+
+
+
+        <!-- ===================================== -->
+        <!-- CREATE / EDIT GOAL MODAL              -->
+        <!-- ===================================== -->
+
+        <Border
+            x:Name="GoalModal"
+            ZIndex="20"
+            IsVisible="False"
+            BackgroundColor="White"
+            Stroke="#E5E7EB"
+            StrokeThickness="1"
+            Padding="28"
+            WidthRequest="460"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout Spacing="17">
+
+                <Label
+                    x:Name="GoalModalTitleLabel"
+                    Text="ADD SAVINGS GOAL"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#111827" />
+
+
+                <!-- NAME -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Goal Name"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="GoalNameEntry"
+                        Placeholder="Emergency Fund"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+                <!-- TARGET -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Target Amount"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="GoalTargetEntry"
+                        Placeholder="6000.00"
+                        Keyboard="Numeric"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+                <!-- ALREADY SAVED -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Already Saved"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="GoalCurrentEntry"
+                        Placeholder="0.00"
+                        Keyboard="Numeric"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+                <!-- DEADLINE -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Target Date"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <DatePicker
+                        x:Name="GoalDeadlinePicker"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+                <!-- SAVE / CANCEL -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12"
+                    Margin="0,8,0,0">
+
+                    <Button
+                        Grid.Column="0"
+                        Text="Cancel"
+                        Clicked="CancelSavingsModalClicked"
+                        BackgroundColor="#E5E7EB"
+                        TextColor="#374151"
+                        CornerRadius="10" />
+
+
+                    <Button
+                        x:Name="SaveGoalButton"
+                        Grid.Column="1"
+                        Text="Add Goal"
+                        Clicked="SaveGoalClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10" />
+
+                </Grid>
+
+
+                <!-- DELETE ONLY WHEN EDITING -->
+
+                <Button
+                    x:Name="DeleteGoalButton"
+                    Text="Delete Goal"
+                    Clicked="DeleteGoalClicked"
+                    BackgroundColor="#FEE2E2"
+                    TextColor="#B91C1C"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    IsVisible="False" />
+
+            </VerticalStackLayout>
+
+        </Border>
+
+
+
+        <!-- ===================================== -->
+        <!-- ADD SAVINGS MODAL                     -->
+        <!-- ===================================== -->
+
+        <Border
+            x:Name="AddSavingsModal"
+            ZIndex="30"
+            IsVisible="False"
+            BackgroundColor="White"
+            Stroke="#E5E7EB"
+            StrokeThickness="1"
+            Padding="28"
+            WidthRequest="420"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout Spacing="18">
+
+                <Label
+                    Text="ADD SAVINGS"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#111827" />
+
+
+                <Label
+                    x:Name="AddSavingsGoalNameLabel"
+                    Text="Savings Goal"
+                    FontSize="14"
+                    TextColor="#6B7280" />
+
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Amount"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="AddSavingsAmountEntry"
+                        Placeholder="100.00"
+                        Keyboard="Numeric"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12">
+
+                    <Button
+                        Grid.Column="0"
+                        Text="Cancel"
+                        Clicked="CancelSavingsModalClicked"
+                        BackgroundColor="#E5E7EB"
+                        TextColor="#374151"
+                        CornerRadius="10" />
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="Add Savings"
+                        Clicked="AddSavingsClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10" />
+
+                </Grid>
+
+            </VerticalStackLayout>
+
+        </Border>
+
+    </Grid>
+
 </ContentPage>

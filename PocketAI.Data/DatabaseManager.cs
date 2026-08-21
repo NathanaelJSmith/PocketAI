@@ -49,11 +49,12 @@ public class DataBaseManager
 
         string createSavingsGoalTable = @"
         CREATE TABLE IF NOT EXISTS SavingsGoals (
-            id INTEGER PRIMARY KEY, 
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
             Name TEXT NOT NULL,
             TargetAmount REAL NOT NULL,
             CurrentAmount REAL NOT NULL,
-            DeadLine TEXT NOT NULL
+            DeadLine TEXT NOT NULL,
+            IsPrimary INTEGER NOT NULL DEFAULT 0
             );
         ";
 
@@ -101,6 +102,10 @@ public class DataBaseManager
         using SqliteCommand savingGoalCommand = new SqliteCommand(createSavingsGoalTable, connection);
         savingGoalCommand.ExecuteNonQuery();
 
+        // Makes older PocketAI databases compatible
+        // with multiple savings goals.
+        EnsureSavingsGoalColumns(connection);
+
         using SqliteCommand budgetLimitsCommand = new SqliteCommand(createBudgetLimitsTable, connection);
         budgetLimitsCommand.ExecuteNonQuery();
 
@@ -114,6 +119,76 @@ public class DataBaseManager
         recurringExpensesCommand.ExecuteNonQuery();
 
     }
+
+
+    private void EnsureSavingsGoalColumns(
+        SqliteConnection connection)
+    {
+        bool hasIsPrimaryColumn = false;
+
+        // Check the existing SavingsGoals table
+        using (SqliteCommand command =
+            new SqliteCommand(
+                "PRAGMA table_info(SavingsGoals);",
+                connection))
+        {
+            using SqliteDataReader reader =
+                command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                string columnName =
+                    reader.GetString(1);
+
+                if (columnName.Equals(
+                    "IsPrimary",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    hasIsPrimaryColumn = true;
+                    break;
+                }
+            }
+        }
+
+
+        // Older databases will not have this column
+        if (!hasIsPrimaryColumn)
+        {
+            using SqliteCommand alterCommand =
+                new SqliteCommand(
+                    @"ALTER TABLE SavingsGoals
+                    ADD COLUMN IsPrimary
+                    INTEGER NOT NULL DEFAULT 0;",
+                    connection);
+
+            alterCommand.ExecuteNonQuery();
+        }
+
+
+        // If an old savings goal already exists,
+        // make the first one the primary goal.
+        using SqliteCommand primaryCommand =
+            new SqliteCommand(
+                @"
+                UPDATE SavingsGoals
+                SET IsPrimary = 1
+                WHERE Id = (
+                    SELECT Id
+                    FROM SavingsGoals
+                    ORDER BY Id
+                    LIMIT 1
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM SavingsGoals
+                    WHERE IsPrimary = 1
+                );
+                ",
+                connection);
+
+        primaryCommand.ExecuteNonQuery();
+    }
+
 
     //Saves a new expense in the database 
     public void AddExpense(Expense expense)
@@ -257,52 +332,428 @@ public class DataBaseManager
     }
 
     //Saves or updates the user's savings goal in the database.
-    public void SaveSavingsGoal(SavingsGoal savingsGoal)
+   // ==========================================
+    // ADD A NEW SAVINGS GOAL
+    // ==========================================
+
+    public void AddSavingsGoal(
+        SavingsGoal savingsGoal)
     {
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
         connection.Open();
 
-        string saveSavingsGoal = @"
-            INSERT OR REPLACE INTO SavingsGoals (id, Name, TargetAmount, CurrentAmount, DeadLine)
-            VALUES (1, @Name, @TargetAmount, @CurrentAmount, @DeadLine);
+
+        // First goal automatically becomes primary
+        string countGoals = @"
+            SELECT COUNT(*)
+            FROM SavingsGoals;
         ";
 
-        using SqliteCommand command = new SqliteCommand(saveSavingsGoal, connection);
+        using SqliteCommand countCommand =
+            new SqliteCommand(
+                countGoals,
+                connection);
 
-            command.Parameters.AddWithValue("@Name", savingsGoal.Name);
-            command.Parameters.AddWithValue("@TargetAmount", savingsGoal.TargetAmount);
-            command.Parameters.AddWithValue("@CurrentAmount", savingsGoal.CurrentAmount);
-            command.Parameters.AddWithValue("@DeadLine", savingsGoal.DeadLine.ToString("yyyy-MM-dd"));
-            command.ExecuteNonQuery();
+        long goalCount =
+            (long)(countCommand.ExecuteScalar() ?? 0L);
+
+
+        bool shouldBePrimary =
+            savingsGoal.IsPrimary ||
+            goalCount == 0;
+
+
+        string insertGoal = @"
+            INSERT INTO SavingsGoals
+            (
+                Name,
+                TargetAmount,
+                CurrentAmount,
+                DeadLine,
+                IsPrimary
+            )
+            VALUES
+            (
+                @Name,
+                @TargetAmount,
+                @CurrentAmount,
+                @DeadLine,
+                @IsPrimary
+            );
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                insertGoal,
+                connection);
+
+        command.Parameters.AddWithValue(
+            "@Name",
+            savingsGoal.Name);
+
+        command.Parameters.AddWithValue(
+            "@TargetAmount",
+            savingsGoal.TargetAmount);
+
+        command.Parameters.AddWithValue(
+            "@CurrentAmount",
+            savingsGoal.CurrentAmount);
+
+        command.Parameters.AddWithValue(
+            "@DeadLine",
+            savingsGoal.DeadLine
+                .ToString("yyyy-MM-dd"));
+
+        command.Parameters.AddWithValue(
+            "@IsPrimary",
+            shouldBePrimary ? 1 : 0);
+
+
+        command.ExecuteNonQuery();
     }
 
-    //Loads the user's savings goal from the database
-    public SavingsGoal GetSavingsGoal()
+
+
+    // ==========================================
+    // LOAD ALL SAVINGS GOALS
+    // ==========================================
+
+    public List<SavingsGoal> GetSavingsGoals()
     {
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+        List<SavingsGoal> savingsGoals =
+            new List<SavingsGoal>();
+
+
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
         connection.Open();
 
-        string selectSavingGoal = @"
-            SELECT Name, TargetAmount, CurrentAmount, DeadLine
+
+        string selectGoals = @"
+            SELECT
+                Id,
+                Name,
+                TargetAmount,
+                CurrentAmount,
+                DeadLine,
+                IsPrimary
             FROM SavingsGoals
-            WHERE id = 1;
+            ORDER BY IsPrimary DESC, Id ASC;
         ";
 
-        using SqliteCommand command = new SqliteCommand(selectSavingGoal, connection);
 
-        using SqliteDataReader reader = command.ExecuteReader();
+        using SqliteCommand command =
+            new SqliteCommand(
+                selectGoals,
+                connection);
 
-        if (reader.Read())
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+
+        while (reader.Read())
         {
-            string name = reader.GetString(0);
-            double targetAmount = reader.GetDouble(1);
-            double currentAmount = reader.GetDouble(2);
-            DateTime deadline = DateTime.Parse(reader.GetString(3));
+            int id =
+                reader.GetInt32(0);
 
-            return new SavingsGoal(name, targetAmount, currentAmount, deadline);
-            
+            string name =
+                reader.GetString(1);
+
+            double targetAmount =
+                reader.GetDouble(2);
+
+            double currentAmount =
+                reader.GetDouble(3);
+
+            DateTime deadLine =
+                DateTime.Parse(
+                    reader.GetString(4));
+
+            bool isPrimary =
+                reader.GetInt32(5) == 1;
+
+
+            SavingsGoal savingsGoal =
+                new SavingsGoal(
+                    id,
+                    name,
+                    targetAmount,
+                    currentAmount,
+                    deadLine,
+                    isPrimary);
+
+
+            savingsGoals.Add(
+                savingsGoal);
         }
-        return null;
+
+
+        return savingsGoals;
+    }
+
+
+
+    // ==========================================
+    // UPDATE EXISTING SAVINGS GOAL
+    // ==========================================
+
+    public void UpdateSavingsGoal(
+        SavingsGoal savingsGoal)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
+        connection.Open();
+
+
+        string updateGoal = @"
+            UPDATE SavingsGoals
+            SET
+                Name = @Name,
+                TargetAmount = @TargetAmount,
+                CurrentAmount = @CurrentAmount,
+                DeadLine = @DeadLine
+            WHERE Id = @Id;
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                updateGoal,
+                connection);
+
+        command.Parameters.AddWithValue(
+            "@Name",
+            savingsGoal.Name);
+
+        command.Parameters.AddWithValue(
+            "@TargetAmount",
+            savingsGoal.TargetAmount);
+
+        command.Parameters.AddWithValue(
+            "@CurrentAmount",
+            savingsGoal.CurrentAmount);
+
+        command.Parameters.AddWithValue(
+            "@DeadLine",
+            savingsGoal.DeadLine
+                .ToString("yyyy-MM-dd"));
+
+        command.Parameters.AddWithValue(
+            "@Id",
+            savingsGoal.Id);
+
+
+        command.ExecuteNonQuery();
+    }
+
+
+
+    // ==========================================
+    // DELETE SAVINGS GOAL
+    // ==========================================
+
+    public void DeleteSavingsGoalById(
+        int id)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
+        connection.Open();
+
+
+        // Check whether the deleted goal was primary
+        string primaryCheck = @"
+            SELECT IsPrimary
+            FROM SavingsGoals
+            WHERE Id = @Id;
+        ";
+
+
+        bool wasPrimary = false;
+
+
+        using (SqliteCommand checkCommand =
+            new SqliteCommand(
+                primaryCheck,
+                connection))
+        {
+            checkCommand.Parameters.AddWithValue(
+                "@Id",
+                id);
+
+            object? result =
+                checkCommand.ExecuteScalar();
+
+            if (result != null)
+            {
+                wasPrimary =
+                    Convert.ToInt32(result) == 1;
+            }
+        }
+
+
+        string deleteGoal = @"
+            DELETE FROM SavingsGoals
+            WHERE Id = @Id;
+        ";
+
+
+        using (SqliteCommand command =
+            new SqliteCommand(
+                deleteGoal,
+                connection))
+        {
+            command.Parameters.AddWithValue(
+                "@Id",
+                id);
+
+            command.ExecuteNonQuery();
+        }
+
+
+        // If primary was deleted,
+        // promote the next goal automatically
+        if (wasPrimary)
+        {
+            string promoteNextGoal = @"
+                UPDATE SavingsGoals
+                SET IsPrimary = 1
+                WHERE Id = (
+                    SELECT Id
+                    FROM SavingsGoals
+                    ORDER BY Id
+                    LIMIT 1
+                );
+            ";
+
+
+            using SqliteCommand promoteCommand =
+                new SqliteCommand(
+                    promoteNextGoal,
+                    connection);
+
+            promoteCommand.ExecuteNonQuery();
+        }
+    }
+
+
+
+    // ==========================================
+    // SET PRIMARY SAVINGS GOAL
+    // ==========================================
+
+    public void SetPrimarySavingsGoal(
+        int id)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
+        connection.Open();
+
+
+        using SqliteTransaction transaction =
+            connection.BeginTransaction();
+
+
+        // Remove primary status from every goal
+        using (SqliteCommand clearCommand =
+            new SqliteCommand(
+                @"UPDATE SavingsGoals
+                SET IsPrimary = 0;",
+                connection,
+                transaction))
+        {
+            clearCommand.ExecuteNonQuery();
+        }
+
+
+        // Set the selected goal as primary
+        using (SqliteCommand primaryCommand =
+            new SqliteCommand(
+                @"UPDATE SavingsGoals
+                SET IsPrimary = 1
+                WHERE Id = @Id;",
+                connection,
+                transaction))
+        {
+            primaryCommand.Parameters.AddWithValue(
+                "@Id",
+                id);
+
+            primaryCommand.ExecuteNonQuery();
+        }
+
+
+        transaction.Commit();
+    }
+
+
+
+    // ==========================================
+    // GET PRIMARY SAVINGS GOAL
+    // ==========================================
+
+    public SavingsGoal? GetPrimarySavingsGoal()
+    {
+        List<SavingsGoal> goals =
+            GetSavingsGoals();
+
+
+        return goals.FirstOrDefault(
+                goal => goal.IsPrimary)
+            ??
+            goals.FirstOrDefault();
+    }
+
+
+
+    // ==========================================
+    // BACKWARDS COMPATIBILITY
+    // ==========================================
+
+    // Existing Home/Savings code currently calls this.
+    // For now it returns the primary savings goal.
+    public SavingsGoal? GetSavingsGoal()
+    {
+        return GetPrimarySavingsGoal();
+    }
+
+
+    // Existing single-goal Savings page still calls
+    // SaveSavingsGoal. Keep it functional until we
+    // replace the Savings UI in the next step.
+    public void SaveSavingsGoal(
+        SavingsGoal savingsGoal)
+    {
+        SavingsGoal? existingPrimary =
+            GetPrimarySavingsGoal();
+
+
+        if (existingPrimary == null)
+        {
+            savingsGoal.IsPrimary = true;
+
+            AddSavingsGoal(
+                savingsGoal);
+
+            return;
+        }
+
+
+        savingsGoal.Id =
+            existingPrimary.Id;
+
+        savingsGoal.IsPrimary =
+            true;
+
+
+        UpdateSavingsGoal(
+            savingsGoal);
     }
 
     //Saves or updates one budget limit in the database
