@@ -4,23 +4,686 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.BillsPage"
-    Shell.NavBarIsVisible="False"
-    Title="Bills">
+    BackgroundColor="#F5F7FA"
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="15">
-        
-        <Label
-            Text="Bills &amp; Recurring"
-            FontSize="28"
-            FontAttributes="Bold"/>
+    <Grid>
 
-        <Label
-            Text="Tracking recurring expenses and upcoming bills."
-            FontSize="16"/>
+        <!-- ===================================== -->
+        <!-- MAIN BILLS PAGE                       -->
+        <!-- ===================================== -->
 
-    </VerticalStackLayout>
+        <ScrollView>
 
+            <VerticalStackLayout
+                Padding="32"
+                Spacing="24">
+
+                <!-- HEADER -->
+
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    ColumnSpacing="20">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="5">
+
+                        <Label
+                            Text="BILLS"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                        <Label
+                            Text="Track recurring expenses and upcoming payments."
+                            FontSize="14"
+                            TextColor="#6B7280" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="+ Add Bill"
+                        Clicked="ShowAddBillClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        Padding="18,12"
+                        VerticalOptions="Start" />
+
+                </Grid>
+
+
+
+                <!-- ===================================== -->
+                <!-- BILL SUMMARY                          -->
+                <!-- ===================================== -->
+
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="16">
+
+
+                    <!-- MONTHLY TOTAL -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="MONTHLY BILLS"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="MonthlyBillsLabel"
+                                Text="$0.00"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- ACTIVE COUNT -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="ACTIVE BILLS"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="ActiveBillsLabel"
+                                Text="0"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- NEXT BILL -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="NEXT BILL"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="NextBillLabel"
+                                Text="None"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827"
+                                LineBreakMode="TailTruncation" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- INACTIVE COUNT -->
+
+                    <Border
+                        Grid.Column="3"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="INACTIVE"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="InactiveBillsLabel"
+                                Text="0"
+                                FontSize="25"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- ===================================== -->
+                <!-- EMPTY STATE                           -->
+                <!-- ===================================== -->
+
+                <Border
+                    x:Name="BillsEmptyState"
+                    IsVisible="False"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="45">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+
+                    <VerticalStackLayout
+                        HorizontalOptions="Center"
+                        Spacing="12">
+
+                        <Label
+                            Text="No recurring bills yet"
+                            FontSize="21"
+                            FontAttributes="Bold"
+                            TextColor="#111827"
+                            HorizontalTextAlignment="Center" />
+
+                        <Label
+                            Text="Add recurring expenses so PocketAI can plan around your monthly obligations."
+                            FontSize="14"
+                            TextColor="#6B7280"
+                            HorizontalTextAlignment="Center"
+                            WidthRequest="500" />
+
+                        <Button
+                            Text="+ Add Your First Bill"
+                            Clicked="ShowAddBillClicked"
+                            BackgroundColor="#7C3AED"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            CornerRadius="10"
+                            Margin="0,8,0,0"
+                            HorizontalOptions="Center" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ===================================== -->
+                <!-- BILL LIST                             -->
+                <!-- ===================================== -->
+
+                <VerticalStackLayout Spacing="12">
+
+                    <Label
+                        Text="Recurring Bills"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        TextColor="#111827" />
+
+
+                    <VerticalStackLayout
+                        x:Name="BillsContainer"
+                        Spacing="14">
+
+                        <BindableLayout.ItemTemplate>
+
+                            <DataTemplate>
+
+                                <Border
+                                    BackgroundColor="White"
+                                    Stroke="#E5E7EB"
+                                    StrokeThickness="1"
+                                    Padding="22">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="16" />
+                                    </Border.StrokeShape>
+
+
+                                    <VerticalStackLayout Spacing="16">
+
+                                        <!-- TOP ROW -->
+
+                                        <Grid
+                                            ColumnDefinitions="*,Auto"
+                                            ColumnSpacing="20">
+
+                                            <VerticalStackLayout
+                                                Grid.Column="0"
+                                                Spacing="5">
+
+                                                <HorizontalStackLayout Spacing="10">
+
+                                                    <Label
+                                                        Text="{Binding Name}"
+                                                        FontSize="18"
+                                                        FontAttributes="Bold"
+                                                        TextColor="#111827" />
+
+
+                                                    <Border
+                                                        BackgroundColor="{Binding StatusBackgroundColor}"
+                                                        StrokeThickness="0"
+                                                        Padding="9,3">
+
+                                                        <Border.StrokeShape>
+                                                            <RoundRectangle CornerRadius="8" />
+                                                        </Border.StrokeShape>
+
+                                                        <Label
+                                                            Text="{Binding ActiveStatusText}"
+                                                            FontSize="10"
+                                                            FontAttributes="Bold"
+                                                            TextColor="{Binding StatusColor}" />
+
+                                                    </Border>
+
+                                                </HorizontalStackLayout>
+
+
+                                                <Label
+                                                    Text="{Binding Category}"
+                                                    FontSize="13"
+                                                    TextColor="#6B7280" />
+
+                                            </VerticalStackLayout>
+
+
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding AmountText}"
+                                                FontSize="20"
+                                                FontAttributes="Bold"
+                                                TextColor="#111827"
+                                                VerticalOptions="Center" />
+
+                                        </Grid>
+
+
+
+                                        <!-- BILL DETAILS -->
+
+                                        <Grid
+                                            ColumnDefinitions="*,*,*"
+                                            ColumnSpacing="20">
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="0"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="DUE DATE"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding DueDateText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#374151" />
+
+                                            </VerticalStackLayout>
+
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="1"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="NEXT PAYMENT"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding NextPaymentText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#374151" />
+
+                                            </VerticalStackLayout>
+
+
+
+                                            <VerticalStackLayout
+                                                Grid.Column="2"
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="STATUS"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="#9CA3AF" />
+
+                                                <Label
+                                                    Text="{Binding DueStatusText}"
+                                                    FontSize="14"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{Binding DueStatusColor}" />
+
+                                            </VerticalStackLayout>
+
+                                        </Grid>
+
+
+
+                                        <!-- ACTIONS -->
+
+                                        <HorizontalStackLayout
+                                            HorizontalOptions="End"
+                                            Spacing="10">
+
+                                            <Button
+                                                Text="{Binding ToggleText}"
+                                                Clicked="ToggleBillActiveClicked"
+                                                BackgroundColor="#EDE9FE"
+                                                TextColor="#6D28D9"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+
+
+                                            <Button
+                                                Text="Edit"
+                                                Clicked="ShowEditBillClicked"
+                                                BackgroundColor="#E5E7EB"
+                                                TextColor="#374151"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+
+                                        </HorizontalStackLayout>
+
+                                    </VerticalStackLayout>
+
+                                </Border>
+
+                            </DataTemplate>
+
+                        </BindableLayout.ItemTemplate>
+
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+
+
+        <!-- ===================================== -->
+        <!-- MODAL BACKGROUND                      -->
+        <!-- ===================================== -->
+
+        <BoxView
+            x:Name="ModalBackground"
+            ZIndex="10"
+            IsVisible="False"
+            BackgroundColor="#80000000">
+
+            <BoxView.GestureRecognizers>
+
+                <TapGestureRecognizer
+                    Tapped="CloseBillModalBackgroundClicked" />
+
+            </BoxView.GestureRecognizers>
+
+        </BoxView>
+
+
+
+        <!-- ===================================== -->
+        <!-- ADD / EDIT BILL MODAL                 -->
+        <!-- ===================================== -->
+
+        <Border
+            x:Name="BillModal"
+            ZIndex="20"
+            IsVisible="False"
+            WidthRequest="460"
+            Padding="28"
+            BackgroundColor="White"
+            Stroke="#E5E7EB"
+            StrokeThickness="1"
+            HorizontalOptions="Center"
+            VerticalOptions="Center">
+
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="18" />
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout Spacing="17">
+
+                <Label
+                    x:Name="BillModalTitleLabel"
+                    Text="ADD BILL"
+                    FontSize="22"
+                    FontAttributes="Bold"
+                    TextColor="#111827" />
+
+
+                <!-- BILL NAME -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Bill Name"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="BillNameEntry"
+                        Placeholder="Netflix"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- CATEGORY -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Category"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Picker
+                        x:Name="BillCategoryPicker"
+                        Title="Select a category"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- AMOUNT -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Monthly Amount"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="BillAmountEntry"
+                        Placeholder="25.00"
+                        Keyboard="Numeric"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- DUE DAY -->
+
+                <VerticalStackLayout Spacing="6">
+
+                    <Label
+                        Text="Due Day"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#374151" />
+
+                    <Entry
+                        x:Name="BillDueDayEntry"
+                        Placeholder="15"
+                        Keyboard="Numeric"
+                        BackgroundColor="#F9FAFB"
+                        TextColor="#111827" />
+
+                    <Label
+                        Text="Enter a day from 1 to 31."
+                        FontSize="11"
+                        TextColor="#9CA3AF" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- ACTIVE -->
+
+                <Grid
+                    ColumnDefinitions="*,Auto"
+                    Padding="0,4">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="3">
+
+                        <Label
+                            Text="Active Bill"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#374151" />
+
+                        <Label
+                            Text="Inactive bills won't reduce available money."
+                            FontSize="11"
+                            TextColor="#9CA3AF" />
+
+                    </VerticalStackLayout>
+
+
+                    <Switch
+                        x:Name="BillActiveSwitch"
+                        Grid.Column="1"
+                        IsToggled="True"
+                        VerticalOptions="Center"
+                        OnColor="#7C3AED" />
+
+                </Grid>
+
+
+
+                <!-- SAVE / CANCEL -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12"
+                    Margin="0,8,0,0">
+
+                    <Button
+                        Grid.Column="0"
+                        Text="Cancel"
+                        Clicked="CancelBillModalClicked"
+                        BackgroundColor="#E5E7EB"
+                        TextColor="#374151"
+                        CornerRadius="10" />
+
+
+                    <Button
+                        x:Name="SaveBillButton"
+                        Grid.Column="1"
+                        Text="Add Bill"
+                        Clicked="SaveBillClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10" />
+
+                </Grid>
+
+
+
+                <!-- DELETE -->
+
+                <Button
+                    x:Name="DeleteBillButton"
+                    Text="Delete Bill"
+                    Clicked="DeleteBillClicked"
+                    BackgroundColor="#FEE2E2"
+                    TextColor="#B91C1C"
+                    FontAttributes="Bold"
+                    CornerRadius="10"
+                    IsVisible="False" />
+
+            </VerticalStackLayout>
+
+        </Border>
+
+    </Grid>
 
 </ContentPage>

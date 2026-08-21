@@ -194,11 +194,29 @@ public class AnalyticsService
         //Gets total spending for the current month
         double totalSpent = GetTotalSpent(currentMonthExpenses);
 
-        //Gets total recurring expenses 
-        double monthlyRecurringExpenses = recurringExpenses.Sum(expense => expense.Amount);
+        // Cancelled or inactive bills should not
+        // reduce the user's available money.
+        List<RecurringExpenses> activeRecurringExpenses =
+            recurringExpenses
+                .Where(expense => expense.IsActive)
+                .ToList();
 
-        summary.MonthlyRecurringExpenses = monthlyRecurringExpenses;
-        summary.RecurringExpenses = recurringExpenses;
+
+        // Add together only active recurring bills
+        double monthlyRecurringExpenses =
+            activeRecurringExpenses.Sum(
+                expense => expense.Amount);
+
+
+        // Store the active monthly recurring total
+        summary.MonthlyRecurringExpenses =
+            monthlyRecurringExpenses;
+
+
+        // FinancialSummary should only treat active
+        // recurring expenses as current obligations
+        summary.RecurringExpenses =
+            activeRecurringExpenses;
 
         //Adds income information
         if (userIncome != null)

@@ -3,20 +3,1163 @@
 <ContentPage
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
     x:Class="PocketAI.App.Pages.AnalyticsPage"
-    Shell.NavBarIsVisible="False"
-    Title="Analytics">
+    BackgroundColor="#F5F7FA"
+    Shell.NavBarIsVisible="False">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="15">
+    <ScrollView>
 
-        <Label
-            Text="Analytics"
-            FontSize="28"
-            FontAttributes="Bold"/>
-        <Label
-            Text="Understanding your spending, cash flow, and financial health."
-            FontSize="16"/>
-    </VerticalStackLayout>        
+        <VerticalStackLayout
+            Padding="32"
+            Spacing="22">
+
+
+            <!-- ================================= -->
+            <!-- HEADER                            -->
+            <!-- ================================= -->
+
+            <VerticalStackLayout Spacing="5">
+
+                <Label
+                    Text="ANALYTICS"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#111827" />
+
+                <Label
+                    Text="Understand where your money is going and how your finances are changing."
+                    FontSize="14"
+                    TextColor="#6B7280" />
+
+            </VerticalStackLayout>
+
+
+
+            <!-- ================================= -->
+            <!-- ANALYTICS TABS                    -->
+            <!-- ================================= -->
+
+            <Border
+                BackgroundColor="White"
+                Stroke="#E5E7EB"
+                StrokeThickness="1"
+                Padding="6">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="6">
+
+                    <Button
+                        x:Name="OverviewTabButton"
+                        Grid.Column="0"
+                        Text="Overview"
+                        Clicked="OverviewTabClicked"
+                        BackgroundColor="#7C3AED"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
+
+                    <Button
+                        x:Name="SpendingTabButton"
+                        Grid.Column="1"
+                        Text="Spending"
+                        Clicked="SpendingTabClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="#6B7280"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
+
+                    <Button
+                        x:Name="CashFlowTabButton"
+                        Grid.Column="2"
+                        Text="Cash Flow"
+                        Clicked="CashFlowTabClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="#6B7280"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
+
+                    <Button
+                        x:Name="TrendsTabButton"
+                        Grid.Column="3"
+                        Text="Trends"
+                        Clicked="TrendsTabClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="#6B7280"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
+
+                </Grid>
+
+            </Border>
+
+
+
+            <!-- ================================= -->
+            <!-- OVERVIEW TAB                      -->
+            <!-- ================================= -->
+
+            <VerticalStackLayout
+                x:Name="OverviewSection"
+                Spacing="20"
+                IsVisible="True">
+
+
+                <!-- MAIN MONEY CARDS -->
+
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="16">
+
+
+                    <!-- INCOME -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="INCOME"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="OverviewIncomeLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- SPENT -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="SPENT"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="OverviewSpentLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- RECURRING -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="RECURRING"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="OverviewRecurringLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- MONEY LEFT -->
+
+                    <Border
+                        Grid.Column="3"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="MONEY LEFT"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="OverviewMoneyLeftLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- FINANCIAL HEALTH / SAFE TO SPEND -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="16">
+
+
+                    <!-- FINANCIAL HEALTH -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="24">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="10">
+
+                            <Label
+                                Text="FINANCIAL HEALTH"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="HealthScoreLabel"
+                                Text="0 / 100"
+                                FontSize="32"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                x:Name="HealthStatusLabel"
+                                Text="No data"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <ProgressBar
+                                x:Name="HealthProgressBar"
+                                Progress="0"
+                                HeightRequest="9"
+                                ProgressColor="#7C3AED"
+                                BackgroundColor="#E5E7EB" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- SAFE TO SPEND -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="24">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label
+                                Text="SAFE TO SPEND"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="SafeToSpendLabel"
+                                Text="$0.00"
+                                FontSize="32"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                x:Name="DailySafeLabel"
+                                Text="$0.00 per day"
+                                FontSize="14"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="WeeklySafeLabel"
+                                Text="$0.00 per week"
+                                FontSize="14"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- POCKETAI SUMMARY -->
+
+                <Border
+                    BackgroundColor="#F5F3FF"
+                    Stroke="#DDD6FE"
+                    StrokeThickness="1"
+                    Padding="22">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="7">
+
+                        <Label
+                            Text="POCKETAI SUMMARY"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="#6D28D9" />
+
+                        <Label
+                            x:Name="OverviewInsightLabel"
+                            Text="Add financial information to begin analyzing your money."
+                            FontSize="14"
+                            TextColor="#374151" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+
+
+            <!-- ================================= -->
+            <!-- SPENDING TAB                      -->
+            <!-- ================================= -->
+
+            <VerticalStackLayout
+                x:Name="SpendingSection"
+                Spacing="20"
+                IsVisible="False">
+
+
+                <!-- MONTH COMPARISON -->
+
+                <Grid
+                    ColumnDefinitions="*,*,*"
+                    ColumnSpacing="16">
+
+
+                    <!-- THIS MONTH -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="THIS MONTH"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="CurrentMonthSpentLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- LAST MONTH -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="LAST MONTH"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="LastMonthSpentLabel"
+                                Text="$0.00"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- CHANGE -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="20">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="CHANGE"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="SpendingChangeLabel"
+                                Text="N/A"
+                                FontSize="24"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- ================================= -->
+                <!-- THIS WEEK VS LAST WEEK GRAPH      -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="This Week vs Last Week"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="Compare your daily spending from Monday through Sunday."
+                                FontSize="13"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <!-- WEEK TOTALS -->
+
+                        <Grid
+                            ColumnDefinitions="*,*,*"
+                            ColumnSpacing="15">
+
+
+                            <VerticalStackLayout
+                                Grid.Column="0"
+                                Spacing="3">
+
+                                <Label
+                                    Text="THIS WEEK"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="#6B7280" />
+
+                                <Label
+                                    x:Name="ThisWeekTotalLabel"
+                                    Text="$0.00"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    TextColor="#111827" />
+
+                            </VerticalStackLayout>
+
+
+
+                            <VerticalStackLayout
+                                Grid.Column="1"
+                                Spacing="3">
+
+                                <Label
+                                    Text="LAST WEEK"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="#6B7280" />
+
+                                <Label
+                                    x:Name="LastWeekTotalLabel"
+                                    Text="$0.00"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    TextColor="#111827" />
+
+                            </VerticalStackLayout>
+
+
+
+                            <VerticalStackLayout
+                                Grid.Column="2"
+                                Spacing="3">
+
+                                <Label
+                                    Text="CHANGE"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="#6B7280" />
+
+                                <Label
+                                    x:Name="WeeklyChangeLabel"
+                                    Text="N/A"
+                                    FontSize="20"
+                                    FontAttributes="Bold"
+                                    TextColor="#6B7280" />
+
+                            </VerticalStackLayout>
+
+                        </Grid>
+
+
+
+                        <!-- REAL BAR GRAPH -->
+
+                        <lvc:CartesianChart
+                            x:Name="WeekComparisonChart"
+                            HeightRequest="330"
+                            LegendPosition="Bottom" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ================================= -->
+                <!-- SPENDING BY CATEGORY              -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="Spending by Category"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="See which categories are using the largest share of your monthly spending."
+                                FontSize="13"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+
+
+                        <!-- ================================= -->
+                        <!-- CATEGORY DONUT CHART              -->
+                        <!-- ================================= -->
+
+                        <Grid
+                            HeightRequest="400">
+
+                            <!-- REAL DONUT GRAPH -->
+
+                            <lvc:PieChart
+                                x:Name="CategoryDonutChart"
+                                LegendPosition="Bottom" />
+
+
+                            <!-- TOTAL IN CENTER -->
+
+                            <VerticalStackLayout
+                                x:Name="CategoryDonutCenter"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center"
+                                Spacing="2"
+                                InputTransparent="True"
+                                IsVisible="False">
+
+                                <Label
+                                    x:Name="CategoryDonutTotalLabel"
+                                    Text="$0.00"
+                                    FontSize="24"
+                                    FontAttributes="Bold"
+                                    TextColor="#111827"
+                                    HorizontalTextAlignment="Center" />
+
+                                <Label
+                                    Text="Total Spent"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="#6B7280"
+                                    HorizontalTextAlignment="Center" />
+
+                            </VerticalStackLayout>
+
+                        </Grid>
+
+
+
+                        <!-- NO DATA -->
+
+                        <Label
+                            x:Name="CategoryEmptyLabel"
+                            Text="No spending this month."
+                            FontSize="14"
+                            TextColor="#6B7280"
+                            IsVisible="False" />
+
+
+
+                        <!-- CATEGORY BREAKDOWN -->
+
+                        <VerticalStackLayout
+                            x:Name="CategorySpendingContainer"
+                            Spacing="16">
+
+                            <BindableLayout.ItemTemplate>
+
+                                <DataTemplate>
+
+                                    <VerticalStackLayout Spacing="6">
+
+                                        <Grid
+                                            ColumnDefinitions="*,Auto">
+
+                                            <Label
+                                                Grid.Column="0"
+                                                Text="{Binding Category}"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="#374151" />
+
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding AmountText}"
+                                                FontSize="14"
+                                                FontAttributes="Bold"
+                                                TextColor="#111827" />
+
+                                        </Grid>
+
+
+                                        <ProgressBar
+                                            Progress="{Binding Progress}"
+                                            HeightRequest="9"
+                                            ProgressColor="#7C3AED"
+                                            BackgroundColor="#E5E7EB" />
+
+
+                                        <Label
+                                            Text="{Binding PercentText}"
+                                            FontSize="11"
+                                            TextColor="#6B7280" />
+
+                                    </VerticalStackLayout>
+
+                                </DataTemplate>
+
+                            </BindableLayout.ItemTemplate>
+
+                        </VerticalStackLayout>
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+
+
+            <!-- ================================= -->
+            <!-- CASH FLOW TAB                     -->
+            <!-- ================================= -->
+
+            <VerticalStackLayout
+                x:Name="CashFlowSection"
+                Spacing="20"
+                IsVisible="False">
+
+
+                <!-- ================================= -->
+                <!-- CASH FLOW GRAPH                   -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="Income vs Outflows"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="Compare your monthly income, transaction spending, recurring bills, and remaining money."
+                                FontSize="13"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+
+                        <lvc:CartesianChart
+                            x:Name="CashFlowChart"
+                            HeightRequest="350"
+                            LegendPosition="Bottom" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ================================= -->
+                <!-- MONTHLY CASH FLOW                 -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="20">
+
+                        <Label
+                            Text="Monthly Cash Flow"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+
+                        <Grid
+                            ColumnDefinitions="*,Auto"
+                            RowDefinitions="Auto,Auto,Auto,Auto"
+                            RowSpacing="14">
+
+
+                            <!-- INCOME -->
+
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Text="Monthly Income"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="CashFlowIncomeLabel"
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Text="$0.00"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+
+
+                            <!-- SPENDING -->
+
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="Transaction Spending"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="CashFlowSpendingLabel"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="-$0.00"
+                                FontAttributes="Bold"
+                                TextColor="#B91C1C" />
+
+
+
+                            <!-- BILLS -->
+
+                            <Label
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Text="Active Recurring Bills"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="CashFlowBillsLabel"
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Text="-$0.00"
+                                FontAttributes="Bold"
+                                TextColor="#B91C1C" />
+
+
+
+                            <!-- REMAINING -->
+
+                            <Label
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Text="Money Remaining"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                x:Name="CashFlowRemainingLabel"
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Text="$0.00"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </Grid>
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ================================= -->
+                <!-- INCOME USAGE                      -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label
+                            Text="Income Usage"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                        <ProgressBar
+                            x:Name="IncomeUsedProgressBar"
+                            HeightRequest="12"
+                            Progress="0"
+                            ProgressColor="#7C3AED"
+                            BackgroundColor="#E5E7EB" />
+
+                        <Label
+                            x:Name="IncomeUsedLabel"
+                            Text="0% of monthly income committed"
+                            FontSize="13"
+                            TextColor="#6B7280" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ================================= -->
+                <!-- PROJECTION                        -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="#F5F3FF"
+                    Stroke="#DDD6FE"
+                    StrokeThickness="1"
+                    Padding="22">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="7">
+
+                        <Label
+                            Text="END-OF-MONTH PROJECTION"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="#6D28D9" />
+
+                        <Label
+                            x:Name="ProjectedMoneyLabel"
+                            Text="$0.00"
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="#111827" />
+
+                        <Label
+                            x:Name="ProjectionMessageLabel"
+                            Text="Add spending data to create a projection."
+                            FontSize="14"
+                            TextColor="#374151" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+            </VerticalStackLayout>
+
+
+
+            <!-- ================================= -->
+            <!-- TRENDS TAB                        -->
+            <!-- ================================= -->
+
+            <VerticalStackLayout
+                x:Name="TrendsSection"
+                Spacing="20"
+                IsVisible="False">
+
+
+                <!-- ================================= -->
+                <!-- SIX MONTH LINE GRAPH              -->
+                <!-- ================================= -->
+
+                <Border
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="24">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="18">
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="6-Month Spending Trend"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                            <Label
+                                Text="Compare your monthly spending over time."
+                                FontSize="13"
+                                TextColor="#6B7280" />
+
+                        </VerticalStackLayout>
+
+
+                        <lvc:CartesianChart
+                            x:Name="SixMonthTrendChart"
+                            HeightRequest="350"
+                            LegendPosition="Bottom" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- ================================= -->
+                <!-- TREND SUMMARY                     -->
+                <!-- ================================= -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="16">
+
+
+                    <!-- AVERAGE -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="22">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="6-MONTH AVERAGE"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="SixMonthAverageLabel"
+                                Text="$0.00"
+                                FontSize="26"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- DIRECTION -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="White"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="1"
+                        Padding="22">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="7">
+
+                            <Label
+                                Text="TREND"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="#6B7280" />
+
+                            <Label
+                                x:Name="TrendDirectionLabel"
+                                Text="Not enough data"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="#111827" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
 </ContentPage>

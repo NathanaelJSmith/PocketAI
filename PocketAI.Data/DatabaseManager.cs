@@ -1003,6 +1003,8 @@ public class DataBaseManager
         return results;
     }
 
+
+
     //Add a recurring expense to the database
     public void AddRecurringExpense(RecurringExpenses expense)
     {
@@ -1024,38 +1026,158 @@ public class DataBaseManager
         command.ExecuteNonQuery();  
     }
 
-    //gets all recurring expenses from the database
+    // Gets all recurring expenses from the database.
+    // This includes both active and inactive bills.
     public List<RecurringExpenses> GetRecuringExpenses()
     {
-        List<RecurringExpenses> expenses = new List<RecurringExpenses>();
+        List<RecurringExpenses> expenses =
+            new List<RecurringExpenses>();
 
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
 
         connection.Open();
 
+
         string query = @"
-        SELECT Id, Name, Category, Amount, DueDay, IsActive
-        FROM RecurringExpenses;
-        WHERE IsActive = 1;
+            SELECT
+                Id,
+                Name,
+                Category,
+                Amount,
+                DueDay,
+                IsActive
+            FROM RecurringExpenses
+            ORDER BY DueDay ASC;
         ";
 
-        using SqliteCommand command = new SqliteCommand(query, connection);
 
-        using SqliteDataReader reader = command.ExecuteReader();
+        using SqliteCommand command =
+            new SqliteCommand(
+                query,
+                connection);
+
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
 
         while (reader.Read())
         {
-            expenses.Add(new RecurringExpenses(
-                reader.GetInt32(0),
-                reader.GetString(1),
-                reader.GetString(2),
-                reader.GetDouble(3),
-                reader.GetInt32(4),
-                reader.GetInt32(5) == 1
-            ));
+            RecurringExpenses expense =
+                new RecurringExpenses(
+                    reader.GetInt32(0),
+                    reader.GetString(1),
+                    reader.GetString(2),
+                    reader.GetDouble(3),
+                    reader.GetInt32(4),
+                    reader.GetInt32(5) == 1);
+
+
+            expenses.Add(
+                expense);
         }
 
+
         return expenses;
+    }
+
+    // ==========================================
+    // UPDATE RECURRING EXPENSE
+    // ==========================================
+
+    public void UpdateRecurringExpense(
+        RecurringExpenses expense)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
+        connection.Open();
+
+
+        string updateRecurringExpense = @"
+            UPDATE RecurringExpenses
+            SET
+                Name = @Name,
+                Category = @Category,
+                Amount = @Amount,
+                DueDay = @DueDay,
+                IsActive = @IsActive
+            WHERE Id = @Id;
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                updateRecurringExpense,
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@Name",
+            expense.Name);
+
+
+        command.Parameters.AddWithValue(
+            "@Category",
+            expense.Category);
+
+
+        command.Parameters.AddWithValue(
+            "@Amount",
+            expense.Amount);
+
+
+        command.Parameters.AddWithValue(
+            "@DueDay",
+            expense.DueDay);
+
+
+        command.Parameters.AddWithValue(
+            "@IsActive",
+            expense.IsActive ? 1 : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@Id",
+            expense.Id);
+
+
+        command.ExecuteNonQuery();
+    }
+
+    // ==========================================
+    // DELETE RECURRING EXPENSE
+    // ==========================================
+
+    public void DeleteRecurringExpenseById(
+        int id)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(connectionString);
+
+        connection.Open();
+
+
+        string deleteRecurringExpense = @"
+            DELETE FROM RecurringExpenses
+            WHERE Id = @Id;
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                deleteRecurringExpense,
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@Id",
+            id);
+
+
+        command.ExecuteNonQuery();
     }
 
 }
