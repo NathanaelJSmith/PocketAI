@@ -222,16 +222,18 @@ public partial class HomePage : ContentPage
             SafeToSpendStatusLabel.Text =
                 "✓ You're on track";
 
-            SafeToSpendStatusLabel.TextColor =
-                Color.FromArgb("#15803D");
+            SafeToSpendStatusLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
         }
         else
         {
             SafeToSpendStatusLabel.Text =
                 $"⚠ {Math.Abs(safeToSpend):C} short";
 
-            SafeToSpendStatusLabel.TextColor =
-                Color.FromArgb("#B91C1C");
+            SafeToSpendStatusLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
 
 
@@ -292,24 +294,27 @@ public partial class HomePage : ContentPage
             SavingsStatusLabel.Text =
                 "✓ Goal complete";
 
-            SavingsStatusLabel.TextColor =
-                Color.FromArgb("#15803D");
+            SavingsStatusLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
         }
         else if (summary.DaysLeft <= 0)
         {
             SavingsStatusLabel.Text =
                 "⚠ Target date reached";
 
-            SavingsStatusLabel.TextColor =
-                Color.FromArgb("#B91C1C");
+            SavingsStatusLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
         else
         {
             SavingsStatusLabel.Text =
                 $"{summary.DaysLeft} days remaining";
 
-            SavingsStatusLabel.TextColor =
-                Color.FromArgb("#15803D");
+            SavingsStatusLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
         }
     }
         else
@@ -334,352 +339,672 @@ public partial class HomePage : ContentPage
         SavingsStatusLabel.Text =
             "No savings goal";
 
-        SavingsStatusLabel.TextColor =
-            Color.FromArgb("#6B7280");
+        SavingsStatusLabel.SetDynamicResource(
+        Label.TextColorProperty,
+        "TextSecondary");
         }
 
         // ==========================================
         // UPDATE BUDGET SNAPSHOT
         // ==========================================
+
+        // Remove old budget rows before rebuilding them.
         BudgetSnapshotContainer.Children.Clear();
 
-        BudgetSnapshotContainer.Children.Clear();
 
-if (budgetLimits.Count > 0)
-{
-    BudgetEmptyLabel.IsVisible = false;
-
-    // Only expenses from the current month
-    List<Expense> currentMonthExpenses =
-        expenses
-            .Where(expense =>
-                expense.Date.Year == today.Year &&
-                expense.Date.Month == today.Month)
-            .ToList();
-
-    // Shows up to 3 budget categories
-    foreach (BudgetLimit budget in budgetLimits.Take(3))
-    {
-        double spent =
-            analyticsService.GetCategoryTotal(
-                currentMonthExpenses,
-                budget.Category);
-
-        double remaining =
-            budget.LimitAmount - spent;
-
-        double progress = 0;
-
-        if (budget.LimitAmount > 0)
+        if (budgetLimits.Count > 0)
         {
-            progress =
-                spent / budget.LimitAmount;
-        }
-
-        // ProgressBar should stay between 0 and 1
-        double displayedProgress =
-            Math.Clamp(progress, 0, 1);
+            BudgetEmptyLabel.IsVisible =
+                false;
 
 
-        // Category name and amount
-        Grid topRow = new Grid
-        {
-            ColumnDefinitions =
+            // ======================================
+            // CURRENT MONTH EXPENSES
+            // ======================================
+
+            List<Expense> currentMonthExpenses =
+                expenses
+                    .Where(expense =>
+                        expense.Date.Year ==
+                        today.Year &&
+
+                        expense.Date.Month ==
+                        today.Month)
+                    .ToList();
+
+
+            // ======================================
+            // DISPLAY TOP 3 BUDGETS
+            // ======================================
+
+            foreach (BudgetLimit budget
+                    in budgetLimits.Take(3))
             {
-                new ColumnDefinition(GridLength.Star),
-                new ColumnDefinition(GridLength.Auto)
+                double spent =
+                    analyticsService.GetCategoryTotal(
+                        currentMonthExpenses,
+                        budget.Category);
+
+
+                double remaining =
+                    budget.LimitAmount -
+                    spent;
+
+
+                double progress =
+                    0;
+
+
+                if (budget.LimitAmount > 0)
+                {
+                    progress =
+                        spent /
+                        budget.LimitAmount;
+                }
+
+
+                double displayedProgress =
+                    Math.Clamp(
+                        progress,
+                        0,
+                        1);
+
+
+                // ==================================
+                // TOP ROW
+                // ==================================
+
+                Grid topRow =
+                    new Grid
+                    {
+                        ColumnDefinitions =
+                        {
+                            new ColumnDefinition(
+                                GridLength.Star),
+
+                            new ColumnDefinition(
+                                GridLength.Auto)
+                        }
+                    };
+
+
+                // ==================================
+                // CATEGORY NAME
+                // ==================================
+
+                Label categoryLabel =
+                    new Label
+                    {
+                        Text =
+                            budget.Category,
+
+                        FontSize =
+                            14,
+
+                        FontAttributes =
+                            FontAttributes.Bold
+                    };
+
+
+                categoryLabel.SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextPrimary");
+
+
+                // ==================================
+                // SPENT / LIMIT
+                // ==================================
+
+                Label amountLabel =
+                    new Label
+                    {
+                        Text =
+                            $"{spent:C} / " +
+                            $"{budget.LimitAmount:C}",
+
+                        FontSize =
+                            13
+                    };
+
+
+                amountLabel.SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextSecondary");
+
+
+                Grid.SetColumn(
+                    categoryLabel,
+                    0);
+
+
+                Grid.SetColumn(
+                    amountLabel,
+                    1);
+
+
+                topRow.Children.Add(
+                    categoryLabel);
+
+
+                topRow.Children.Add(
+                    amountLabel);
+
+
+
+                // ==================================
+                // BUDGET PROGRESS BAR
+                // ==================================
+
+                ProgressBar progressBar =
+                    new ProgressBar
+                    {
+                        Progress =
+                            displayedProgress,
+
+                        HeightRequest =
+                            8
+                    };
+
+
+                // Over-budget stays red because
+                // this is a financial warning.
+                if (remaining < 0)
+                {
+                    progressBar.SetDynamicResource(
+                        ProgressBar.ProgressColorProperty,
+                        "DangerColor");
+                }
+                else
+                {
+                    // Normal progress follows the
+                    // user's selected app theme.
+                    progressBar.SetDynamicResource(
+                        ProgressBar.ProgressColorProperty,
+                        "ThemePrimary");
+                }
+
+
+                progressBar.SetDynamicResource(
+                    ProgressBar.BackgroundColorProperty,
+                    "BorderColor");
+
+
+
+                // ==================================
+                // REMAINING / OVER-BUDGET MESSAGE
+                // ==================================
+
+                Label remainingLabel =
+                    new Label
+                    {
+                        FontSize =
+                            12
+                    };
+
+
+                if (remaining >= 0)
+                {
+                    remainingLabel.Text =
+                        $"{remaining:C} left";
+
+
+                    remainingLabel.SetDynamicResource(
+                        Label.TextColorProperty,
+                        "TextSecondary");
+                }
+                else
+                {
+                    remainingLabel.Text =
+                        $"{Math.Abs(remaining):C} OVER BUDGET";
+
+
+                    remainingLabel.SetDynamicResource(
+                        Label.TextColorProperty,
+                        "DangerColor");
+
+
+                    remainingLabel.FontAttributes =
+                        FontAttributes.Bold;
+                }
+
+
+
+                // ==================================
+                // COMPLETE BUDGET ROW
+                // ==================================
+
+                VerticalStackLayout budgetRow =
+                    new VerticalStackLayout
+                    {
+                        Spacing =
+                            6
+                    };
+
+
+                budgetRow.Children.Add(
+                    topRow);
+
+
+                budgetRow.Children.Add(
+                    progressBar);
+
+
+                budgetRow.Children.Add(
+                    remainingLabel);
+
+
+                BudgetSnapshotContainer.Children.Add(
+                    budgetRow);
             }
-        };
-
-        Label categoryLabel = new Label
-        {
-            Text = budget.Category,
-            FontSize = 14,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Color.FromArgb("#111827")
-        };
-
-        Label amountLabel = new Label
-        {
-            Text = $"{spent:C} / {budget.LimitAmount:C}",
-            FontSize = 13,
-            TextColor = Color.FromArgb("#6B7280")
-        };
-
-        Grid.SetColumn(categoryLabel, 0);
-        Grid.SetColumn(amountLabel, 1);
-
-        topRow.Children.Add(categoryLabel);
-        topRow.Children.Add(amountLabel);
-
-
-        // Budget progress bar
-        ProgressBar progressBar = new ProgressBar
-        {
-            Progress = displayedProgress,
-            ProgressColor =
-                remaining < 0
-                    ? Color.FromArgb("#B91C1C")
-                    : Color.FromArgb("#7C3AED"),
-
-            BackgroundColor =
-                Color.FromArgb("#E5E7EB"),
-
-            HeightRequest = 8
-        };
-
-
-        // Remaining / over-budget message
-        Label remainingLabel = new Label
-        {
-            FontSize = 12
-        };
-
-        if (remaining >= 0)
-        {
-            remainingLabel.Text =
-                $"{remaining:C} left";
-
-            remainingLabel.TextColor =
-                Color.FromArgb("#6B7280");
         }
         else
         {
-            remainingLabel.Text =
-                $"{Math.Abs(remaining):C} OVER BUDGET";
+            BudgetEmptyLabel.IsVisible =
+                true;
 
-            remainingLabel.TextColor =
-                Color.FromArgb("#B91C1C");
 
-            remainingLabel.FontAttributes =
-                FontAttributes.Bold;
+            BudgetEmptyLabel.Text =
+                "No budget information yet.";
         }
 
+    // ==========================================
+    // UPDATE UPCOMING BILLS
+    // ==========================================
 
-        VerticalStackLayout budgetRow =
-            new VerticalStackLayout
-            {
-                Spacing = 6
-            };
+    // Clears previously generated bill rows.
+    UpcomingBillsContainer.Children.Clear();
 
-        budgetRow.Children.Add(topRow);
-        budgetRow.Children.Add(progressBar);
-        budgetRow.Children.Add(remainingLabel);
-
-        BudgetSnapshotContainer.Children.Add(
-            budgetRow);
-    }
-    }
-    else
-    {
-        BudgetEmptyLabel.IsVisible = true;
-
-        BudgetEmptyLabel.Text =
-        "No budget information yet.";
-    }
 
     // ==========================================
-// UPDATE UPCOMING BILLS
-// ==========================================
+    // GET ACTIVE UPCOMING BILLS
+    // ==========================================
 
-// Clears the old bill rows whenever Home reloads
-UpcomingBillsContainer.Children.Clear();
+    List<RecurringExpenses> activeBills =
+        recurringExpenses
+            .Where(bill =>
+                bill.IsActive)
+            .OrderBy(bill =>
+                analyticsService.GetDaysUntilDue(
+                    bill.DueDay))
+            .Take(3)
+            .ToList();
 
-// Only use active recurring bills
-List<RecurringExpenses> activeBills =
-    recurringExpenses
-        .Where(bill => bill.IsActive)
-        .OrderBy(bill =>
-            analyticsService.GetDaysUntilDue(bill.DueDay))
-        .Take(3)
-        .ToList();
 
     if (activeBills.Count > 0)
     {
-    BillsEmptyLabel.IsVisible = false;
+        BillsEmptyLabel.IsVisible =
+            false;
 
-    foreach (RecurringExpenses bill in activeBills)
-    {
-        int daysUntilDue =
-            analyticsService.GetDaysUntilDue(
-                bill.DueDay);
 
-        // Figures out the actual upcoming due date
-        DateTime dueDate;
-
-        int thisMonthDueDay =
-            Math.Min(
-                bill.DueDay,
-                DateTime.DaysInMonth(
-                    today.Year,
-                    today.Month));
-
-        DateTime thisMonthDueDate =
-            new DateTime(
-                today.Year,
-                today.Month,
-                thisMonthDueDay);
-
-        if (thisMonthDueDate.Date >= today.Date)
+        foreach (RecurringExpenses bill
+                in activeBills)
         {
-            dueDate = thisMonthDueDate;
-        }
-        else
-        {
-            DateTime nextMonth =
-                today.AddMonths(1);
+            int daysUntilDue =
+                analyticsService.GetDaysUntilDue(
+                    bill.DueDay);
 
-            int nextMonthDueDay =
+
+            // ==================================
+            // CALCULATE UPCOMING DUE DATE
+            // ==================================
+
+            DateTime dueDate;
+
+
+            int thisMonthDueDay =
                 Math.Min(
                     bill.DueDay,
                     DateTime.DaysInMonth(
-                        nextMonth.Year,
-                        nextMonth.Month));
+                        today.Year,
+                        today.Month));
 
-            dueDate =
+
+            DateTime thisMonthDueDate =
                 new DateTime(
-                    nextMonth.Year,
-                    nextMonth.Month,
-                    nextMonthDueDay);
+                    today.Year,
+                    today.Month,
+                    thisMonthDueDay);
+
+
+            if (thisMonthDueDate.Date >=
+                today.Date)
+            {
+                dueDate =
+                    thisMonthDueDate;
+            }
+            else
+            {
+                DateTime nextMonth =
+                    today.AddMonths(1);
+
+
+                int nextMonthDueDay =
+                    Math.Min(
+                        bill.DueDay,
+                        DateTime.DaysInMonth(
+                            nextMonth.Year,
+                            nextMonth.Month));
+
+
+                dueDate =
+                    new DateTime(
+                        nextMonth.Year,
+                        nextMonth.Month,
+                        nextMonthDueDay);
+            }
+
+
+
+            // ==================================
+            // BILL ROW
+            // ==================================
+
+            Grid billRow =
+                new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition(
+                            GridLength.Star),
+
+                        new ColumnDefinition(
+                            GridLength.Auto)
+                    },
+
+                    ColumnSpacing =
+                        20
+                };
+
+
+
+            // ==================================
+            // BILL INFORMATION
+            // ==================================
+
+            VerticalStackLayout billInfo =
+                new VerticalStackLayout
+                {
+                    Spacing =
+                        3
+                };
+
+
+            Label nameLabel =
+                new Label
+                {
+                    Text =
+                        bill.Name,
+
+                    FontSize =
+                        14,
+
+                    FontAttributes =
+                        FontAttributes.Bold
+                };
+
+
+            nameLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextPrimary");
+
+
+
+            Label categoryLabel =
+                new Label
+                {
+                    Text =
+                        bill.Category,
+
+                    FontSize =
+                        12
+                };
+
+
+            categoryLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
+
+
+
+            Label dueLabel =
+                new Label
+                {
+                    Text =
+                        $"Due {dueDate:MMM d} • " +
+                        (
+                            daysUntilDue == 0
+                                ? "Due today"
+
+                                : daysUntilDue == 1
+                                    ? "Due tomorrow"
+
+                                    : $"Due in {daysUntilDue} days"
+                        ),
+
+                    FontSize =
+                        12
+                };
+
+
+            dueLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
+
+
+
+            billInfo.Children.Add(
+                nameLabel);
+
+
+            billInfo.Children.Add(
+                categoryLabel);
+
+
+            billInfo.Children.Add(
+                dueLabel);
+
+
+
+            // ==================================
+            // BILL AMOUNT
+            // ==================================
+
+            Label amountLabel =
+                new Label
+                {
+                    Text =
+                        bill.Amount.ToString("C"),
+
+                    FontSize =
+                        15,
+
+                    FontAttributes =
+                        FontAttributes.Bold,
+
+                    VerticalOptions =
+                        LayoutOptions.Center
+                };
+
+
+            amountLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextPrimary");
+
+
+
+            Grid.SetColumn(
+                billInfo,
+                0);
+
+
+            Grid.SetColumn(
+                amountLabel,
+                1);
+
+
+            billRow.Children.Add(
+                billInfo);
+
+
+            billRow.Children.Add(
+                amountLabel);
+
+
+            UpcomingBillsContainer.Children.Add(
+                billRow);
+        }
+    }
+    else
+    {
+        BillsEmptyLabel.IsVisible =
+            true;
+
+
+        BillsEmptyLabel.Text =
+            "No upcoming bills.";
+    }
+
+        // ==========================================
+        // UPDATE POCKETAI INSIGHT
+        // ==========================================
+
+        if (income == null &&
+            expenses.Count == 0 &&
+            accountBalance == null)
+        {
+            PocketAIInsightLabel.Text =
+                "Complete your financial setup so PocketAI can start analyzing your money.";
+        }
+        else if (safeToSpend < 0)
+        {
+            PocketAIInsightLabel.Text =
+                $"Your current plan is {Math.Abs(safeToSpend):C} short. " +
+                "Consider reducing spending or adjusting your savings plan.";
+        }
+        else if (summary.OverBudgetCount > 0)
+        {
+            string categoryText =
+                summary.OverBudgetCount == 1
+                    ? "category is"
+                    : "categories are";
+
+            PocketAIInsightLabel.Text =
+                $"{summary.OverBudgetCount} budget {categoryText} currently over budget. " +
+                "Review those categories before making extra purchases.";
+        }
+        else if (savingsGoal != null &&
+                summary.SavingsAmountRemaining > 0)
+        {
+            PocketAIInsightLabel.Text =
+                $"You're working toward {summary.SavingsGoalName}. " +
+                $"Saving about {summary.WeeklySavingsNeeded:C} per week " +
+                "will help keep your goal on track.";
+        }
+        else if (!string.IsNullOrWhiteSpace(
+                    summary.BiggestSpendingCategory) &&
+                summary.BiggestCategoryAmount > 0)
+        {
+            PocketAIInsightLabel.Text =
+                $"{summary.BiggestSpendingCategory} is your largest spending category " +
+                $"this month at {summary.BiggestCategoryAmount:C}.";
+        }
+        else if (safeToSpend > 0)
+        {
+            PocketAIInsightLabel.Text =
+                $"You're currently on track with approximately " +
+                $"{dailySafeToSpend:C} available to safely spend today.";
+        }
+        else
+        {
+            PocketAIInsightLabel.Text =
+                "Add more financial activity so PocketAI can give you a useful recommendation.";
+        }
+        }
+
+        // ==========================================
+        // HOME PAGE NAVIGATION
+        // ==========================================
+
+
+        // ==========================================
+        // ADD EXPENSE
+        // ==========================================
+
+        private async void AddExpenseClicked(
+            object? sender,
+            EventArgs e)
+        {
+            await Shell.Current.GoToAsync(
+                "//Transactions");
         }
 
 
-        // Main bill row
-        Grid billRow = new Grid
+
+        // ==========================================
+        // FINANCIAL HEALTH / ANALYTICS
+        // ==========================================
+
+        private async void ViewAnalyticsClicked(
+            object? sender,
+            EventArgs e)
         {
-            ColumnDefinitions =
-            {
-                new ColumnDefinition(GridLength.Star),
-                new ColumnDefinition(GridLength.Auto)
-            },
-
-            ColumnSpacing = 20
-        };
+            await Shell.Current.GoToAsync(
+                "//Analytics");
+        }
 
 
-        // Left side
-        VerticalStackLayout billInfo =
-            new VerticalStackLayout
-            {
-                Spacing = 3
-            };
 
-        Label nameLabel = new Label
+        // ==========================================
+        // POCKETAI
+        // ==========================================
+
+        private async void AskPocketAIClicked(
+            object? sender,
+            EventArgs e)
         {
-            Text = bill.Name,
-            FontSize = 14,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Color.FromArgb("#111827")
-        };
+            await Shell.Current.GoToAsync(
+                "//PocketAI");
+        }
 
-        Label categoryLabel = new Label
+
+
+        // ==========================================
+        // SAVINGS
+        // ==========================================
+
+        private async void ViewSavingsClicked(
+            object? sender,
+            EventArgs e)
         {
-            Text = bill.Category,
-            FontSize = 12,
-            TextColor = Color.FromArgb("#6B7280")
-        };
+            await Shell.Current.GoToAsync(
+                "//Savings");
+        }
 
-        Label dueLabel = new Label
+
+
+        // ==========================================
+        // BUDGET
+        // ==========================================
+
+        private async void ViewBudgetClicked(
+            object? sender,
+            EventArgs e)
         {
-            Text =
-                $"Due {dueDate:MMM d} • " +
-                (daysUntilDue == 0
-                    ? "Due today"
-                    : daysUntilDue == 1
-                        ? "Due tomorrow"
-                        : $"Due in {daysUntilDue} days"),
-
-            FontSize = 12,
-            TextColor = Color.FromArgb("#6B7280")
-        };
-
-        billInfo.Children.Add(nameLabel);
-        billInfo.Children.Add(categoryLabel);
-        billInfo.Children.Add(dueLabel);
+            await Shell.Current.GoToAsync(
+                "//Budget");
+        }
 
 
-        // Right side — amount
-        Label amountLabel = new Label
+
+        // ==========================================
+        // BILLS
+        // ==========================================
+
+        private async void ViewBillsClicked(
+            object? sender,
+            EventArgs e)
         {
-            Text = bill.Amount.ToString("C"),
-            FontSize = 15,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Color.FromArgb("#111827"),
-            VerticalOptions = LayoutOptions.Center
-        };
-
-        Grid.SetColumn(billInfo, 0);
-        Grid.SetColumn(amountLabel, 1);
-
-        billRow.Children.Add(billInfo);
-        billRow.Children.Add(amountLabel);
-
-        UpcomingBillsContainer.Children.Add(
-            billRow);
-    }
-    }
-    else
-    {
-        BillsEmptyLabel.IsVisible = true;
-
-        BillsEmptyLabel.Text =
-        "No upcoming bills.";
-    }
-
-    // ==========================================
-    // UPDATE POCKETAI INSIGHT
-    // ==========================================
-
-    if (income == null &&
-        expenses.Count == 0 &&
-        accountBalance == null)
-    {
-        PocketAIInsightLabel.Text =
-            "Complete your financial setup so PocketAI can start analyzing your money.";
-    }
-    else if (safeToSpend < 0)
-    {
-        PocketAIInsightLabel.Text =
-            $"Your current plan is {Math.Abs(safeToSpend):C} short. " +
-            "Consider reducing spending or adjusting your savings plan.";
-    }
-    else if (summary.OverBudgetCount > 0)
-    {
-        string categoryText =
-            summary.OverBudgetCount == 1
-                ? "category is"
-                : "categories are";
-
-        PocketAIInsightLabel.Text =
-            $"{summary.OverBudgetCount} budget {categoryText} currently over budget. " +
-            "Review those categories before making extra purchases.";
-    }
-    else if (savingsGoal != null &&
-            summary.SavingsAmountRemaining > 0)
-    {
-        PocketAIInsightLabel.Text =
-            $"You're working toward {summary.SavingsGoalName}. " +
-            $"Saving about {summary.WeeklySavingsNeeded:C} per week " +
-            "will help keep your goal on track.";
-    }
-    else if (!string.IsNullOrWhiteSpace(
-                summary.BiggestSpendingCategory) &&
-            summary.BiggestCategoryAmount > 0)
-    {
-        PocketAIInsightLabel.Text =
-            $"{summary.BiggestSpendingCategory} is your largest spending category " +
-            $"this month at {summary.BiggestCategoryAmount:C}.";
-    }
-    else if (safeToSpend > 0)
-    {
-        PocketAIInsightLabel.Text =
-            $"You're currently on track with approximately " +
-            $"{dailySafeToSpend:C} available to safely spend today.";
-    }
-    else
-    {
-        PocketAIInsightLabel.Text =
-            "Add more financial activity so PocketAI can give you a useful recommendation.";
-    }
-    }
+            await Shell.Current.GoToAsync(
+                "//Bills");
+        }
 }

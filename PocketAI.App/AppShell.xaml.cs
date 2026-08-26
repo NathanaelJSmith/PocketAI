@@ -2,18 +2,36 @@
 
 public partial class AppShell : Shell
 {
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
+
     public AppShell()
     {
         InitializeComponent();
 
-		SetActiveNav(HomeNav, HomeIndicator);
+
+        // Home is selected when the app
+        // first opens.
+        SetActiveNav(
+            HomeNav,
+            HomeIndicator);
     }
 
 
-	private void SetActiveNav(
-    Border activeNav,
-    BoxView activeIndicator)
+
+    // ==========================================
+    // SET ACTIVE NAVIGATION ITEM
+    // ==========================================
+
+    private void SetActiveNav(
+        Border activeNav,
+        BoxView activeIndicator)
     {
+        // ======================================
+        // ALL NAVIGATION ITEMS
+        // ======================================
+
         Border[] navItems =
         {
             HomeNav,
@@ -27,6 +45,12 @@ public partial class AppShell : Shell
             SettingsNav,
             ProfileNav
         };
+
+
+
+        // ======================================
+        // ALL ACTIVE INDICATORS
+        // ======================================
 
         BoxView[] indicators =
         {
@@ -42,84 +66,248 @@ public partial class AppShell : Shell
             ProfileIndicator
         };
 
-        // Clears every navigation item
-        foreach (Border nav in navItems)
+
+
+        // ======================================
+        // CLEAR NAVIGATION BACKGROUNDS
+        // ======================================
+
+        foreach (Border nav
+                 in navItems)
         {
-            nav.BackgroundColor = Colors.Transparent;
+            nav.BackgroundColor =
+                Colors.Transparent;
         }
 
-        // Clears every selection indicator
-        foreach (BoxView indicator in indicators)
+
+
+        // ======================================
+        // CLEAR ACTIVE INDICATORS
+        // ======================================
+
+        foreach (BoxView indicator
+                 in indicators)
         {
-            indicator.BackgroundColor = Colors.Transparent;
+            indicator.BackgroundColor =
+                Colors.Transparent;
         }
 
-        activeNav.BackgroundColor =
-            Color.FromArgb("#2A2340");
 
-        activeIndicator.BackgroundColor =
-            Color.FromArgb("#A78BFA");
+
+        // ======================================
+        // SELECTED NAVIGATION BACKGROUND
+        // ======================================
+
+        if (Application.Current?.Resources[
+                "SidebarSelectedBackground"]
+            is Color selectedBackground)
+        {
+            activeNav.BackgroundColor =
+                selectedBackground;
+        }
+
+
+
+        // ======================================
+        // SELECTED THEME INDICATOR
+        // ======================================
+
+        if (Application.Current?.Resources[
+                "ThemePrimary"]
+            is Color themePrimary)
+        {
+            activeIndicator.BackgroundColor =
+                themePrimary;
+        }
     }
 
-    private async void HomeClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // HOME
+    // ==========================================
+
+    private async void HomeClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(HomeNav, HomeIndicator);
-        
-        await GoToAsync("//Home");
+        SetActiveNav(
+            HomeNav,
+            HomeIndicator);
+
+
+        await GoToAsync(
+            "//Home");
     }
 
-    private async void TransactionsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // TRANSACTIONS
+    // ==========================================
+
+    private async void TransactionsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(TransactionsNav, TransactionsIndicator);
-        await GoToAsync("//Transactions");
+        SetActiveNav(
+            TransactionsNav,
+            TransactionsIndicator);
+
+
+        await GoToAsync(
+            "//Transactions");
     }
 
-    private async void BudgetClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // BUDGET
+    // ==========================================
+
+    private async void BudgetClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(BudgetNav, BudgetIndicator);
-        await GoToAsync("//Budget");
+        SetActiveNav(
+            BudgetNav,
+            BudgetIndicator);
+
+
+        await GoToAsync(
+            "//Budget");
     }
 
-    private async void SavingsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // SAVINGS
+    // ==========================================
+
+    private async void SavingsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(SavingsNav, SavingsIndicator);
-        await GoToAsync("//Savings");
+        SetActiveNav(
+            SavingsNav,
+            SavingsIndicator);
+
+
+        await GoToAsync(
+            "//Savings");
     }
 
-    private async void BillsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // BILLS
+    // ==========================================
+
+    private async void BillsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(BillsNav, BillsIndicator);
-        await GoToAsync("//Bills");
+        SetActiveNav(
+            BillsNav,
+            BillsIndicator);
+
+
+        await GoToAsync(
+            "//Bills");
     }
 
-    private async void AccountsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // ACCOUNTS
+    // ==========================================
+
+    private async void AccountsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav (AccountsNav, AccountsIndicator);
-        await GoToAsync("//Accounts");
+        SetActiveNav(
+            AccountsNav,
+            AccountsIndicator);
+
+
+        await GoToAsync(
+            "//Accounts");
     }
 
-    private async void AnalyticsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // ANALYTICS
+    // ==========================================
+
+    private async void AnalyticsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(AnalyticsNav, AnalyticsIndicator);
-        await GoToAsync("//Analytics");
+        SetActiveNav(
+            AnalyticsNav,
+            AnalyticsIndicator);
+
+
+        await GoToAsync(
+            "//Analytics");
     }
 
-    private async void PocketAIClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // POCKETAI
+    // ==========================================
+
+    private async void PocketAIClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(PocketAINav, PocketAIIndicator);
-        await GoToAsync("//PocketAI");
+        SetActiveNav(
+            PocketAINav,
+            PocketAIIndicator);
+
+
+        await GoToAsync(
+            "//PocketAI");
     }
 
-    private async void SettingsClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // SETTINGS
+    // ==========================================
+
+    private async void SettingsClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(SettingsNav, SettingsIndicator);
-        await GoToAsync("//Settings");
+        SetActiveNav(
+            SettingsNav,
+            SettingsIndicator);
+
+
+        await GoToAsync(
+            "//Settings");
     }
 
-    private async void ProfileClicked(object? sender, EventArgs e)
+
+
+    // ==========================================
+    // PROFILE
+    // ==========================================
+
+    private async void ProfileClicked(
+        object? sender,
+        EventArgs e)
     {
-        SetActiveNav(ProfileNav, ProfileIndicator);
-        await GoToAsync("//Profile");
-    }
+        SetActiveNav(
+            ProfileNav,
+            ProfileIndicator);
 
+
+        await GoToAsync(
+            "//Profile");
+    }
 }

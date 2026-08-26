@@ -4,14 +4,16 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.TransactionsPage"
-    BackgroundColor="#F5F7FA"
+    BackgroundColor="{DynamicResource PageBackground}"
     Shell.NavBarIsVisible="False">
+
 
     <Grid>
 
-        <!-- ===================================== -->
-        <!-- MAIN TRANSACTIONS PAGE                -->
-        <!-- ===================================== -->
+
+        <!-- =====================================
+             MAIN TRANSACTIONS PAGE
+             ===================================== -->
 
         <ScrollView>
 
@@ -19,239 +21,379 @@
                 Padding="32"
                 Spacing="24">
 
-                <!-- HEADER -->
+
+                <!-- =================================
+                     HEADER
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,Auto"
                     ColumnSpacing="20">
 
+
                     <VerticalStackLayout
                         Grid.Column="0"
                         Spacing="5">
 
+
                         <Label
                             Text="TRANSACTIONS"
-                            FontSize="28"
+                            FontSize="12"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource ThemePrimary}" />
+
 
                         <Label
                             Text="Track and manage your spending."
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}"
+                            Margin="0,2,0,0" />
+
+
+                        <Label
+                            Text="Search, filter, add, edit, or remove expenses from one place."
                             FontSize="14"
-                            TextColor="#6B7280" />
+                            TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
+
 
 
                     <Button
                         Grid.Column="1"
                         Text="+ Add Expense"
                         Clicked="ShowAddExpenseClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="10"
+                        CornerRadius="12"
                         Padding="18,12"
-                        VerticalOptions="Start" />
+                        VerticalOptions="Center" />
 
                 </Grid>
 
 
-                <!-- THIS MONTH -->
+
+                <!-- =================================
+                     THIS MONTH
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
                     StrokeThickness="1"
                     Padding="20"
-                    WidthRequest="260"
+                    WidthRequest="280"
                     HorizontalOptions="Start">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
+
+                        <RoundRectangle
+                            CornerRadius="16" />
+
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="7">
+
+                    <VerticalStackLayout
+                        Spacing="7">
+
 
                         <Label
-                            Text="THIS MONTH"
-                            FontSize="12"
+                            Text="SPENT THIS MONTH"
+                            FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="#6B7280" />
+                            TextColor="{DynamicResource ThemePrimary}" />
+
 
                         <Label
                             x:Name="ThisMonthTotalLabel"
                             Text="$0.00"
-                            FontSize="30"
+                            FontSize="32"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource TextPrimary}" />
+
+
+                        <Label
+                            Text="Total recorded expenses"
+                            FontSize="11"
+                            TextColor="{DynamicResource TextMuted}" />
 
                     </VerticalStackLayout>
 
                 </Border>
 
 
-                <!-- SEARCH AND FILTERS -->
 
-                <Grid
-                    ColumnDefinitions="2*,*,*"
-                    ColumnSpacing="12">
+                <!-- =================================
+                     SEARCH AND FILTERS
+                     ================================= -->
 
-                    <SearchBar
-                        x:Name="TransactionSearchBar"
-                        Grid.Column="0"
-                        Placeholder="Search transactions..."
-                        TextChanged="TransactionSearchChanged"
-                        BackgroundColor="White"
-                        TextColor="#111827"
-                        PlaceholderColor="#9CA3AF" />
+                <VerticalStackLayout
+                    Spacing="10">
 
 
-                    <Picker
-                        x:Name="CategoryPicker"
-                        Grid.Column="1"
-                        Title="All Categories"
-                        SelectedIndexChanged="FilterChanged"
-                        BackgroundColor="White"
-                        TextColor="#111827" />
+                    <Label
+                        Text="FIND TRANSACTIONS"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
 
 
-                    <Picker
-                        x:Name="MonthPicker"
-                        Grid.Column="2"
-                        Title="Month"
-                        SelectedIndexChanged="FilterChanged"
-                        BackgroundColor="White"
-                        TextColor="#111827" />
-
-                </Grid>
+                    <Grid
+                        ColumnDefinitions="2*,*,*"
+                        ColumnSpacing="12">
 
 
-                <!-- TRANSACTION TABLE -->
+                        <!-- SEARCH -->
+
+                        <SearchBar
+                            x:Name="TransactionSearchBar"
+                            Grid.Column="0"
+                            Placeholder="Search transactions..."
+                            TextChanged="TransactionSearchChanged"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            TextColor="{DynamicResource TextPrimary}"
+                            PlaceholderColor="{DynamicResource TextMuted}" />
+
+
+
+                        <!-- CATEGORY -->
+
+                        <Picker
+                            x:Name="CategoryPicker"
+                            Grid.Column="1"
+                            Title="All Categories"
+                            TitleColor="{DynamicResource TextMuted}"
+                            SelectedIndexChanged="FilterChanged"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+
+
+                        <!-- MONTH -->
+
+                        <Picker
+                            x:Name="MonthPicker"
+                            Grid.Column="2"
+                            Title="Month"
+                            TitleColor="{DynamicResource TextMuted}"
+                            SelectedIndexChanged="FilterChanged"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+
+
+                <!-- =================================
+                     TRANSACTION TABLE
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="0">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
+
+                        <RoundRectangle
+                            CornerRadius="16" />
+
                     </Border.StrokeShape>
 
 
-                    <VerticalStackLayout Spacing="0">
+                    <VerticalStackLayout
+                        Spacing="0">
 
-                        <!-- TABLE HEADER -->
+
+                        <!-- =================================
+                             TABLE TITLE
+                             ================================= -->
+
+                        <Grid
+                            ColumnDefinitions="*,Auto"
+                            Padding="18,16"
+                            BackgroundColor="{DynamicResource CardBackground}">
+
+
+                            <VerticalStackLayout
+                                Grid.Column="0"
+                                Spacing="2">
+
+
+                                <Label
+                                    Text="Transaction History"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+
+                                <Label
+                                    Text="Select a transaction to edit or delete it."
+                                    FontSize="11"
+                                    TextColor="{DynamicResource TextMuted}" />
+
+                            </VerticalStackLayout>
+
+                        </Grid>
+
+
+
+                        <BoxView
+                            HeightRequest="1"
+                            BackgroundColor="{DynamicResource BorderColor}" />
+
+
+
+                        <!-- =================================
+                             TABLE HEADER
+                             ================================= -->
 
                         <Grid
                             ColumnDefinitions="120,2*,1.5*,120"
                             Padding="18,14"
-                            BackgroundColor="#F9FAFB">
+                            BackgroundColor="{DynamicResource SurfaceBackground}">
+
 
                             <Label
                                 Grid.Column="0"
                                 Text="DATE"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 Grid.Column="1"
                                 Text="NAME"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="CATEGORY"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 Grid.Column="3"
                                 Text="AMOUNT"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280"
+                                TextColor="{DynamicResource TextSecondary}"
                                 HorizontalTextAlignment="End" />
 
                         </Grid>
 
 
+
                         <BoxView
                             HeightRequest="1"
-                            BackgroundColor="#E5E7EB" />
+                            BackgroundColor="{DynamicResource BorderColor}" />
 
 
-                        <!-- EMPTY STATE -->
+
+                        <!-- =================================
+                             EMPTY STATE
+                             ================================= -->
 
                         <Label
                             x:Name="NoTransactionsLabel"
                             Text="No transactions yet."
                             FontSize="14"
-                            TextColor="#6B7280"
+                            TextColor="{DynamicResource TextSecondary}"
                             HorizontalOptions="Center"
-                            Margin="0,30"
+                            Margin="0,35"
                             IsVisible="True" />
 
 
-                        <!-- TRANSACTIONS -->
+
+                        <!-- =================================
+                             TRANSACTIONS
+                             ================================= -->
 
                         <CollectionView
                             x:Name="TransactionsCollectionView"
+                            BackgroundColor="Transparent"
                             SelectionMode="Single"
                             SelectionChanged="TransactionSelected">
+
 
                             <CollectionView.ItemTemplate>
 
                                 <DataTemplate>
 
-                                    <VerticalStackLayout Spacing="0">
+
+                                    <VerticalStackLayout
+                                        Spacing="0">
+
 
                                         <Grid
                                             ColumnDefinitions="120,2*,1.5*,120"
                                             Padding="18,15">
 
+
+                                            <!-- DATE -->
+
                                             <Label
                                                 Grid.Column="0"
                                                 Text="{Binding DateText}"
                                                 FontSize="14"
-                                                TextColor="#374151"
+                                                TextColor="{DynamicResource TextSecondary}"
                                                 VerticalOptions="Center" />
+
+
+
+                                            <!-- NAME -->
 
                                             <Label
                                                 Grid.Column="1"
                                                 Text="{Binding Name}"
                                                 FontSize="14"
                                                 FontAttributes="Bold"
-                                                TextColor="#111827"
+                                                TextColor="{DynamicResource TextPrimary}"
                                                 VerticalOptions="Center" />
+
+
+
+                                            <!-- CATEGORY -->
 
                                             <Label
                                                 Grid.Column="2"
                                                 Text="{Binding Category}"
                                                 FontSize="14"
-                                                TextColor="#6B7280"
+                                                TextColor="{DynamicResource TextSecondary}"
                                                 VerticalOptions="Center" />
+
+
+
+                                            <!-- AMOUNT -->
 
                                             <Label
                                                 Grid.Column="3"
                                                 Text="{Binding AmountText}"
                                                 FontSize="14"
                                                 FontAttributes="Bold"
-                                                TextColor="#111827"
+                                                TextColor="{DynamicResource TextPrimary}"
                                                 HorizontalTextAlignment="End"
                                                 VerticalOptions="Center" />
 
                                         </Grid>
 
 
+
                                         <BoxView
                                             HeightRequest="1"
-                                            BackgroundColor="#F3F4F6" />
+                                            BackgroundColor="{DynamicResource BorderColor}"
+                                            Opacity="0.65" />
 
                                     </VerticalStackLayout>
 
@@ -265,21 +407,30 @@
 
                 </Border>
 
+
+
+                <!-- BOTTOM SPACING -->
+
+                <BoxView
+                    HeightRequest="15"
+                    BackgroundColor="Transparent" />
+
             </VerticalStackLayout>
 
         </ScrollView>
 
 
 
-        <!-- ===================================== -->
-        <!-- DARK BACKGROUND                       -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             MODAL BACKGROUND
+             ===================================== -->
 
         <BoxView
             x:Name="ModalBackground"
             ZIndex="10"
-            BackgroundColor="#80000000"
+            BackgroundColor="#90000000"
             IsVisible="False">
+
 
             <BoxView.GestureRecognizers>
 
@@ -292,110 +443,150 @@
 
 
 
-        <!-- ===================================== -->
-        <!-- ADD EXPENSE MODAL                     -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             ADD EXPENSE MODAL
+             ===================================== -->
 
         <Border
             x:Name="AddExpenseModal"
             ZIndex="20"
             IsVisible="False"
-            BackgroundColor="White"
-            Stroke="#E5E7EB"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="28"
             WidthRequest="440"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
+
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="18" />
+
+                <RoundRectangle
+                    CornerRadius="18" />
+
             </Border.StrokeShape>
 
 
-            <VerticalStackLayout Spacing="17">
+            <VerticalStackLayout
+                Spacing="17">
 
-                <Label
-                    Text="ADD EXPENSE"
-                    FontSize="22"
-                    FontAttributes="Bold"
-                    TextColor="#111827" />
+
+                <!-- HEADER -->
+
+                <VerticalStackLayout
+                    Spacing="4">
+
+
+                    <Label
+                        Text="ADD EXPENSE"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+
+                    <Label
+                        Text="Record a new transaction in your budget."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                </VerticalStackLayout>
+
 
 
                 <!-- NAME -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Expense Name"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Entry
                         x:Name="ExpenseNameEntry"
                         Placeholder="Chick-fil-A"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        PlaceholderColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- AMOUNT -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Amount"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Entry
                         x:Name="ExpenseAmountEntry"
                         Placeholder="12.84"
+                        PlaceholderColor="{DynamicResource TextMuted}"
                         Keyboard="Numeric"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- CATEGORY -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Category"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Picker
                         x:Name="ExpenseCategoryPicker"
                         Title="Choose a category"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- DATE -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Date"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <DatePicker
                         x:Name="ExpenseDatePicker"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
+
 
 
                 <!-- BUTTONS -->
@@ -405,20 +596,24 @@
                     ColumnSpacing="12"
                     Margin="0,10,0,0">
 
+
                     <Button
                         Grid.Column="0"
                         Text="Cancel"
                         Clicked="CancelAddExpenseClicked"
-                        BackgroundColor="#E5E7EB"
-                        TextColor="#374151"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BorderColor="{DynamicResource BorderColor}"
+                        BorderWidth="1"
                         CornerRadius="10" />
+
 
                     <Button
                         Grid.Column="1"
                         Text="Add Expense"
                         Clicked="AddExpenseClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
                         CornerRadius="10" />
 
@@ -430,108 +625,146 @@
 
 
 
-        <!-- ===================================== -->
-        <!-- EDIT / DELETE EXPENSE MODAL           -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             EDIT / DELETE EXPENSE MODAL
+             ===================================== -->
 
         <Border
             x:Name="EditExpenseModal"
             ZIndex="30"
             IsVisible="False"
-            BackgroundColor="White"
-            Stroke="#E5E7EB"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="28"
             WidthRequest="440"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
+
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="18" />
+
+                <RoundRectangle
+                    CornerRadius="18" />
+
             </Border.StrokeShape>
 
 
-            <VerticalStackLayout Spacing="17">
+            <VerticalStackLayout
+                Spacing="17">
 
-                <Label
-                    Text="TRANSACTION DETAILS"
-                    FontSize="22"
-                    FontAttributes="Bold"
-                    TextColor="#111827" />
+
+                <!-- HEADER -->
+
+                <VerticalStackLayout
+                    Spacing="4">
+
+
+                    <Label
+                        Text="TRANSACTION DETAILS"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+
+                    <Label
+                        Text="Update this transaction or remove it."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                </VerticalStackLayout>
+
 
 
                 <!-- NAME -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Expense Name"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Entry
                         x:Name="EditExpenseNameEntry"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- AMOUNT -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Amount"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Entry
                         x:Name="EditExpenseAmountEntry"
                         Keyboard="Numeric"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- CATEGORY -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Category"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <Picker
                         x:Name="EditExpenseCategoryPicker"
                         Title="Choose a category"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- DATE -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
+
 
                     <Label
                         Text="Date"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
+
 
                     <DatePicker
                         x:Name="EditExpenseDatePicker"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
+
 
 
                 <!-- SAVE / CANCEL -->
@@ -541,24 +774,29 @@
                     ColumnSpacing="12"
                     Margin="0,10,0,0">
 
+
                     <Button
                         Grid.Column="0"
                         Text="Cancel"
                         Clicked="CancelEditExpenseClicked"
-                        BackgroundColor="#E5E7EB"
-                        TextColor="#374151"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BorderColor="{DynamicResource BorderColor}"
+                        BorderWidth="1"
                         CornerRadius="10" />
+
 
                     <Button
                         Grid.Column="1"
                         Text="Save Changes"
                         Clicked="SaveExpenseChangesClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
                         CornerRadius="10" />
 
                 </Grid>
+
 
 
                 <!-- DELETE -->
@@ -566,8 +804,8 @@
                 <Button
                     Text="Delete Transaction"
                     Clicked="DeleteExpenseClicked"
-                    BackgroundColor="#FEE2E2"
-                    TextColor="#B91C1C"
+                    BackgroundColor="{DynamicResource DangerBackground}"
+                    TextColor="{DynamicResource DangerColor}"
                     FontAttributes="Bold"
                     CornerRadius="10" />
 

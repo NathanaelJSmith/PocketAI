@@ -5,20 +5,31 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:pages="clr-namespace:PocketAI.App.Pages"
+
+    BackgroundColor="{DynamicResource SidebarBackground}"
+    FlyoutBackgroundColor="{DynamicResource SidebarBackground}"
+
     FlyoutBehavior="Locked"
     FlyoutWidth="250"
     Shell.NavBarIsVisible="False"
     Title="PocketAI">
 
-    <!-- Custom Sidebar -->
+    <!-- ==========================================
+         CUSTOM SIDEBAR
+         ========================================== -->
+
     <Shell.FlyoutContent>
 
         <Grid
-            BackgroundColor="#111827"
+            BackgroundColor="{DynamicResource SidebarBackground}"
             Padding="18"
             RowDefinitions="Auto,*">
 
-            <!-- Logo -->
+
+            <!-- ==================================
+                 LOGO
+                 ================================== -->
+
             <VerticalStackLayout
                 Grid.Row="0"
                 Spacing="4"
@@ -33,50 +44,77 @@
             </VerticalStackLayout>
 
 
-            <!-- Navigation -->
+
+            <!-- ==================================
+                 NAVIGATION
+                 ================================== -->
+
             <Grid
                 Grid.Row="1"
                 RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto,Auto"
                 RowSpacing="6">
 
-                <!-- MAIN -->
+
+                <!-- ==================================
+                     MAIN
+                     ================================== -->
+
                 <Label
                     Grid.Row="0"
                     Text="MAIN"
                     FontSize="11"
                     FontAttributes="Bold"
-                    TextColor="#9CA3AF"
+                    TextColor="{DynamicResource SidebarMutedText}"
                     Margin="8,0,0,4" />
+
+
+
+                <!-- ==================================
+                     HOME
+                     ================================== -->
 
                 <Border
                     x:Name="HomeNav"
                     Grid.Row="1"
-                    BackgroundColor="#2A2340"
+                    BackgroundColor="{DynamicResource SidebarSelectedBackground}"
                     StrokeThickness="0"
                     Padding="12,10">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
+
+                        <RoundRectangle
+                            CornerRadius="10" />
+
                     </Border.StrokeShape>
 
+
                     <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="HomeClicked" />
+
+                        <TapGestureRecognizer
+                            Tapped="HomeClicked" />
+
                     </Border.GestureRecognizers>
 
-                    <Grid ColumnDefinitions="4,28,*" ColumnSpacing="10">
+
+                    <Grid
+                        ColumnDefinitions="4,28,*"
+                        ColumnSpacing="10">
+
 
                         <BoxView
                             x:Name="HomeIndicator"
                             Grid.Column="0"
-                            BackgroundColor="#A78BFA"
+                            BackgroundColor="{DynamicResource ThemePrimary}"
                             CornerRadius="2" />
+
 
                         <Label
                             Grid.Column="1"
                             Text="⌂"
                             FontSize="18"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
+
 
                         <Label
                             Grid.Column="2"
@@ -89,6 +127,12 @@
 
                 </Border>
 
+
+
+                <!-- ==================================
+                     TRANSACTIONS
+                     ================================== -->
+
                 <Border
                     x:Name="TransactionsNav"
                     Grid.Row="2"
@@ -97,14 +141,25 @@
                     Padding="12,10">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
+
+                        <RoundRectangle
+                            CornerRadius="10" />
+
                     </Border.StrokeShape>
 
+
                     <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="TransactionsClicked" />
+
+                        <TapGestureRecognizer
+                            Tapped="TransactionsClicked" />
+
                     </Border.GestureRecognizers>
 
-                    <Grid ColumnDefinitions="4,28,*" ColumnSpacing="10">
+
+                    <Grid
+                        ColumnDefinitions="4,28,*"
+                        ColumnSpacing="10">
+
 
                         <BoxView
                             x:Name="TransactionsIndicator"
@@ -112,18 +167,20 @@
                             BackgroundColor="Transparent"
                             CornerRadius="2" />
 
+
                         <Label
                             Grid.Column="1"
                             Text="↕"
                             FontSize="18"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
+
 
                         <Label
                             Grid.Column="2"
                             Text="Transactions"
                             FontSize="15"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
 
                     </Grid>
@@ -131,18 +188,29 @@
                 </Border>
 
 
-                <!-- PLANNING -->
+
+                <!-- ==================================
+                     PLANNING
+                     ================================== -->
+
                 <VerticalStackLayout
                     Grid.Row="3"
                     Spacing="6"
                     Margin="0,14,0,0">
 
+
                     <Label
                         Text="PLANNING"
                         FontSize="11"
                         FontAttributes="Bold"
-                        TextColor="#9CA3AF"
+                        TextColor="{DynamicResource SidebarMutedText}"
                         Margin="8,0,0,4" />
+
+
+
+                    <!-- ==================================
+                         BUDGET
+                         ================================== -->
 
                     <Border
                         x:Name="BudgetNav"
@@ -151,15 +219,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="BudgetClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="BudgetClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="BudgetIndicator"
@@ -167,23 +245,31 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="◫"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="Budget"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
 
                     </Border>
+
+
+
+                    <!-- ==================================
+                         SAVINGS
+                         ================================== -->
 
                     <Border
                         x:Name="SavingsNav"
@@ -192,15 +278,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="SavingsClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="SavingsClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="SavingsIndicator"
@@ -208,23 +304,31 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="◎"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="Savings"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
 
                     </Border>
+
+
+
+                    <!-- ==================================
+                         BILLS
+                         ================================== -->
 
                     <Border
                         x:Name="BillsNav"
@@ -233,15 +337,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="BillsClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="BillsClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="BillsIndicator"
@@ -249,25 +363,32 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="◷"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="Bills"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
 
                     </Border>
-                    
-                    
+
+
+
+                    <!-- ==================================
+                         ACCOUNTS
+                         ================================== -->
+
                     <Border
                         x:Name="AccountsNav"
                         BackgroundColor="Transparent"
@@ -275,15 +396,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="AccountsClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="AccountsClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="AccountsIndicator"
@@ -291,18 +422,20 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="▣"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="Accounts"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
@@ -312,18 +445,29 @@
                 </VerticalStackLayout>
 
 
-                <!-- INSIGHTS -->
+
+                <!-- ==================================
+                     INSIGHTS
+                     ================================== -->
+
                 <VerticalStackLayout
                     Grid.Row="4"
                     Spacing="6"
                     Margin="0,14,0,0">
 
+
                     <Label
                         Text="INSIGHTS"
                         FontSize="11"
                         FontAttributes="Bold"
-                        TextColor="#9CA3AF"
+                        TextColor="{DynamicResource SidebarMutedText}"
                         Margin="8,0,0,4" />
+
+
+
+                    <!-- ==================================
+                         ANALYTICS
+                         ================================== -->
 
                     <Border
                         x:Name="AnalyticsNav"
@@ -332,15 +476,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="AnalyticsClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="AnalyticsClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="AnalyticsIndicator"
@@ -348,23 +502,31 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="▥"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="Analytics"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
 
                     </Border>
+
+
+
+                    <!-- ==================================
+                         POCKETAI
+                         ================================== -->
 
                     <Border
                         x:Name="PocketAINav"
@@ -373,15 +535,25 @@
                         Padding="12,10">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="10" />
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
                         </Border.StrokeShape>
 
+
                         <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="PocketAIClicked" />
+
+                            <TapGestureRecognizer
+                                Tapped="PocketAIClicked" />
+
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="4,28,*"
+
+                        <Grid
+                            ColumnDefinitions="4,28,*"
                             ColumnSpacing="10">
+
 
                             <BoxView
                                 x:Name="PocketAIIndicator"
@@ -389,18 +561,20 @@
                                 BackgroundColor="Transparent"
                                 CornerRadius="2" />
 
+
                             <Label
                                 Grid.Column="1"
                                 Text="✦"
                                 FontSize="18"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
+
 
                             <Label
                                 Grid.Column="2"
                                 Text="PocketAI"
                                 FontSize="15"
-                                TextColor="#E5E7EB"
+                                TextColor="{DynamicResource SidebarText}"
                                 VerticalOptions="Center" />
 
                         </Grid>
@@ -410,10 +584,20 @@
                 </VerticalStackLayout>
 
 
-                <!-- Pushes Settings/Profile to bottom -->
+
+                <!-- ==================================
+                     PUSH SETTINGS / PROFILE DOWN
+                     ================================== -->
+
                 <BoxView
                     Grid.Row="8"
                     BackgroundColor="Transparent" />
+
+
+
+                <!-- ==================================
+                     SETTINGS
+                     ================================== -->
 
                 <Border
                     x:Name="SettingsNav"
@@ -423,15 +607,25 @@
                     Padding="12,10">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
+
+                        <RoundRectangle
+                            CornerRadius="10" />
+
                     </Border.StrokeShape>
 
+
                     <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="SettingsClicked" />
+
+                        <TapGestureRecognizer
+                            Tapped="SettingsClicked" />
+
                     </Border.GestureRecognizers>
 
-                    <Grid ColumnDefinitions="4,28,*"
+
+                    <Grid
+                        ColumnDefinitions="4,28,*"
                         ColumnSpacing="10">
+
 
                         <BoxView
                             x:Name="SettingsIndicator"
@@ -439,23 +633,31 @@
                             BackgroundColor="Transparent"
                             CornerRadius="2" />
 
+
                         <Label
                             Grid.Column="1"
                             Text="⚙"
                             FontSize="18"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
+
 
                         <Label
                             Grid.Column="2"
                             Text="Settings"
                             FontSize="15"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
 
                     </Grid>
 
                 </Border>
+
+
+
+                <!-- ==================================
+                     PROFILE
+                     ================================== -->
 
                 <Border
                     x:Name="ProfileNav"
@@ -465,15 +667,25 @@
                     Padding="12,10">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="10" />
+
+                        <RoundRectangle
+                            CornerRadius="10" />
+
                     </Border.StrokeShape>
 
+
                     <Border.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="ProfileClicked" />
+
+                        <TapGestureRecognizer
+                            Tapped="ProfileClicked" />
+
                     </Border.GestureRecognizers>
 
-                    <Grid ColumnDefinitions="4,28,*"
+
+                    <Grid
+                        ColumnDefinitions="4,28,*"
                         ColumnSpacing="10">
+
 
                         <BoxView
                             x:Name="ProfileIndicator"
@@ -481,18 +693,20 @@
                             BackgroundColor="Transparent"
                             CornerRadius="2" />
 
+
                         <Label
                             Grid.Column="1"
                             Text="♙"
                             FontSize="18"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
+
 
                         <Label
                             Grid.Column="2"
                             Text="Profile"
                             FontSize="15"
-                            TextColor="#E5E7EB"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
 
                     </Grid>
@@ -506,7 +720,14 @@
     </Shell.FlyoutContent>
 
 
-    <!-- Pages -->
+
+    <!-- ==========================================
+         APP PAGES
+         ========================================== -->
+
+
+    <!-- HOME -->
+
     <FlyoutItem
         Title="Home"
         Route="Home">
@@ -515,6 +736,10 @@
             ContentTemplate="{DataTemplate pages:HomePage}" />
 
     </FlyoutItem>
+
+
+
+    <!-- TRANSACTIONS -->
 
     <FlyoutItem
         Title="Transactions"
@@ -525,6 +750,10 @@
 
     </FlyoutItem>
 
+
+
+    <!-- BUDGET -->
+
     <FlyoutItem
         Title="Budget"
         Route="Budget">
@@ -533,6 +762,10 @@
             ContentTemplate="{DataTemplate pages:BudgetPage}" />
 
     </FlyoutItem>
+
+
+
+    <!-- SAVINGS -->
 
     <FlyoutItem
         Title="Savings"
@@ -543,6 +776,10 @@
 
     </FlyoutItem>
 
+
+
+    <!-- BILLS -->
+
     <FlyoutItem
         Title="Bills"
         Route="Bills">
@@ -551,6 +788,10 @@
             ContentTemplate="{DataTemplate pages:BillsPage}" />
 
     </FlyoutItem>
+
+
+
+    <!-- ACCOUNTS -->
 
     <FlyoutItem
         Title="Accounts"
@@ -561,6 +802,10 @@
 
     </FlyoutItem>
 
+
+
+    <!-- ANALYTICS -->
+
     <FlyoutItem
         Title="Analytics"
         Route="Analytics">
@@ -569,6 +814,10 @@
             ContentTemplate="{DataTemplate pages:AnalyticsPage}" />
 
     </FlyoutItem>
+
+
+
+    <!-- POCKETAI -->
 
     <FlyoutItem
         Title="PocketAI"
@@ -579,6 +828,10 @@
 
     </FlyoutItem>
 
+
+
+    <!-- SETTINGS -->
+
     <FlyoutItem
         Title="Settings"
         Route="Settings">
@@ -587,6 +840,10 @@
             ContentTemplate="{DataTemplate pages:SettingsPage}" />
 
     </FlyoutItem>
+
+
+
+    <!-- PROFILE -->
 
     <FlyoutItem
         Title="Profile"

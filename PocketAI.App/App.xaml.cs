@@ -6,11 +6,35 @@ public partial class App : Application
     {
         InitializeComponent();
 
-        UserAppTheme = AppTheme.Light;
+
+        // Load the user's saved appearance.
+        ThemeManager.ApplySavedTheme();
+
+
+        // Listen for Windows / Android / iOS
+        // system theme changes.
+        RequestedThemeChanged +=
+            OnRequestedThemeChanged;
     }
 
-    protected override Window CreateWindow(IActivationState? activationState)
+
+    // ==========================================
+    // SYSTEM THEME CHANGED
+    // ==========================================
+
+    private void OnRequestedThemeChanged(
+        object? sender,
+        AppThemeChangedEventArgs e)
     {
-        return new Window(new AppShell());
+        ThemeManager.ApplySystemTheme(
+            e.RequestedTheme);
+    }
+
+
+    protected override Window CreateWindow(
+        IActivationState? activationState)
+    {
+        return new Window(
+            new AppShell());
     }
 }

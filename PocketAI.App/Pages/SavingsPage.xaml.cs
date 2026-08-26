@@ -5,36 +5,55 @@ public partial class SavingsPage : ContentPage
     private readonly DataBaseManager dataBaseManager;
     private readonly AnalyticsService analyticsService;
 
-    // All savings goals stored in SQLite
+
+    // Stores all savings goals.
     private List<SavingsGoal> savingsGoals =
         new List<SavingsGoal>();
 
-    // Goal currently being edited or updated
+
+    // Stores the goal currently being edited
+    // or receiving a savings contribution.
     private SavingsGoal? selectedGoal;
 
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public SavingsPage()
     {
         InitializeComponent();
+
 
         string databasePath =
             Path.Combine(
                 FileSystem.AppDataDirectory,
                 "pocketai.db");
 
+
         dataBaseManager =
-            new DataBaseManager(databasePath);
+            new DataBaseManager(
+                databasePath);
+
 
         analyticsService =
             new AnalyticsService();
+
 
         dataBaseManager.CreateTables();
     }
 
 
+
+    // ==========================================
+    // PAGE APPEARS
+    // ==========================================
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
 
         LoadSavingsGoals();
     }
@@ -54,10 +73,11 @@ public partial class SavingsPage : ContentPage
 
         List<SavingsGoalDisplayItem> displayItems =
             savingsGoals
-                .Select(goal =>
-                    new SavingsGoalDisplayItem(
-                        goal,
-                        analyticsService))
+                .Select(
+                    goal =>
+                        new SavingsGoalDisplayItem(
+                            goal,
+                            analyticsService))
                 .ToList();
 
 
@@ -65,6 +85,11 @@ public partial class SavingsPage : ContentPage
             SavingsGoalsContainer,
             displayItems);
 
+
+
+        // ======================================
+        // EMPTY STATE
+        // ======================================
 
         bool hasGoals =
             savingsGoals.Count > 0;
@@ -74,18 +99,21 @@ public partial class SavingsPage : ContentPage
             !hasGoals;
 
 
+
         // ======================================
         // SUMMARY
         // ======================================
 
         double totalSaved =
             savingsGoals.Sum(
-                goal => goal.CurrentAmount);
+                goal =>
+                    goal.CurrentAmount);
 
 
         double totalTarget =
             savingsGoals.Sum(
-                goal => goal.TargetAmount);
+                goal =>
+                    goal.TargetAmount);
 
 
         double totalRemaining =
@@ -261,9 +289,10 @@ public partial class SavingsPage : ContentPage
                 .Trim() ?? "";
 
 
-        // --------------------------------------
-        // NAME VALIDATION
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE NAME
+        // ======================================
 
         if (string.IsNullOrWhiteSpace(
                 name))
@@ -273,13 +302,15 @@ public partial class SavingsPage : ContentPage
                 "Enter a savings goal name.",
                 "OK");
 
+
             return;
         }
 
 
-        // --------------------------------------
-        // TARGET VALIDATION
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE TARGET
+        // ======================================
 
         if (!double.TryParse(
                 targetText,
@@ -292,13 +323,15 @@ public partial class SavingsPage : ContentPage
                 "Enter a valid target amount.",
                 "OK");
 
+
             return;
         }
 
 
-        // --------------------------------------
-        // CURRENT SAVINGS VALIDATION
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE CURRENT SAVINGS
+        // ======================================
 
         if (!double.TryParse(
                 currentText,
@@ -311,9 +344,15 @@ public partial class SavingsPage : ContentPage
                 "Enter a valid amount already saved.",
                 "OK");
 
+
             return;
         }
 
+
+
+        // ======================================
+        // TARGET DATE
+        // ======================================
 
         DateTime deadline =
             GoalDeadlinePicker.Date
@@ -328,8 +367,10 @@ public partial class SavingsPage : ContentPage
                 "Choose today or a future date.",
                 "OK");
 
+
             return;
         }
+
 
 
         // ======================================
@@ -349,6 +390,8 @@ public partial class SavingsPage : ContentPage
             dataBaseManager.AddSavingsGoal(
                 newGoal);
         }
+
+
 
         // ======================================
         // EDIT EXISTING GOAL
@@ -372,6 +415,7 @@ public partial class SavingsPage : ContentPage
 
 
         CloseSavingsModals();
+
 
         LoadSavingsGoals();
     }
@@ -455,13 +499,14 @@ public partial class SavingsPage : ContentPage
                 "Enter a valid amount to add.",
                 "OK");
 
+
             return;
         }
 
 
         double newCurrentAmount =
-            selectedGoal.CurrentAmount
-            + amount;
+            selectedGoal.CurrentAmount +
+            amount;
 
 
         SavingsGoal updatedGoal =
@@ -479,6 +524,7 @@ public partial class SavingsPage : ContentPage
 
 
         CloseSavingsModals();
+
 
         LoadSavingsGoals();
     }
@@ -551,6 +597,7 @@ public partial class SavingsPage : ContentPage
 
         CloseSavingsModals();
 
+
         LoadSavingsGoals();
     }
 
@@ -607,12 +654,37 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
+    // GET APP THEME COLOR
+    // ==========================================
+
+    private static Color GetThemeColor(
+        string resourceName,
+        string fallbackColor)
+    {
+        if (Application.Current != null &&
+            Application.Current.Resources[
+                resourceName] is Color color)
+        {
+            return color;
+        }
+
+
+        return Color.FromArgb(
+            fallbackColor);
+    }
+
+
+
+    // ==========================================
     // SAVINGS GOAL DISPLAY MODEL
     // ==========================================
 
     public class SavingsGoalDisplayItem
     {
-        public SavingsGoal Goal { get; }
+        public SavingsGoal Goal
+        {
+            get;
+        }
 
 
         public string Name =>
@@ -627,12 +699,22 @@ public partial class SavingsPage : ContentPage
             !Goal.IsPrimary;
 
 
+
+        // ======================================
+        // REMAINING
+        // ======================================
+
         public double Remaining =>
             Math.Max(
                 Goal.TargetAmount -
                 Goal.CurrentAmount,
                 0);
 
+
+
+        // ======================================
+        // PERCENT COMPLETE
+        // ======================================
 
         public double Percent
         {
@@ -654,14 +736,27 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         public double Progress =>
             Percent / 100.0;
 
 
-        public double DaysLeft =>
-            (Goal.DeadLine.Date -
-             DateTime.Today).TotalDays;
 
+        // ======================================
+        // DAYS LEFT
+        // ======================================
+
+        public double DaysLeft =>
+            (
+                Goal.DeadLine.Date -
+                DateTime.Today
+            ).TotalDays;
+
+
+
+        // ======================================
+        // WEEKLY AMOUNT NEEDED
+        // ======================================
 
         public double WeeklyNeeded
         {
@@ -684,11 +779,17 @@ public partial class SavingsPage : ContentPage
                 }
 
 
-                return Remaining /
-                       weeksLeft;
+                return
+                    Remaining /
+                    weeksLeft;
             }
         }
 
+
+
+        // ======================================
+        // DISPLAY TEXT
+        // ======================================
 
         public string DeadlineText =>
             $"Target: {Goal.DeadLine:MMM d, yyyy}";
@@ -704,6 +805,7 @@ public partial class SavingsPage : ContentPage
 
         public string RemainingText =>
             Remaining.ToString("C");
+
 
 
         public string DaysLeftText
@@ -723,14 +825,21 @@ public partial class SavingsPage : ContentPage
                         0);
 
 
-                return $"{days} days";
+                return
+                    $"{days} days";
             }
         }
+
 
 
         public string WeeklyNeededText =>
             WeeklyNeeded.ToString("C");
 
+
+
+        // ======================================
+        // STATUS TEXT
+        // ======================================
 
         public string StatusText
         {
@@ -738,7 +847,8 @@ public partial class SavingsPage : ContentPage
             {
                 if (Remaining <= 0)
                 {
-                    return "✓ Goal complete";
+                    return
+                        "✓ Goal complete";
                 }
 
 
@@ -755,29 +865,45 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
+        // ======================================
+        // STATUS COLOR
+        // ======================================
+
         public Color StatusColor
         {
             get
             {
+                // Completed goal.
                 if (Remaining <= 0)
                 {
-                    return Color.FromArgb(
+                    return GetThemeColor(
+                        "SuccessColor",
                         "#15803D");
                 }
 
 
+                // Deadline missed.
                 if (DaysLeft <= 0)
                 {
-                    return Color.FromArgb(
+                    return GetThemeColor(
+                        "DangerColor",
                         "#B91C1C");
                 }
 
 
-                return Color.FromArgb(
+                // Goal currently on track.
+                return GetThemeColor(
+                    "SuccessColor",
                     "#15803D");
             }
         }
 
+
+
+        // ======================================
+        // CONSTRUCTOR
+        // ======================================
 
         public SavingsGoalDisplayItem(
             SavingsGoal goal,

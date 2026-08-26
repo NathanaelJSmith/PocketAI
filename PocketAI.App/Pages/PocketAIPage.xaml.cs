@@ -56,6 +56,37 @@ public partial class PocketAIPage : ContentPage
     // creating the quick-question user bubble.
     private bool isProcessingTypedQuestion;
 
+    // ==========================================
+    // CHAT THEME REFERENCES
+    // ==========================================
+
+    // User message controls.
+    private readonly List<Border> userMessageBubbles =
+        new List<Border>();
+
+    private readonly List<Label> userMessageLabels =
+        new List<Label>();
+
+    private readonly List<Label> userNameLabels =
+        new List<Label>();
+
+
+    // PocketAI message controls.
+    private readonly List<Border> pocketAIIconBorders =
+        new List<Border>();
+
+    private readonly List<Label> pocketAIIconLabels =
+        new List<Label>();
+
+    private readonly List<Border> pocketAIMessageBubbles =
+        new List<Border>();
+
+    private readonly List<Label> pocketAIMessageLabels =
+        new List<Label>();
+
+private readonly List<Label> pocketAINameLabels =
+    new List<Label>();
+
 
 
     // ==========================================
@@ -98,9 +129,13 @@ public partial class PocketAIPage : ContentPage
         base.OnAppearing();
 
 
-        // Reload financial information whenever
-        // the user returns to PocketAI.
+        // Reload financial information.
         LoadFinancialSnapshot();
+
+
+        // Repaint every existing conversation
+        // message using the CURRENT app theme.
+        RefreshConversationTheme();
     }
 
 
@@ -389,16 +424,15 @@ public partial class PocketAIPage : ContentPage
 
         if (safeToSpend < 0)
         {
-            SnapshotSafeToSpendLabel.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            SnapshotSafeToSpendLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
-
         else
         {
-            SnapshotSafeToSpendLabel.TextColor =
-                Color.FromArgb(
-                    "#111827");
+            SnapshotSafeToSpendLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextPrimary");
         }
 
 
@@ -409,18 +443,16 @@ public partial class PocketAIPage : ContentPage
 
         if (summary.MoneyLeft < 0)
         {
-            SnapshotMoneyLeftLabel.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            SnapshotMoneyLeftLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
-
         else
         {
-            SnapshotMoneyLeftLabel.TextColor =
-                Color.FromArgb(
-                    "#111827");
+            SnapshotMoneyLeftLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextPrimary");
         }
-
 
 
         // ======================================
@@ -429,23 +461,21 @@ public partial class PocketAIPage : ContentPage
 
         if (financialHealthScore >= 80)
         {
-            SnapshotHealthLabel.TextColor =
-                Color.FromArgb(
-                    "#15803D");
+            SnapshotHealthLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
         }
-
         else if (financialHealthScore >= 60)
         {
-            SnapshotHealthLabel.TextColor =
-                Color.FromArgb(
-                    "#B45309");
+            SnapshotHealthLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "WarningColor");
         }
-
         else
         {
-            SnapshotHealthLabel.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            SnapshotHealthLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
     }
 
@@ -1398,6 +1428,30 @@ public partial class PocketAIPage : ContentPage
                     "how much do i have left"))
             {
                 AnswerReferencedCategoryBudgetQuestion();
+
+                return;
+            }
+
+            // ==================================
+            // BUDGET RISK / CLOSE TO LIMIT
+            // ==================================
+
+            if (QuestionContainsAny(
+                lowerQuestion,
+                "which budget should i watch",
+                "what budget should i watch",
+                "closest to going over",
+                "closest to my budget",
+                "close to my budget",
+                "close to any budget",
+                "close to a budget",
+                "budget is getting close",
+                "budget getting close",
+                "near my budget",
+                "near a budget",
+                "budget risk"))
+            {
+                AnswerBudgetRiskQuestion();
 
                 return;
             }
@@ -3095,10 +3149,8 @@ public partial class PocketAIPage : ContentPage
     private void AddUserMessage(
         string message)
     {
-        // Hide the original welcome message.
         WelcomeAssistantMessage.IsVisible =
             false;
-
 
 
         // ======================================
@@ -3109,7 +3161,8 @@ public partial class PocketAIPage : ContentPage
             new Border
             {
                 BackgroundColor =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "ThemePrimary",
                         "#7C3AED"),
 
                 StrokeThickness =
@@ -3137,6 +3190,9 @@ public partial class PocketAIPage : ContentPage
             };
 
 
+        // ======================================
+        // MESSAGE TEXT
+        // ======================================
 
         Label messageLabel =
             new Label
@@ -3148,7 +3204,9 @@ public partial class PocketAIPage : ContentPage
                     14,
 
                 TextColor =
-                    Colors.White,
+                    GetThemeColor(
+                        "TextOnPrimary",
+                        "#FFFFFF"),
 
                 LineHeight =
                     1.3
@@ -3157,7 +3215,6 @@ public partial class PocketAIPage : ContentPage
 
         messageBubble.Content =
             messageLabel;
-
 
 
         // ======================================
@@ -3177,7 +3234,8 @@ public partial class PocketAIPage : ContentPage
                     FontAttributes.Bold,
 
                 TextColor =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "TextSecondary",
                         "#6B7280"),
 
                 HorizontalOptions =
@@ -3185,9 +3243,8 @@ public partial class PocketAIPage : ContentPage
             };
 
 
-
         // ======================================
-        // GROUP USER MESSAGE
+        // GROUP MESSAGE
         // ======================================
 
         VerticalStackLayout messageGroup =
@@ -3209,13 +3266,28 @@ public partial class PocketAIPage : ContentPage
             messageBubble);
 
 
-
-        // Add user message to conversation.
         ConversationContainer.Children.Add(
             messageGroup);
-        
+
+
+        // ======================================
+        // REMEMBER THE CONTROLS
+        // ======================================
+
+        userMessageBubbles.Add(
+            messageBubble);
+
+
+        userMessageLabels.Add(
+            messageLabel);
+
+
+        userNameLabels.Add(
+            userLabel);
+
+
         ScrollToLatestMessage(
-        messageGroup);
+            messageGroup);
     }
 
     // ==========================================
@@ -3341,224 +3413,397 @@ public partial class PocketAIPage : ContentPage
             $"You've spent {categorySpent:C} out of " +
             $"{budget.LimitAmount:C}, leaving {remaining:C} available.");
     }
+    
     // ==========================================
-    // ANSWER BUDGET QUESTIONS
+    // ANSWER BUDGET RISK QUESTION
     // ==========================================
 
-    // ==========================================
-// ANSWER BUDGET QUESTIONS
-// ==========================================
-
-private void AnswerBudgetQuestion()
-{
-    // ======================================
-    // NO BUDGETS CREATED
-    // ======================================
-
-    if (currentBudgetLimits.Count == 0)
+    private void AnswerBudgetRiskQuestion()
     {
-        ShowAssistantResponse(
-            "You don't have any budget limits set yet. " +
-            "Create budgets for categories like Dining, Groceries, " +
-            "Shopping, or Entertainment and I can track whether " +
-            "you're staying within them.");
+        // ======================================
+        // NO BUDGETS
+        // ======================================
 
-        return;
-    }
-
-
-    // ======================================
-    // CURRENT MONTH SPENDING
-    // ======================================
-
-    List<Expense> currentMonthExpenses =
-        analyticsService
-            .GetCurrentMonthExpense(
-                currentExpenses);
-
-
-    // ======================================
-    // BUDGET STATUS LISTS
-    // ======================================
-
-    List<BudgetStatusItem> overBudgetCategories =
-        new List<BudgetStatusItem>();
-
-
-    List<BudgetStatusItem> atLimitCategories =
-        new List<BudgetStatusItem>();
-
-
-    // ======================================
-    // CHECK EACH BUDGET
-    // ======================================
-
-    foreach (BudgetLimit budget
-             in currentBudgetLimits)
-    {
-        double spent =
-            analyticsService
-                .GetCategoryTotal(
-                    currentMonthExpenses,
-                    budget.Category);
-
-
-        double amountOver =
-            spent -
-            budget.LimitAmount;
-
-
-        // ==================================
-        // OVER BUDGET
-        // ==================================
-
-        if (amountOver > 0.01)
-        {
-            overBudgetCategories.Add(
-                new BudgetStatusItem
-                {
-                    Category =
-                        budget.Category,
-
-                    Limit =
-                        budget.LimitAmount,
-
-                    Spent =
-                        spent,
-
-                    AmountOver =
-                        amountOver
-                });
-
-            continue;
-        }
-
-
-        // ==================================
-        // EXACTLY AT BUDGET LIMIT
-        // ==================================
-
-        if (Math.Abs(amountOver) <= 0.01)
-        {
-            atLimitCategories.Add(
-                new BudgetStatusItem
-                {
-                    Category =
-                        budget.Category,
-
-                    Limit =
-                        budget.LimitAmount,
-
-                    Spent =
-                        spent,
-
-                    AmountOver =
-                        0
-                });
-        }
-    }
-
-
-    // ======================================
-    // OVER-BUDGET CATEGORIES
-    // ======================================
-
-    if (overBudgetCategories.Count > 0)
-    {
-        BudgetStatusItem worstBudget =
-            overBudgetCategories
-                .OrderByDescending(
-                    item =>
-                        item.AmountOver)
-                .First();
-
-
-        string response;
-
-
-        if (overBudgetCategories.Count == 1)
-        {
-            response =
-                "Yes. You're currently over budget in 1 category. ";
-        }
-
-        else
-        {
-            response =
-                $"Yes. You're currently over budget in " +
-                $"{overBudgetCategories.Count} categories. ";
-        }
-
-
-        response +=
-            $"Your biggest issue is {worstBudget.Category}. " +
-            $"You've spent {worstBudget.Spent:C} against a " +
-            $"{worstBudget.Limit:C} budget, putting you " +
-            $"{worstBudget.AmountOver:C} over the limit.";
-
-
-        // Also warn if another category
-        // has reached its exact limit.
-        if (atLimitCategories.Count > 0)
-        {
-            response +=
-                $" You also have {atLimitCategories.Count} budget " +
-                $"{(atLimitCategories.Count == 1 ? "category" : "categories")} " +
-                $"that has reached its limit.";
-        }
-
-
-        ShowAssistantResponse(
-            response);
-
-        return;
-    }
-
-
-    // ======================================
-    // AT BUDGET LIMIT
-    // ======================================
-
-    if (atLimitCategories.Count > 0)
-    {
-        BudgetStatusItem firstAtLimit =
-            atLimitCategories[0];
-
-
-        if (atLimitCategories.Count == 1)
+        if (currentBudgetLimits.Count == 0)
         {
             ShowAssistantResponse(
-                $"You're not over budget yet, but your " +
-                $"{firstAtLimit.Category} budget has reached its limit. " +
-                $"You've spent {firstAtLimit.Spent:C} out of " +
-                $"{firstAtLimit.Limit:C}, leaving $0.00 remaining. " +
-                $"I would avoid additional spending in that category.");
+                "You don't have any budget limits set yet. " +
+                "Create category budgets and I can warn you " +
+                "when you're getting close to them.");
 
             return;
         }
 
 
+        // ======================================
+        // CURRENT MONTH EXPENSES
+        // ======================================
+
+        List<Expense> currentMonthExpenses =
+            analyticsService
+                .GetCurrentMonthExpense(
+                    currentExpenses);
+
+
+        BudgetLimit? highestBudget =
+            null;
+
+
+        double highestSpent =
+            0;
+
+
+        double highestPercentage =
+            0;
+
+
+        // ======================================
+        // FIND HIGHEST BUDGET USAGE
+        // ======================================
+
+        foreach (BudgetLimit budget
+                in currentBudgetLimits)
+        {
+            // Avoid dividing by zero.
+            if (budget.LimitAmount <= 0)
+            {
+                continue;
+            }
+
+
+            double spent =
+                analyticsService
+                    .GetCategoryTotal(
+                        currentMonthExpenses,
+                        budget.Category);
+
+
+            double percentageUsed =
+                spent /
+                budget.LimitAmount *
+                100;
+
+
+            if (highestBudget == null ||
+                percentageUsed >
+                highestPercentage)
+            {
+                highestBudget =
+                    budget;
+
+
+                highestSpent =
+                    spent;
+
+
+                highestPercentage =
+                    percentageUsed;
+            }
+        }
+
+
+        // ======================================
+        // NO VALID BUDGET
+        // ======================================
+
+        if (highestBudget == null)
+        {
+            ShowAssistantResponse(
+                "I couldn't find a valid budget limit to analyze.");
+
+            return;
+        }
+
+
+        // Remember this category so the user
+        // can ask follow-up questions about it.
+        lastReferencedCategory =
+            highestBudget.Category;
+
+
+        double remaining =
+            highestBudget.LimitAmount -
+            highestSpent;
+
+
+        // ======================================
+        // ALREADY OVER BUDGET
+        // ======================================
+
+        if (remaining < 0)
+        {
+            double amountOver =
+                Math.Abs(
+                    remaining);
+
+
+            ShowAssistantResponse(
+                $"Your {highestBudget.Category} budget needs the most " +
+                $"attention right now. You've spent {highestSpent:C} " +
+                $"against a {highestBudget.LimitAmount:C} budget, " +
+                $"putting you {amountOver:C} over the limit.");
+
+            return;
+        }
+
+
+        // ======================================
+        // EXACTLY AT LIMIT
+        // ======================================
+
+        if (remaining <= 0.01)
+        {
+            ShowAssistantResponse(
+                $"Your {highestBudget.Category} budget is the one to watch. " +
+                $"You've used 100% of the budget: {highestSpent:C} out of " +
+                $"{highestBudget.LimitAmount:C}. You have $0.00 remaining.");
+
+            return;
+        }
+
+
+        // ======================================
+        // 80% OR MORE USED
+        // ======================================
+
+        if (highestPercentage >= 80)
+        {
+            ShowAssistantResponse(
+                $"Your {highestBudget.Category} budget is getting close " +
+                $"to its limit. You've used about {highestPercentage:F0}% " +
+                $"of it, spending {highestSpent:C} out of " +
+                $"{highestBudget.LimitAmount:C}. " +
+                $"You have {remaining:C} remaining.");
+
+            return;
+        }
+
+
+        // ======================================
+        // UNDER 80%
+        // ======================================
+
         ShowAssistantResponse(
-            $"You're not over budget yet, but " +
-            $"{atLimitCategories.Count} of your budget categories " +
-            $"have reached their limits. " +
-            $"Any additional spending in those categories would " +
-            $"put you over budget.");
-
-        return;
+            $"None of your budgets are in a high-risk range right now. " +
+            $"Your closest is {highestBudget.Category}, where you've used " +
+            $"about {highestPercentage:F0}% of the " +
+            $"{highestBudget.LimitAmount:C} budget. " +
+            $"You still have {remaining:C} remaining.");
     }
+    // ==========================================
+    // ANSWER BUDGET QUESTIONS
+    // ==========================================
+
+    private void AnswerBudgetQuestion()
+    {
+        // ======================================
+        // NO BUDGETS CREATED
+        // ======================================
+
+        if (currentBudgetLimits.Count == 0)
+        {
+            ShowAssistantResponse(
+                "You don't have any budget limits set yet. " +
+                "Create budgets for categories like Dining, Groceries, " +
+                "Shopping, or Entertainment and I can track whether " +
+                "you're staying within them.");
+
+            return;
+        }
 
 
-    // ======================================
-    // ALL BUDGETS ARE UNDER LIMIT
-    // ======================================
+        // ======================================
+        // CURRENT MONTH SPENDING
+        // ======================================
 
-    ShowAssistantResponse(
-        $"You're currently under all {currentBudgetLimits.Count} " +
-        $"of your budget limits this month. " +
-        $"Keep tracking your transactions so I can warn you " +
-        $"as categories get close to their limits.");
-}
+        List<Expense> currentMonthExpenses =
+            analyticsService
+                .GetCurrentMonthExpense(
+                    currentExpenses);
+
+
+        // ======================================
+        // BUDGET STATUS LISTS
+        // ======================================
+
+        List<BudgetStatusItem> overBudgetCategories =
+            new List<BudgetStatusItem>();
+
+
+        List<BudgetStatusItem> atLimitCategories =
+            new List<BudgetStatusItem>();
+
+
+        // ======================================
+        // CHECK EACH BUDGET
+        // ======================================
+
+        foreach (BudgetLimit budget
+                in currentBudgetLimits)
+        {
+            double spent =
+                analyticsService
+                    .GetCategoryTotal(
+                        currentMonthExpenses,
+                        budget.Category);
+
+
+            double amountOver =
+                spent -
+                budget.LimitAmount;
+
+
+            // ==================================
+            // OVER BUDGET
+            // ==================================
+
+            if (amountOver > 0.01)
+            {
+                overBudgetCategories.Add(
+                    new BudgetStatusItem
+                    {
+                        Category =
+                            budget.Category,
+
+                        Limit =
+                            budget.LimitAmount,
+
+                        Spent =
+                            spent,
+
+                        AmountOver =
+                            amountOver
+                    });
+
+                continue;
+            }
+
+
+            // ==================================
+            // EXACTLY AT BUDGET LIMIT
+            // ==================================
+
+            if (Math.Abs(amountOver) <= 0.01)
+            {
+                atLimitCategories.Add(
+                    new BudgetStatusItem
+                    {
+                        Category =
+                            budget.Category,
+
+                        Limit =
+                            budget.LimitAmount,
+
+                        Spent =
+                            spent,
+
+                        AmountOver =
+                            0
+                    });
+            }
+        }
+
+
+        // ======================================
+        // OVER-BUDGET CATEGORIES
+        // ======================================
+
+        if (overBudgetCategories.Count > 0)
+        {
+            BudgetStatusItem worstBudget =
+                overBudgetCategories
+                    .OrderByDescending(
+                        item =>
+                            item.AmountOver)
+                    .First();
+
+
+            string response;
+
+
+            if (overBudgetCategories.Count == 1)
+            {
+                response =
+                    "Yes. You're currently over budget in 1 category. ";
+            }
+
+            else
+            {
+                response =
+                    $"Yes. You're currently over budget in " +
+                    $"{overBudgetCategories.Count} categories. ";
+            }
+
+
+            response +=
+                $"Your biggest issue is {worstBudget.Category}. " +
+                $"You've spent {worstBudget.Spent:C} against a " +
+                $"{worstBudget.Limit:C} budget, putting you " +
+                $"{worstBudget.AmountOver:C} over the limit.";
+
+
+            // Also warn if another category
+            // has reached its exact limit.
+            if (atLimitCategories.Count > 0)
+            {
+                response +=
+                    $" You also have {atLimitCategories.Count} budget " +
+                    $"{(atLimitCategories.Count == 1 ? "category" : "categories")} " +
+                    $"that has reached its limit.";
+            }
+
+
+            ShowAssistantResponse(
+                response);
+
+            return;
+        }
+
+
+        // ======================================
+        // AT BUDGET LIMIT
+        // ======================================
+
+        if (atLimitCategories.Count > 0)
+        {
+            BudgetStatusItem firstAtLimit =
+                atLimitCategories[0];
+
+
+            if (atLimitCategories.Count == 1)
+            {
+                ShowAssistantResponse(
+                    $"You're not over budget yet, but your " +
+                    $"{firstAtLimit.Category} budget has reached its limit. " +
+                    $"You've spent {firstAtLimit.Spent:C} out of " +
+                    $"{firstAtLimit.Limit:C}, leaving $0.00 remaining. " +
+                    $"I would avoid additional spending in that category.");
+
+                return;
+            }
+
+
+            ShowAssistantResponse(
+                $"You're not over budget yet, but " +
+                $"{atLimitCategories.Count} of your budget categories " +
+                $"have reached their limits. " +
+                $"Any additional spending in those categories would " +
+                $"put you over budget.");
+
+            return;
+        }
+
+
+        // ======================================
+        // ALL BUDGETS ARE UNDER LIMIT
+        // ======================================
+
+        ShowAssistantResponse(
+            $"You're currently under all {currentBudgetLimits.Count} " +
+            $"of your budget limits this month. " +
+            $"Keep tracking your transactions so I can warn you " +
+            $"as categories get close to their limits.");
+    }
 
 
     // ==========================================
@@ -3834,10 +4079,8 @@ private void AnswerBudgetQuestion()
     private void AddPocketAIMessage(
         string message)
     {
-        // Hide original welcome message.
         WelcomeAssistantMessage.IsVisible =
             false;
-
 
 
         // ======================================
@@ -3854,7 +4097,8 @@ private void AnswerBudgetQuestion()
                     36,
 
                 BackgroundColor =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "ThemePrimary",
                         "#7C3AED"),
 
                 StrokeThickness =
@@ -3874,7 +4118,6 @@ private void AnswerBudgetQuestion()
             };
 
 
-
         Label iconLabel =
             new Label
             {
@@ -3885,7 +4128,9 @@ private void AnswerBudgetQuestion()
                     17,
 
                 TextColor =
-                    Colors.White,
+                    GetThemeColor(
+                        "TextOnPrimary",
+                        "#FFFFFF"),
 
                 HorizontalOptions =
                     LayoutOptions.Center,
@@ -3899,7 +4144,6 @@ private void AnswerBudgetQuestion()
             iconLabel;
 
 
-
         // ======================================
         // POCKETAI MESSAGE BUBBLE
         // ======================================
@@ -3908,11 +4152,13 @@ private void AnswerBudgetQuestion()
             new Border
             {
                 BackgroundColor =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "SurfaceBackground",
                         "#F9FAFB"),
 
                 Stroke =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "BorderColor",
                         "#E5E7EB"),
 
                 StrokeThickness =
@@ -3921,7 +4167,10 @@ private void AnswerBudgetQuestion()
                 Padding =
                     new Thickness(
                         16,
-                        12)
+                        12),
+
+                MaximumWidthRequest =
+                    750
             };
 
 
@@ -3934,6 +4183,9 @@ private void AnswerBudgetQuestion()
             };
 
 
+        // ======================================
+        // POCKETAI MESSAGE TEXT
+        // ======================================
 
         Label messageLabel =
             new Label
@@ -3945,8 +4197,9 @@ private void AnswerBudgetQuestion()
                     14,
 
                 TextColor =
-                    Color.FromArgb(
-                        "#374151"),
+                    GetThemeColor(
+                        "TextPrimary",
+                        "#111827"),
 
                 LineHeight =
                     1.35
@@ -3955,7 +4208,6 @@ private void AnswerBudgetQuestion()
 
         messageBubble.Content =
             messageLabel;
-
 
 
         // ======================================
@@ -3986,7 +4238,6 @@ private void AnswerBudgetQuestion()
             });
 
 
-
         Grid.SetColumn(
             iconBorder,
             0);
@@ -4003,7 +4254,6 @@ private void AnswerBudgetQuestion()
 
         messageGrid.Children.Add(
             messageBubble);
-
 
 
         // ======================================
@@ -4023,7 +4273,8 @@ private void AnswerBudgetQuestion()
                     FontAttributes.Bold,
 
                 TextColor =
-                    Color.FromArgb(
+                    GetThemeColor(
+                        "ThemePrimary",
                         "#7C3AED"),
 
                 Margin =
@@ -4035,9 +4286,8 @@ private void AnswerBudgetQuestion()
             };
 
 
-
         // ======================================
-        // GROUP POCKETAI MESSAGE
+        // GROUP MESSAGE
         // ======================================
 
         VerticalStackLayout messageGroup =
@@ -4056,15 +4306,163 @@ private void AnswerBudgetQuestion()
             messageGrid);
 
 
-
-        // Add PocketAI response to conversation.
         ConversationContainer.Children.Add(
             messageGroup);
-            
-            ScrollToLatestMessage(
-            messageGroup);
 
+
+        // ======================================
+        // REMEMBER THE CONTROLS
+        // ======================================
+
+        pocketAIIconBorders.Add(
+            iconBorder);
+
+
+        pocketAIIconLabels.Add(
+            iconLabel);
+
+
+        pocketAIMessageBubbles.Add(
+            messageBubble);
+
+
+        pocketAIMessageLabels.Add(
+            messageLabel);
+
+
+        pocketAINameLabels.Add(
+            aiLabel);
+
+
+        ScrollToLatestMessage(
+            messageGroup);
     }
+
+    // ==========================================
+// REFRESH ENTIRE CONVERSATION THEME
+// ==========================================
+
+private void RefreshConversationTheme()
+{
+    // ======================================
+    // CURRENT THEME COLORS
+    // ======================================
+
+    Color accentColor =
+        GetThemeColor(
+            "ThemePrimary",
+            "#7C3AED");
+
+
+    Color textOnAccent =
+        GetThemeColor(
+            "TextOnPrimary",
+            "#FFFFFF");
+
+
+    Color primaryText =
+        GetThemeColor(
+            "TextPrimary",
+            "#111827");
+
+
+    Color secondaryText =
+        GetThemeColor(
+            "TextSecondary",
+            "#6B7280");
+
+
+    Color surfaceBackground =
+        GetThemeColor(
+            "SurfaceBackground",
+            "#F9FAFB");
+
+
+    Color borderColor =
+        GetThemeColor(
+            "BorderColor",
+            "#E5E7EB");
+
+
+    // ======================================
+    // USER MESSAGES
+    // ======================================
+
+    foreach (Border bubble
+             in userMessageBubbles)
+    {
+        bubble.BackgroundColor =
+            accentColor;
+    }
+
+
+    foreach (Label label
+             in userMessageLabels)
+    {
+        label.TextColor =
+            textOnAccent;
+    }
+
+
+    foreach (Label label
+             in userNameLabels)
+    {
+        label.TextColor =
+            secondaryText;
+    }
+
+
+    // ======================================
+    // POCKETAI ICONS
+    // ======================================
+
+    foreach (Border icon
+             in pocketAIIconBorders)
+    {
+        icon.BackgroundColor =
+            accentColor;
+    }
+
+
+    foreach (Label iconLabel
+             in pocketAIIconLabels)
+    {
+        iconLabel.TextColor =
+            textOnAccent;
+    }
+
+
+    // ======================================
+    // POCKETAI MESSAGE BUBBLES
+    // ======================================
+
+    foreach (Border bubble
+             in pocketAIMessageBubbles)
+    {
+        bubble.BackgroundColor =
+            surfaceBackground;
+
+
+        bubble.Stroke =
+            borderColor;
+    }
+
+
+    foreach (Label label
+             in pocketAIMessageLabels)
+    {
+        label.TextColor =
+            primaryText;
+    }
+
+
+    foreach (Label label
+             in pocketAINameLabels)
+    {
+        label.TextColor =
+            accentColor;
+    }
+}
 
     // ==========================================
     // SCROLL TO NEWEST MESSAGE
@@ -4086,6 +4484,25 @@ private void AnswerBudgetQuestion()
                 true);
     }
 
+    // ==========================================
+    // GET CURRENT THEME COLOR
+    // ==========================================
+
+    private static Color GetThemeColor(
+        string resourceName,
+        string fallbackColor)
+    {
+        if (Application.Current != null &&
+            Application.Current.Resources[
+                resourceName] is Color color)
+        {
+            return color;
+        }
+
+
+        return Color.FromArgb(
+            fallbackColor);
+    }
     // ==========================================
     // BUDGET STATUS HELPER
     // ==========================================

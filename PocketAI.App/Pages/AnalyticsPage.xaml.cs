@@ -1,5 +1,7 @@
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace PocketAI.App.Pages;
 
@@ -7,6 +9,8 @@ public partial class AnalyticsPage : ContentPage
 {
     private readonly DataBaseManager dataBaseManager;
     private readonly AnalyticsService analyticsService;
+
+    private string currentTab = "Overview";
 
 
     public AnalyticsPage()
@@ -51,6 +55,8 @@ public partial class AnalyticsPage : ContentPage
         // Reload analytics whenever the
         // user returns to this page.
         LoadAnalytics();
+
+        ShowTab(currentTab);
     }
 
 
@@ -136,6 +142,8 @@ public partial class AnalyticsPage : ContentPage
 
         LoadTrends(
             expenses);
+
+        ApplyChartTheme();
     }
 
 
@@ -1155,9 +1163,9 @@ public partial class AnalyticsPage : ContentPage
                 "Not enough data";
 
 
-            TrendDirectionLabel.TextColor =
-                Color.FromArgb(
-                    "#6B7280");
+            TrendDirectionLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
         }
 
         else if (currentMonthAmount >
@@ -1172,9 +1180,9 @@ public partial class AnalyticsPage : ContentPage
                 $"↑ {difference:C} more";
 
 
-            TrendDirectionLabel.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            TrendDirectionLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
         }
 
         else if (currentMonthAmount <
@@ -1189,9 +1197,9 @@ public partial class AnalyticsPage : ContentPage
                 $"↓ {difference:C} less";
 
 
-            TrendDirectionLabel.TextColor =
-                Color.FromArgb(
-                    "#15803D");
+            TrendDirectionLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
         }
 
         else
@@ -1227,9 +1235,9 @@ public partial class AnalyticsPage : ContentPage
                 "No change";
 
 
-            label.TextColor =
-                Color.FromArgb(
-                    "#6B7280");
+            label.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
 
 
             return;
@@ -1247,9 +1255,9 @@ public partial class AnalyticsPage : ContentPage
                 $"New spending\nNo {comparisonPeriod} data";
 
 
-            label.TextColor =
-                Color.FromArgb(
-                    "#6B7280");
+            label.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
 
 
             return;
@@ -1295,9 +1303,9 @@ public partial class AnalyticsPage : ContentPage
                 $"Up {dollarDifference:C}\n{multiplier:0.0}× {comparisonPeriod}";
 
 
-            label.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            label.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
 
 
             return;
@@ -1315,9 +1323,9 @@ public partial class AnalyticsPage : ContentPage
                 $"+{percentageChange:0.0}%\nvs {comparisonPeriod}";
 
 
-            label.TextColor =
-                Color.FromArgb(
-                    "#B91C1C");
+            label.SetDynamicResource(
+                Label.TextColorProperty,
+                "DangerColor");
 
 
             return;
@@ -1335,9 +1343,9 @@ public partial class AnalyticsPage : ContentPage
                 $"{percentageChange:0.0}%\nvs {comparisonPeriod}";
 
 
-            label.TextColor =
-                Color.FromArgb(
-                    "#15803D");
+            label.SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
 
 
             return;
@@ -1353,9 +1361,9 @@ public partial class AnalyticsPage : ContentPage
             $"0%\nvs {comparisonPeriod}";
 
 
-        label.TextColor =
-            Color.FromArgb(
-                "#6B7280");
+        label.SetDynamicResource(
+            Label.TextColorProperty,
+            "TextSecondary");
     }
 
     // ==========================================
@@ -1406,6 +1414,9 @@ public partial class AnalyticsPage : ContentPage
     private void ShowTab(
         string tab)
     {
+        //Remeber the selected tab
+        currentTab = tab;
+
         OverviewSection.IsVisible =
             tab ==
             "Overview";
@@ -1462,15 +1473,19 @@ public partial class AnalyticsPage : ContentPage
     {
         if (selected)
         {
+            // Use the user's actual current
+            // accent color.
             button.BackgroundColor =
-                Color.FromArgb(
+                GetThemeColor(
+                    "ThemePrimary",
                     "#7C3AED");
 
 
             button.TextColor =
-                Colors.White;
+                GetThemeColor(
+                    "TextOnPrimary",
+                    "#FFFFFF");
         }
-
         else
         {
             button.BackgroundColor =
@@ -1478,12 +1493,376 @@ public partial class AnalyticsPage : ContentPage
 
 
             button.TextColor =
-                Color.FromArgb(
+                GetThemeColor(
+                    "TextSecondary",
                     "#6B7280");
         }
     }
 
+    // ==========================================
+    // GET CURRENT THEME COLOR
+    // ==========================================
 
+    private static Color GetThemeColor(
+        string resourceName,
+        string fallbackColor)
+    {
+        if (Application.Current != null &&
+            Application.Current.Resources[
+                resourceName] is Color color)
+        {
+            return color;
+        }
+
+
+        return Color.FromArgb(
+            fallbackColor);
+    }
+
+    // ==========================================
+// APPLY LIVECHARTS THEME
+// ==========================================
+
+private void ApplyChartTheme()
+{
+    // ======================================
+    // GET CURRENT APP COLORS
+    // ======================================
+
+    Color accentColor =
+        GetThemeColor(
+            "ThemePrimary",
+            "#7C3AED");
+
+
+    Color primaryTextColor =
+        GetThemeColor(
+            "TextPrimary",
+            "#111827");
+
+
+    Color secondaryTextColor =
+        GetThemeColor(
+            "TextSecondary",
+            "#6B7280");
+
+
+    Color mutedColor =
+        GetThemeColor(
+            "TextMuted",
+            "#9CA3AF");
+
+
+    Color borderColor =
+        GetThemeColor(
+            "BorderColor",
+            "#E5E7EB");
+
+
+    Color surfaceColor =
+        GetThemeColor(
+            "SurfaceBackground",
+            "#F9FAFB");
+
+
+
+    // Convert MAUI colors into colors
+    // that SkiaSharp / LiveCharts can use.
+
+    SKColor accent =
+        ToSKColor(
+            accentColor);
+
+
+    SKColor primaryText =
+        ToSKColor(
+            primaryTextColor);
+
+
+    SKColor secondaryText =
+        ToSKColor(
+            secondaryTextColor);
+
+
+    SKColor muted =
+        ToSKColor(
+            mutedColor);
+
+
+    SKColor border =
+        ToSKColor(
+            borderColor);
+
+
+    SKColor surface =
+        ToSKColor(
+            surfaceColor);
+
+
+
+    // ======================================
+    // WEEK COMPARISON CHART
+    // ======================================
+
+    StyleCartesianChart(
+        WeekComparisonChart,
+        secondaryText,
+        border,
+        surface);
+
+
+    List<ColumnSeries<double>>
+        weekSeries =
+            WeekComparisonChart
+                .Series
+                .OfType<ColumnSeries<double>>()
+                .ToList();
+
+
+    // Current week follows the
+    // user's chosen accent color.
+    if (weekSeries.Count >= 1)
+    {
+        weekSeries[0].Fill =
+            new SolidColorPaint(
+                accent);
+    }
+
+
+    // Last week stays neutral so the
+    // current week is visually stronger.
+    if (weekSeries.Count >= 2)
+    {
+        weekSeries[1].Fill =
+            new SolidColorPaint(
+                muted);
+    }
+
+
+
+    // ======================================
+    // CASH FLOW CHART
+    // ======================================
+
+    StyleCartesianChart(
+        CashFlowChart,
+        secondaryText,
+        border,
+        surface);
+
+
+    ColumnSeries<double>?
+        cashFlowSeries =
+            CashFlowChart
+                .Series
+                .OfType<ColumnSeries<double>>()
+                .FirstOrDefault();
+
+
+    if (cashFlowSeries != null)
+    {
+        cashFlowSeries.Fill =
+            new SolidColorPaint(
+                accent);
+    }
+
+
+
+    // ======================================
+    // SIX-MONTH TREND CHART
+    // ======================================
+
+    StyleCartesianChart(
+        SixMonthTrendChart,
+        secondaryText,
+        border,
+        surface);
+
+
+    LineSeries<double>?
+        trendSeries =
+            SixMonthTrendChart
+                .Series
+                .OfType<LineSeries<double>>()
+                .FirstOrDefault();
+
+
+    if (trendSeries != null)
+    {
+        // Main line.
+        trendSeries.Stroke =
+            new SolidColorPaint(
+                accent,
+                3);
+
+
+        // Point outline.
+        trendSeries.GeometryStroke =
+            new SolidColorPaint(
+                accent,
+                2);
+
+
+        // Point center.
+        trendSeries.GeometryFill =
+            new SolidColorPaint(
+                accent);
+
+
+        // Do not fill the area underneath.
+        trendSeries.Fill =
+            null;
+    }
+
+
+
+    // ======================================
+    // CATEGORY DONUT CHART
+    // ======================================
+
+    // We deliberately keep the individual
+    // donut slices different colors.
+    //
+    // If every category used the accent color,
+    // users could not tell the categories apart.
+
+    CategoryDonutChart.LegendTextPaint =
+        new SolidColorPaint(
+            secondaryText);
+
+
+    CategoryDonutChart.TooltipTextPaint =
+        new SolidColorPaint(
+            primaryText);
+
+
+    CategoryDonutChart.TooltipBackgroundPaint =
+        new SolidColorPaint(
+            surface);
+}
+
+
+
+    // ==========================================
+    // STYLE A CARTESIAN CHART
+    // ==========================================
+
+    private static void StyleCartesianChart(
+        LiveChartsCore.SkiaSharpView.Maui
+            .CartesianChart chart,
+        SKColor textColor,
+        SKColor separatorColor,
+        SKColor surfaceColor)
+    {
+        // ======================================
+        // X AXES
+        // ======================================
+
+        foreach (Axis axis
+                in chart.XAxes)
+        {
+            axis.LabelsPaint =
+                new SolidColorPaint(
+                    textColor);
+
+
+            axis.SeparatorsPaint =
+                new SolidColorPaint(
+                    separatorColor)
+                {
+                    StrokeThickness =
+                        1
+                };
+        }
+
+
+
+        // ======================================
+        // Y AXES
+        // ======================================
+
+        foreach (Axis axis
+                in chart.YAxes)
+        {
+            axis.LabelsPaint =
+                new SolidColorPaint(
+                    textColor);
+
+
+            axis.SeparatorsPaint =
+                new SolidColorPaint(
+                    separatorColor)
+                {
+                    StrokeThickness =
+                        1
+                };
+        }
+
+
+
+        // ======================================
+        // LEGEND
+        // ======================================
+
+        chart.LegendTextPaint =
+            new SolidColorPaint(
+                textColor);
+
+
+
+        // ======================================
+        // TOOLTIP
+        // ======================================
+
+        chart.TooltipTextPaint =
+            new SolidColorPaint(
+                textColor);
+
+
+        chart.TooltipBackgroundPaint =
+            new SolidColorPaint(
+                surfaceColor);
+    }
+
+
+
+    // ==========================================
+    // CONVERT MAUI COLOR TO SKIA COLOR
+    // ==========================================
+
+    private static SKColor ToSKColor(
+        Color color)
+    {
+        byte red =
+            (byte)(
+                color.Red *
+                255);
+
+
+        byte green =
+            (byte)(
+                color.Green *
+                255);
+
+
+        byte blue =
+            (byte)(
+                color.Blue *
+                255);
+
+
+        byte alpha =
+            (byte)(
+                color.Alpha *
+                255);
+
+
+        return new SKColor(
+            red,
+            green,
+            blue,
+            alpha);
+    }
 
     // ==========================================
     // CATEGORY DISPLAY MODEL

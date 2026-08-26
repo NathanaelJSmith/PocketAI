@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.PocketAIPage"
-    BackgroundColor="#F5F7FA"
+    BackgroundColor="{DynamicResource PageBackground}"
     Shell.NavBarIsVisible="False"
     Title="PocketAI">
 
@@ -15,13 +15,15 @@
         RowSpacing="20">
 
 
-        <!-- ================================= -->
-        <!-- HEADER                            -->
-        <!-- ================================= -->
+        <!-- =====================================
+             HEADER
+             ===================================== -->
 
         <Grid
             Grid.Row="0"
-            ColumnDefinitions="*,Auto">
+            ColumnDefinitions="*,Auto"
+            ColumnSpacing="20">
+
 
             <VerticalStackLayout
                 Grid.Column="0"
@@ -29,31 +31,42 @@
 
                 <Label
                     Text="POCKETAI"
-                    FontSize="28"
+                    FontSize="12"
                     FontAttributes="Bold"
-                    TextColor="#111827" />
+                    TextColor="{DynamicResource ThemePrimary}" />
 
                 <Label
                     Text="Your personal financial coach."
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource TextPrimary}" />
+
+                <Label
+                    Text="Ask questions about your spending, budgets, bills, savings, or financial plan."
                     FontSize="14"
-                    TextColor="#6B7280" />
+                    TextColor="{DynamicResource TextSecondary}" />
 
             </VerticalStackLayout>
 
 
-            <!-- STATUS -->
+
+            <!-- =================================
+                 DATA STATUS
+                 ================================= -->
 
             <Border
                 Grid.Column="1"
-                BackgroundColor="#ECFDF5"
-                Stroke="#A7F3D0"
+                BackgroundColor="{DynamicResource SurfaceBackground}"
+                Stroke="{DynamicResource SuccessColor}"
                 StrokeThickness="1"
                 Padding="12,7"
                 VerticalOptions="Center">
 
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="20" />
+                    <RoundRectangle
+                        CornerRadius="20" />
                 </Border.StrokeShape>
+
 
                 <HorizontalStackLayout
                     Spacing="7">
@@ -62,14 +75,14 @@
                         WidthRequest="8"
                         HeightRequest="8"
                         CornerRadius="4"
-                        Color="#10B981"
+                        Color="{DynamicResource SuccessColor}"
                         VerticalOptions="Center" />
 
                     <Label
                         Text="Financial data connected"
                         FontSize="11"
                         FontAttributes="Bold"
-                        TextColor="#047857"
+                        TextColor="{DynamicResource SuccessColor}"
                         VerticalTextAlignment="Center" />
 
                 </HorizontalStackLayout>
@@ -80,9 +93,9 @@
 
 
 
-        <!-- ================================= -->
-        <!-- MAIN ASSISTANT AREA               -->
-        <!-- ================================= -->
+        <!-- =====================================
+             MAIN ASSISTANT AREA
+             ===================================== -->
 
         <ScrollView
             x:Name="ConversationScrollView"
@@ -92,18 +105,19 @@
                 Spacing="20">
 
 
-                <!-- ================================= -->
-                <!-- POCKETAI WELCOME CARD             -->
-                <!-- ================================= -->
+                <!-- =================================
+                     WELCOME
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="#F5F3FF"
-                    Stroke="#DDD6FE"
+                    BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="18" />
+                        <RoundRectangle
+                            CornerRadius="18" />
                     </Border.StrokeShape>
 
 
@@ -118,18 +132,20 @@
                             Grid.Column="0"
                             WidthRequest="52"
                             HeightRequest="52"
-                            BackgroundColor="#7C3AED"
+                            BackgroundColor="{DynamicResource ThemePrimary}"
                             StrokeThickness="0"
                             VerticalOptions="Start">
 
                             <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
+                                <RoundRectangle
+                                    CornerRadius="14" />
                             </Border.StrokeShape>
+
 
                             <Label
                                 Text="✦"
                                 FontSize="25"
-                                TextColor="White"
+                                TextColor="{DynamicResource TextOnPrimary}"
                                 HorizontalOptions="Center"
                                 VerticalOptions="Center" />
 
@@ -147,13 +163,13 @@
                                 Text="How can I help with your money?"
                                 FontSize="20"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
                                 Text="I can analyze your spending, budgets, savings goals, bills, and financial trends using the information already inside PocketAI."
                                 FontSize="14"
                                 LineHeight="1.3"
-                                TextColor="#4B5563" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -163,9 +179,9 @@
 
 
 
-                <!-- ================================= -->
-                <!-- FINANCIAL SNAPSHOT                -->
-                <!-- ================================= -->
+                <!-- =================================
+                     FINANCIAL SNAPSHOT
+                     ================================= -->
 
                 <VerticalStackLayout
                     Spacing="10">
@@ -174,7 +190,7 @@
                         Text="YOUR FINANCIAL SNAPSHOT"
                         FontSize="11"
                         FontAttributes="Bold"
-                        TextColor="#6B7280" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
 
                     <Grid
@@ -186,14 +202,16 @@
 
                         <Border
                             Grid.Column="0"
-                            BackgroundColor="White"
-                            Stroke="#E5E7EB"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
                             StrokeThickness="1"
                             Padding="16">
 
                             <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
+                                <RoundRectangle
+                                    CornerRadius="14" />
                             </Border.StrokeShape>
+
 
                             <VerticalStackLayout
                                 Spacing="5">
@@ -202,14 +220,14 @@
                                     Text="SAFE TO SPEND"
                                     FontSize="9"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
                                 <Label
                                     x:Name="SnapshotSafeToSpendLabel"
                                     Text="$0.00"
                                     FontSize="21"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -221,14 +239,16 @@
 
                         <Border
                             Grid.Column="1"
-                            BackgroundColor="White"
-                            Stroke="#E5E7EB"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
                             StrokeThickness="1"
                             Padding="16">
 
                             <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
+                                <RoundRectangle
+                                    CornerRadius="14" />
                             </Border.StrokeShape>
+
 
                             <VerticalStackLayout
                                 Spacing="5">
@@ -237,14 +257,14 @@
                                     Text="MONEY LEFT"
                                     FontSize="9"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
                                 <Label
                                     x:Name="SnapshotMoneyLeftLabel"
                                     Text="$0.00"
                                     FontSize="21"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -252,18 +272,20 @@
 
 
 
-                        <!-- MONTH SPENDING -->
+                        <!-- SPENT -->
 
                         <Border
                             Grid.Column="2"
-                            BackgroundColor="White"
-                            Stroke="#E5E7EB"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
                             StrokeThickness="1"
                             Padding="16">
 
                             <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
+                                <RoundRectangle
+                                    CornerRadius="14" />
                             </Border.StrokeShape>
+
 
                             <VerticalStackLayout
                                 Spacing="5">
@@ -272,14 +294,14 @@
                                     Text="SPENT"
                                     FontSize="9"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
                                 <Label
                                     x:Name="SnapshotSpentLabel"
                                     Text="$0.00"
                                     FontSize="21"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -287,18 +309,20 @@
 
 
 
-                        <!-- FINANCIAL HEALTH -->
+                        <!-- HEALTH -->
 
                         <Border
                             Grid.Column="3"
-                            BackgroundColor="White"
-                            Stroke="#E5E7EB"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
                             StrokeThickness="1"
                             Padding="16">
 
                             <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
+                                <RoundRectangle
+                                    CornerRadius="14" />
                             </Border.StrokeShape>
+
 
                             <VerticalStackLayout
                                 Spacing="5">
@@ -307,14 +331,14 @@
                                     Text="HEALTH"
                                     FontSize="9"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
                                 <Label
                                     x:Name="SnapshotHealthLabel"
                                     Text="-- / 100"
                                     FontSize="21"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -326,9 +350,9 @@
 
 
 
-                <!-- ================================= -->
-                <!-- QUICK QUESTIONS                   -->
-                <!-- ================================= -->
+                <!-- =================================
+                     QUICK QUESTIONS
+                     ================================= -->
 
                 <VerticalStackLayout
                     Spacing="10">
@@ -337,7 +361,7 @@
                         Text="QUICK QUESTIONS"
                         FontSize="11"
                         FontAttributes="Bold"
-                        TextColor="#6B7280" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
 
                     <Grid
@@ -347,71 +371,60 @@
                         RowSpacing="12">
 
 
-                        <!-- SAFE TO SPEND -->
-
                         <Button
                             Grid.Row="0"
                             Grid.Column="0"
                             Text="Can I afford to spend today?"
                             Clicked="SafeToSpendQuestionClicked"
-                            BackgroundColor="White"
-                            BorderColor="#E5E7EB"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            BorderColor="{DynamicResource BorderColor}"
                             BorderWidth="1"
-                            TextColor="#374151"
+                            TextColor="{DynamicResource TextPrimary}"
                             FontSize="13"
                             CornerRadius="12"
                             Padding="16"
                             HorizontalOptions="Fill" />
 
-
-
-                        <!-- SPENDING -->
 
                         <Button
                             Grid.Row="0"
                             Grid.Column="1"
                             Text="Where am I spending the most?"
                             Clicked="SpendingQuestionClicked"
-                            BackgroundColor="White"
-                            BorderColor="#E5E7EB"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            BorderColor="{DynamicResource BorderColor}"
                             BorderWidth="1"
-                            TextColor="#374151"
+                            TextColor="{DynamicResource TextPrimary}"
                             FontSize="13"
                             CornerRadius="12"
                             Padding="16"
                             HorizontalOptions="Fill" />
 
-
-
-                        <!-- SAVINGS -->
 
                         <Button
                             Grid.Row="1"
                             Grid.Column="0"
                             Text="How are my savings goals?"
                             Clicked="SavingsQuestionClicked"
-                            BackgroundColor="White"
-                            BorderColor="#E5E7EB"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            BorderColor="{DynamicResource BorderColor}"
                             BorderWidth="1"
-                            TextColor="#374151"
+                            TextColor="{DynamicResource TextPrimary}"
                             FontSize="13"
                             CornerRadius="12"
                             Padding="16"
                             HorizontalOptions="Fill" />
 
 
-
-                        <!-- FOCUS -->
-
                         <Button
                             Grid.Row="1"
                             Grid.Column="1"
                             Text="What should I focus on?"
                             Clicked="FocusQuestionClicked"
-                            BackgroundColor="White"
-                            BorderColor="#E5E7EB"
+                            BackgroundColor="{DynamicResource CardBackground}"
+                            BorderColor="{DynamicResource BorderColor}"
                             BorderWidth="1"
-                            TextColor="#374151"
+                            TextColor="{DynamicResource TextPrimary}"
                             FontSize="13"
                             CornerRadius="12"
                             Padding="16"
@@ -423,29 +436,43 @@
 
 
 
-                <!-- ================================= -->
-                <!-- CONVERSATION                      -->
-                <!-- ================================= -->
+                <!-- =================================
+                     CONVERSATION
+                     ================================= -->
 
                 <VerticalStackLayout
                     Spacing="10">
 
-                    <Label
-                        Text="CONVERSATION"
-                        FontSize="11"
-                        FontAttributes="Bold"
-                        TextColor="#6B7280" />
+                    <Grid
+                        ColumnDefinitions="*,Auto">
+
+                        <Label
+                            Grid.Column="0"
+                            Text="CONVERSATION"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <Label
+                            Grid.Column="1"
+                            Text="PocketAI uses your financial data"
+                            FontSize="10"
+                            TextColor="{DynamicResource TextMuted}" />
+
+                    </Grid>
+
 
 
                     <Border
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
                         StrokeThickness="1"
                         Padding="22"
                         MinimumHeightRequest="220">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="16" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
 
@@ -461,45 +488,51 @@
                                 ColumnDefinitions="Auto,*"
                                 ColumnSpacing="12">
 
+
                                 <Border
                                     Grid.Column="0"
                                     WidthRequest="36"
                                     HeightRequest="36"
-                                    BackgroundColor="#7C3AED"
+                                    BackgroundColor="{DynamicResource ThemePrimary}"
                                     StrokeThickness="0"
                                     VerticalOptions="Start">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="10" />
+                                        <RoundRectangle
+                                            CornerRadius="10" />
                                     </Border.StrokeShape>
+
 
                                     <Label
                                         Text="✦"
                                         FontSize="17"
-                                        TextColor="White"
+                                        TextColor="{DynamicResource TextOnPrimary}"
                                         HorizontalOptions="Center"
                                         VerticalOptions="Center" />
 
                                 </Border>
 
 
+
                                 <Border
                                     Grid.Column="1"
-                                    BackgroundColor="#F9FAFB"
-                                    Stroke="#E5E7EB"
+                                    BackgroundColor="{DynamicResource SurfaceBackground}"
+                                    Stroke="{DynamicResource BorderColor}"
                                     StrokeThickness="1"
                                     Padding="16">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="14" />
+                                        <RoundRectangle
+                                            CornerRadius="14" />
                                     </Border.StrokeShape>
+
 
                                     <Label
                                         x:Name="AssistantMessageLabel"
                                         Text="Ask me a question about your finances or choose one of the quick questions above."
                                         FontSize="14"
                                         LineHeight="1.35"
-                                        TextColor="#374151" />
+                                        TextColor="{DynamicResource TextPrimary}" />
 
                                 </Border>
 
@@ -517,19 +550,20 @@
 
 
 
-        <!-- ================================= -->
-        <!-- QUESTION INPUT                    -->
-        <!-- ================================= -->
+        <!-- =====================================
+             QUESTION INPUT
+             ===================================== -->
 
         <Border
             Grid.Row="2"
-            BackgroundColor="White"
-            Stroke="#D1D5DB"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="8">
 
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="16" />
+                <RoundRectangle
+                    CornerRadius="16" />
             </Border.StrokeShape>
 
 
@@ -538,30 +572,25 @@
                 ColumnSpacing="10">
 
 
-                <!-- QUESTION ENTRY -->
-
                 <Entry
                     x:Name="QuestionEntry"
                     Grid.Column="0"
                     Placeholder="Ask PocketAI about your finances..."
-                    PlaceholderColor="#9CA3AF"
-                    TextColor="#111827"
+                    PlaceholderColor="{DynamicResource TextMuted}"
+                    TextColor="{DynamicResource TextPrimary}"
                     BackgroundColor="Transparent"
                     FontSize="14"
                     ReturnType="Send"
                     Completed="QuestionEntryCompleted" />
 
 
-
-                <!-- SEND BUTTON -->
-
                 <Button
                     x:Name="AskButton"
                     Grid.Column="1"
                     Text="Ask PocketAI"
                     Clicked="AskButtonClicked"
-                    BackgroundColor="#7C3AED"
-                    TextColor="White"
+                    BackgroundColor="{DynamicResource ThemePrimary}"
+                    TextColor="{DynamicResource TextOnPrimary}"
                     FontAttributes="Bold"
                     FontSize="13"
                     CornerRadius="12"

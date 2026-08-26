@@ -5,8 +5,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
     x:Class="PocketAI.App.Pages.AnalyticsPage"
-    BackgroundColor="#F5F7FA"
+    BackgroundColor="{DynamicResource PageBackground}"
     Shell.NavBarIsVisible="False">
+
 
     <ScrollView>
 
@@ -15,54 +16,65 @@
             Spacing="22">
 
 
-            <!-- ================================= -->
-            <!-- HEADER                            -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 HEADER
+                 ===================================== -->
 
-            <VerticalStackLayout Spacing="5">
+            <VerticalStackLayout
+                Spacing="5">
 
                 <Label
                     Text="ANALYTICS"
-                    FontSize="28"
+                    FontSize="12"
                     FontAttributes="Bold"
-                    TextColor="#111827" />
+                    TextColor="{DynamicResource ThemePrimary}" />
 
                 <Label
-                    Text="Understand where your money is going and how your finances are changing."
+                    Text="Understand your money."
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource TextPrimary}" />
+
+                <Label
+                    Text="See where your money is going, compare your spending, and understand how your finances are changing."
                     FontSize="14"
-                    TextColor="#6B7280" />
+                    TextColor="{DynamicResource TextSecondary}" />
 
             </VerticalStackLayout>
 
 
 
-            <!-- ================================= -->
-            <!-- ANALYTICS TABS                    -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 ANALYTICS TABS
+                 ===================================== -->
 
             <Border
-                BackgroundColor="White"
-                Stroke="#E5E7EB"
+                BackgroundColor="{DynamicResource CardBackground}"
+                Stroke="{DynamicResource BorderColor}"
                 StrokeThickness="1"
                 Padding="6">
 
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="12" />
+                    <RoundRectangle
+                        CornerRadius="12" />
                 </Border.StrokeShape>
+
 
                 <Grid
                     ColumnDefinitions="*,*,*,*"
                     ColumnSpacing="6">
+
 
                     <Button
                         x:Name="OverviewTabButton"
                         Grid.Column="0"
                         Text="Overview"
                         Clicked="OverviewTabClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
                         CornerRadius="9" />
+
 
                     <Button
                         x:Name="SpendingTabButton"
@@ -70,9 +82,10 @@
                         Text="Spending"
                         Clicked="SpendingTabClicked"
                         BackgroundColor="Transparent"
-                        TextColor="#6B7280"
+                        TextColor="{DynamicResource TextSecondary}"
                         FontAttributes="Bold"
                         CornerRadius="9" />
+
 
                     <Button
                         x:Name="CashFlowTabButton"
@@ -80,9 +93,10 @@
                         Text="Cash Flow"
                         Clicked="CashFlowTabClicked"
                         BackgroundColor="Transparent"
-                        TextColor="#6B7280"
+                        TextColor="{DynamicResource TextSecondary}"
                         FontAttributes="Bold"
                         CornerRadius="9" />
+
 
                     <Button
                         x:Name="TrendsTabButton"
@@ -90,7 +104,7 @@
                         Text="Trends"
                         Clicked="TrendsTabClicked"
                         BackgroundColor="Transparent"
-                        TextColor="#6B7280"
+                        TextColor="{DynamicResource TextSecondary}"
                         FontAttributes="Bold"
                         CornerRadius="9" />
 
@@ -100,9 +114,9 @@
 
 
 
-            <!-- ================================= -->
-            <!-- OVERVIEW TAB                      -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 OVERVIEW TAB
+                 ===================================== -->
 
             <VerticalStackLayout
                 x:Name="OverviewSection"
@@ -110,40 +124,50 @@
                 IsVisible="True">
 
 
-                <!-- MAIN MONEY CARDS -->
+                <!-- =================================
+                     MONEY SUMMARY
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,*,*,*"
-                    ColumnSpacing="16">
+                    ColumnSpacing="14">
 
 
                     <!-- INCOME -->
 
                     <Border
                         Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="INCOME"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="OverviewIncomeLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Monthly income"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
@@ -155,29 +179,37 @@
 
                     <Border
                         Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="SPENT"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="OverviewSpentLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Transaction spending"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
@@ -189,29 +221,37 @@
 
                     <Border
                         Grid.Column="2"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="RECURRING"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="OverviewRecurringLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Active monthly bills"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
@@ -223,29 +263,37 @@
 
                     <Border
                         Grid.Column="3"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="MONEY LEFT"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="OverviewMoneyLeftLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="After spending and bills"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
@@ -255,7 +303,9 @@
 
 
 
-                <!-- FINANCIAL HEALTH / SAFE TO SPEND -->
+                <!-- =================================
+                     HEALTH + SAFE TO SPEND
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,*"
@@ -266,43 +316,49 @@
 
                     <Border
                         Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
                         StrokeThickness="1"
                         Padding="24">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="16" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="10">
+
+                        <VerticalStackLayout
+                            Spacing="10">
 
                             <Label
                                 Text="FINANCIAL HEALTH"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 x:Name="HealthScoreLabel"
                                 Text="0 / 100"
                                 FontSize="32"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
 
                             <Label
                                 x:Name="HealthStatusLabel"
                                 Text="No data"
                                 FontSize="14"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <ProgressBar
                                 x:Name="HealthProgressBar"
                                 Progress="0"
                                 HeightRequest="9"
-                                ProgressColor="#7C3AED"
-                                BackgroundColor="#E5E7EB" />
+                                ProgressColor="{DynamicResource ThemePrimary}"
+                                BackgroundColor="{DynamicResource BorderColor}" />
 
                         </VerticalStackLayout>
 
@@ -314,41 +370,47 @@
 
                     <Border
                         Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
                         StrokeThickness="1"
                         Padding="24">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="16" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="8">
+
+                        <VerticalStackLayout
+                            Spacing="8">
 
                             <Label
                                 Text="SAFE TO SPEND"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 x:Name="SafeToSpendLabel"
                                 Text="$0.00"
                                 FontSize="32"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
 
                             <Label
                                 x:Name="DailySafeLabel"
                                 Text="$0.00 per day"
                                 FontSize="14"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
+
 
                             <Label
                                 x:Name="WeeklySafeLabel"
                                 Text="$0.00 per week"
                                 FontSize="14"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -358,33 +420,56 @@
 
 
 
-                <!-- POCKETAI SUMMARY -->
+                <!-- =================================
+                     POCKETAI SUMMARY
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="#F5F3FF"
-                    Stroke="#DDD6FE"
+                    BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
                     StrokeThickness="1"
                     Padding="22">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
+                        <RoundRectangle
+                            CornerRadius="14" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="7">
+
+                    <Grid
+                        ColumnDefinitions="Auto,*"
+                        ColumnSpacing="14">
+
 
                         <Label
-                            Text="POCKETAI SUMMARY"
-                            FontSize="11"
-                            FontAttributes="Bold"
-                            TextColor="#6D28D9" />
+                            Grid.Column="0"
+                            Text="✦"
+                            FontSize="20"
+                            TextColor="{DynamicResource ThemePrimary}"
+                            VerticalOptions="Start" />
 
-                        <Label
-                            x:Name="OverviewInsightLabel"
-                            Text="Add financial information to begin analyzing your money."
-                            FontSize="14"
-                            TextColor="#374151" />
 
-                    </VerticalStackLayout>
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            Spacing="7">
+
+                            <Label
+                                Text="POCKETAI SUMMARY"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
+
+
+                            <Label
+                                x:Name="OverviewInsightLabel"
+                                Text="Add financial information to begin analyzing your money."
+                                FontSize="14"
+                                TextColor="{DynamicResource TextPrimary}"
+                                LineHeight="1.25" />
+
+                        </VerticalStackLayout>
+
+                    </Grid>
 
                 </Border>
 
@@ -392,9 +477,9 @@
 
 
 
-            <!-- ================================= -->
-            <!-- SPENDING TAB                      -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 SPENDING TAB
+                 ===================================== -->
 
             <VerticalStackLayout
                 x:Name="SpendingSection"
@@ -402,40 +487,43 @@
                 IsVisible="False">
 
 
-                <!-- MONTH COMPARISON -->
+                <!-- =================================
+                     MONTH COMPARISON
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,*,*"
-                    ColumnSpacing="16">
+                    ColumnSpacing="14">
 
-
-                    <!-- THIS MONTH -->
 
                     <Border
                         Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="THIS MONTH"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="CurrentMonthSpentLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                         </VerticalStackLayout>
 
@@ -443,33 +531,34 @@
 
 
 
-                    <!-- LAST MONTH -->
-
                     <Border
                         Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="LAST MONTH"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="LastMonthSpentLabel"
                                 Text="$0.00"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                         </VerticalStackLayout>
 
@@ -477,33 +566,34 @@
 
 
 
-                    <!-- CHANGE -->
-
                     <Border
                         Grid.Column="2"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="CHANGE"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="SpendingChangeLabel"
                                 Text="N/A"
-                                FontSize="24"
+                                FontSize="20"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -513,34 +603,39 @@
 
 
 
-                <!-- ================================= -->
-                <!-- THIS WEEK VS LAST WEEK GRAPH      -->
-                <!-- ================================= -->
+                <!-- =================================
+                     WEEK COMPARISON CHART
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="18">
 
-                        <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout
+                        Spacing="18">
+
+
+                        <VerticalStackLayout
+                            Spacing="4">
 
                             <Label
                                 Text="This Week vs Last Week"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
                                 Text="Compare your daily spending from Monday through Sunday."
                                 FontSize="13"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -561,14 +656,14 @@
                                     Text="THIS WEEK"
                                     FontSize="10"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource TextSecondary}" />
 
                                 <Label
                                     x:Name="ThisWeekTotalLabel"
                                     Text="$0.00"
                                     FontSize="20"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -582,14 +677,14 @@
                                     Text="LAST WEEK"
                                     FontSize="10"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource TextSecondary}" />
 
                                 <Label
                                     x:Name="LastWeekTotalLabel"
                                     Text="$0.00"
                                     FontSize="20"
                                     FontAttributes="Bold"
-                                    TextColor="#111827" />
+                                    TextColor="{DynamicResource TextPrimary}" />
 
                             </VerticalStackLayout>
 
@@ -603,14 +698,14 @@
                                     Text="CHANGE"
                                     FontSize="10"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource TextSecondary}" />
 
                                 <Label
                                     x:Name="WeeklyChangeLabel"
                                     Text="N/A"
                                     FontSize="20"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280" />
+                                    TextColor="{DynamicResource TextSecondary}" />
 
                             </VerticalStackLayout>
 
@@ -618,11 +713,12 @@
 
 
 
-                        <!-- REAL BAR GRAPH -->
+                        <!-- LIVECHART -->
 
                         <lvc:CartesianChart
                             x:Name="WeekComparisonChart"
                             HeightRequest="330"
+                            BackgroundColor="Transparent"
                             LegendPosition="Bottom" />
 
                     </VerticalStackLayout>
@@ -631,54 +727,55 @@
 
 
 
-                <!-- ================================= -->
-                <!-- SPENDING BY CATEGORY              -->
-                <!-- ================================= -->
+                <!-- =================================
+                     CATEGORY SPENDING
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="18">
 
-                        <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout
+                        Spacing="18">
+
+
+                        <VerticalStackLayout
+                            Spacing="4">
 
                             <Label
                                 Text="Spending by Category"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
                                 Text="See which categories are using the largest share of your monthly spending."
                                 FontSize="13"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
 
 
-                        <!-- ================================= -->
-                        <!-- CATEGORY DONUT CHART              -->
-                        <!-- ================================= -->
+                        <!-- DONUT -->
 
                         <Grid
                             HeightRequest="400">
 
-                            <!-- REAL DONUT GRAPH -->
 
                             <lvc:PieChart
                                 x:Name="CategoryDonutChart"
+                                BackgroundColor="Transparent"
                                 LegendPosition="Bottom" />
 
-
-                            <!-- TOTAL IN CENTER -->
 
                             <VerticalStackLayout
                                 x:Name="CategoryDonutCenter"
@@ -693,14 +790,14 @@
                                     Text="$0.00"
                                     FontSize="24"
                                     FontAttributes="Bold"
-                                    TextColor="#111827"
+                                    TextColor="{DynamicResource TextPrimary}"
                                     HorizontalTextAlignment="Center" />
 
                                 <Label
                                     Text="Total Spent"
                                     FontSize="11"
                                     FontAttributes="Bold"
-                                    TextColor="#6B7280"
+                                    TextColor="{DynamicResource TextSecondary}"
                                     HorizontalTextAlignment="Center" />
 
                             </VerticalStackLayout>
@@ -709,13 +806,11 @@
 
 
 
-                        <!-- NO DATA -->
-
                         <Label
                             x:Name="CategoryEmptyLabel"
                             Text="No spending this month."
                             FontSize="14"
-                            TextColor="#6B7280"
+                            TextColor="{DynamicResource TextSecondary}"
                             IsVisible="False" />
 
 
@@ -730,7 +825,9 @@
 
                                 <DataTemplate>
 
-                                    <VerticalStackLayout Spacing="6">
+                                    <VerticalStackLayout
+                                        Spacing="6">
+
 
                                         <Grid
                                             ColumnDefinitions="*,Auto">
@@ -740,14 +837,14 @@
                                                 Text="{Binding Category}"
                                                 FontSize="14"
                                                 FontAttributes="Bold"
-                                                TextColor="#374151" />
+                                                TextColor="{DynamicResource TextPrimary}" />
 
                                             <Label
                                                 Grid.Column="1"
                                                 Text="{Binding AmountText}"
                                                 FontSize="14"
                                                 FontAttributes="Bold"
-                                                TextColor="#111827" />
+                                                TextColor="{DynamicResource TextPrimary}" />
 
                                         </Grid>
 
@@ -755,14 +852,14 @@
                                         <ProgressBar
                                             Progress="{Binding Progress}"
                                             HeightRequest="9"
-                                            ProgressColor="#7C3AED"
-                                            BackgroundColor="#E5E7EB" />
+                                            ProgressColor="{DynamicResource ThemePrimary}"
+                                            BackgroundColor="{DynamicResource BorderColor}" />
 
 
                                         <Label
                                             Text="{Binding PercentText}"
                                             FontSize="11"
-                                            TextColor="#6B7280" />
+                                            TextColor="{DynamicResource TextSecondary}" />
 
                                     </VerticalStackLayout>
 
@@ -780,9 +877,9 @@
 
 
 
-            <!-- ================================= -->
-            <!-- CASH FLOW TAB                     -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 CASH FLOW TAB
+                 ===================================== -->
 
             <VerticalStackLayout
                 x:Name="CashFlowSection"
@@ -790,34 +887,39 @@
                 IsVisible="False">
 
 
-                <!-- ================================= -->
-                <!-- CASH FLOW GRAPH                   -->
-                <!-- ================================= -->
+                <!-- =================================
+                     CASH FLOW CHART
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="18">
 
-                        <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout
+                        Spacing="18">
+
+
+                        <VerticalStackLayout
+                            Spacing="4">
 
                             <Label
                                 Text="Income vs Outflows"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
                                 Text="Compare your monthly income, transaction spending, recurring bills, and remaining money."
                                 FontSize="13"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -825,6 +927,7 @@
                         <lvc:CartesianChart
                             x:Name="CashFlowChart"
                             HeightRequest="350"
+                            BackgroundColor="Transparent"
                             LegendPosition="Bottom" />
 
                     </VerticalStackLayout>
@@ -833,27 +936,30 @@
 
 
 
-                <!-- ================================= -->
-                <!-- MONTHLY CASH FLOW                 -->
-                <!-- ================================= -->
+                <!-- =================================
+                     MONTHLY CASH FLOW
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="20">
+
+                    <VerticalStackLayout
+                        Spacing="20">
 
                         <Label
                             Text="Monthly Cash Flow"
                             FontSize="18"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource TextPrimary}" />
 
 
                         <Grid
@@ -862,13 +968,11 @@
                             RowSpacing="14">
 
 
-                            <!-- INCOME -->
-
                             <Label
                                 Grid.Row="0"
                                 Grid.Column="0"
                                 Text="Monthly Income"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                             <Label
                                 x:Name="CashFlowIncomeLabel"
@@ -876,17 +980,15 @@
                                 Grid.Column="1"
                                 Text="$0.00"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
 
-
-                            <!-- SPENDING -->
 
                             <Label
                                 Grid.Row="1"
                                 Grid.Column="0"
                                 Text="Transaction Spending"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                             <Label
                                 x:Name="CashFlowSpendingLabel"
@@ -894,17 +996,15 @@
                                 Grid.Column="1"
                                 Text="-$0.00"
                                 FontAttributes="Bold"
-                                TextColor="#B91C1C" />
+                                TextColor="{DynamicResource DangerColor}" />
 
 
-
-                            <!-- BILLS -->
 
                             <Label
                                 Grid.Row="2"
                                 Grid.Column="0"
                                 Text="Active Recurring Bills"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                             <Label
                                 x:Name="CashFlowBillsLabel"
@@ -912,18 +1012,25 @@
                                 Grid.Column="1"
                                 Text="-$0.00"
                                 FontAttributes="Bold"
-                                TextColor="#B91C1C" />
+                                TextColor="{DynamicResource DangerColor}" />
 
 
 
-                            <!-- REMAINING -->
+                            <BoxView
+                                Grid.Row="3"
+                                Grid.ColumnSpan="2"
+                                HeightRequest="1"
+                                BackgroundColor="{DynamicResource BorderColor}"
+                                VerticalOptions="Start" />
+
 
                             <Label
                                 Grid.Row="3"
                                 Grid.Column="0"
                                 Text="Money Remaining"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}"
+                                Margin="0,12,0,0" />
 
                             <Label
                                 x:Name="CashFlowRemainingLabel"
@@ -932,7 +1039,8 @@
                                 Text="$0.00"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}"
+                                Margin="0,12,0,0" />
 
                         </Grid>
 
@@ -942,40 +1050,45 @@
 
 
 
-                <!-- ================================= -->
-                <!-- INCOME USAGE                      -->
-                <!-- ================================= -->
+                <!-- =================================
+                     INCOME USAGE
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="15">
+
+                    <VerticalStackLayout
+                        Spacing="15">
 
                         <Label
                             Text="Income Usage"
                             FontSize="18"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource TextPrimary}" />
+
 
                         <ProgressBar
                             x:Name="IncomeUsedProgressBar"
                             HeightRequest="12"
                             Progress="0"
-                            ProgressColor="#7C3AED"
-                            BackgroundColor="#E5E7EB" />
+                            ProgressColor="{DynamicResource ThemePrimary}"
+                            BackgroundColor="{DynamicResource BorderColor}" />
+
 
                         <Label
                             x:Name="IncomeUsedLabel"
                             Text="0% of monthly income committed"
                             FontSize="13"
-                            TextColor="#6B7280" />
+                            TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
 
@@ -983,40 +1096,45 @@
 
 
 
-                <!-- ================================= -->
-                <!-- PROJECTION                        -->
-                <!-- ================================= -->
+                <!-- =================================
+                     PROJECTION
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="#F5F3FF"
-                    Stroke="#DDD6FE"
+                    BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
                     StrokeThickness="1"
                     Padding="22">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="14" />
+                        <RoundRectangle
+                            CornerRadius="14" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="7">
+
+                    <VerticalStackLayout
+                        Spacing="7">
 
                         <Label
                             Text="END-OF-MONTH PROJECTION"
                             FontSize="11"
                             FontAttributes="Bold"
-                            TextColor="#6D28D9" />
+                            TextColor="{DynamicResource ThemePrimary}" />
+
 
                         <Label
                             x:Name="ProjectedMoneyLabel"
                             Text="$0.00"
                             FontSize="28"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource TextPrimary}" />
+
 
                         <Label
                             x:Name="ProjectionMessageLabel"
                             Text="Add spending data to create a projection."
                             FontSize="14"
-                            TextColor="#374151" />
+                            TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
 
@@ -1026,9 +1144,9 @@
 
 
 
-            <!-- ================================= -->
-            <!-- TRENDS TAB                        -->
-            <!-- ================================= -->
+            <!-- =====================================
+                 TRENDS TAB
+                 ===================================== -->
 
             <VerticalStackLayout
                 x:Name="TrendsSection"
@@ -1036,34 +1154,38 @@
                 IsVisible="False">
 
 
-                <!-- ================================= -->
-                <!-- SIX MONTH LINE GRAPH              -->
-                <!-- ================================= -->
+                <!-- =================================
+                     SIX MONTH CHART
+                     ================================= -->
 
                 <Border
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="24">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
-                    <VerticalStackLayout Spacing="18">
 
-                        <VerticalStackLayout Spacing="4">
+                    <VerticalStackLayout
+                        Spacing="18">
+
+                        <VerticalStackLayout
+                            Spacing="4">
 
                             <Label
                                 Text="6-Month Spending Trend"
                                 FontSize="18"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
                                 Text="Compare your monthly spending over time."
                                 FontSize="13"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -1071,6 +1193,7 @@
                         <lvc:CartesianChart
                             x:Name="SixMonthTrendChart"
                             HeightRequest="350"
+                            BackgroundColor="Transparent"
                             LegendPosition="Bottom" />
 
                     </VerticalStackLayout>
@@ -1079,9 +1202,9 @@
 
 
 
-                <!-- ================================= -->
-                <!-- TREND SUMMARY                     -->
-                <!-- ================================= -->
+                <!-- =================================
+                     TREND SUMMARY
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,*"
@@ -1092,29 +1215,32 @@
 
                     <Border
                         Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="22">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="6-MONTH AVERAGE"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="SixMonthAverageLabel"
                                 Text="$0.00"
                                 FontSize="26"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
 
                         </VerticalStackLayout>
 
@@ -1122,33 +1248,36 @@
 
 
 
-                    <!-- DIRECTION -->
+                    <!-- TREND -->
 
                     <Border
                         Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="22">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="7">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="TREND"
                                 FontSize="11"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="TrendDirectionLabel"
                                 Text="Not enough data"
                                 FontSize="20"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextSecondary}" />
 
                         </VerticalStackLayout>
 
@@ -1157,6 +1286,14 @@
                 </Grid>
 
             </VerticalStackLayout>
+
+
+
+            <!-- BOTTOM SPACING -->
+
+            <BoxView
+                HeightRequest="15"
+                BackgroundColor="Transparent" />
 
         </VerticalStackLayout>
 

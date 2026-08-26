@@ -5,39 +5,60 @@ public partial class BudgetPage : ContentPage
     private readonly DataBaseManager dataBaseManager;
     private readonly AnalyticsService analyticsService;
 
-    // All saved budget limits
+
+    // Stores all saved budgets.
     private List<BudgetLimit> allBudgets =
         new List<BudgetLimit>();
 
-    // Budget currently being edited
+
+    // Stores the budget currently being edited.
     private BudgetLimit? selectedBudget;
 
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public BudgetPage()
     {
         InitializeComponent();
+
 
         string databasePath =
             Path.Combine(
                 FileSystem.AppDataDirectory,
                 "pocketai.db");
 
+
         dataBaseManager =
-            new DataBaseManager(databasePath);
+            new DataBaseManager(
+                databasePath);
+
 
         analyticsService =
             new AnalyticsService();
 
+
         dataBaseManager.CreateTables();
+
 
         SetupCategories();
     }
 
 
+
+    // ==========================================
+    // PAGE APPEARS
+    // ==========================================
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
+
+        // Rebuild the page every time the user
+        // returns so financial data and theme
+        // colors stay current.
         LoadBudgets();
     }
 
@@ -65,6 +86,7 @@ public partial class BudgetPage : ContentPage
                 "Other"
             };
 
+
         BudgetCategoryPicker.ItemsSource =
             categories;
     }
@@ -80,8 +102,9 @@ public partial class BudgetPage : ContentPage
         allBudgets =
             dataBaseManager
                 .GetBudgetLimits()
-                .OrderBy(budget =>
-                    budget.Category)
+                .OrderBy(
+                    budget =>
+                        budget.Category)
                 .ToList();
 
 
@@ -100,13 +123,24 @@ public partial class BudgetPage : ContentPage
             new List<BudgetDisplayItem>();
 
 
-        // Summary calculations
-        double totalBudget = 0;
-        double totalSpent = 0;
-        int overBudgetCount = 0;
+        // ======================================
+        // SUMMARY VALUES
+        // ======================================
+
+        double totalBudget =
+            0;
 
 
-        foreach (BudgetLimit budget in allBudgets)
+        double totalSpent =
+            0;
+
+
+        int overBudgetCount =
+            0;
+
+
+        foreach (BudgetLimit budget
+                 in allBudgets)
         {
             double spent =
                 analyticsService
@@ -121,17 +155,20 @@ public partial class BudgetPage : ContentPage
                     spent);
 
 
-            displayItems.Add(item);
+            displayItems.Add(
+                item);
 
 
             totalBudget +=
                 budget.LimitAmount;
 
+
             totalSpent +=
                 spent;
 
 
-            if (spent > budget.LimitAmount)
+            if (spent >
+                budget.LimitAmount)
             {
                 overBudgetCount++;
             }
@@ -139,35 +176,56 @@ public partial class BudgetPage : ContentPage
 
 
         double remaining =
-            totalBudget - totalSpent;
+            totalBudget -
+            totalSpent;
 
 
-        // Update summary cards
+
+        // ======================================
+        // UPDATE SUMMARY CARDS
+        // ======================================
+
         TotalBudgetLabel.Text =
             totalBudget.ToString("C");
+
 
         BudgetSpentLabel.Text =
             totalSpent.ToString("C");
 
+
         BudgetRemainingLabel.Text =
             remaining.ToString("C");
+
 
         OverBudgetCountLabel.Text =
             overBudgetCount.ToString();
 
 
-        // Remaining turns red if below zero
+
+        // ======================================
+        // REMAINING STATUS COLOR
+        // ======================================
+
         if (remaining < 0)
         {
-            BudgetRemainingLabel.TextColor =
-                Color.FromArgb("#B91C1C");
+            BudgetRemainingLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
         }
         else
         {
-            BudgetRemainingLabel.TextColor =
-                Color.FromArgb("#111827");
+            BudgetRemainingLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextPrimary");
         }
 
+
+
+        // ======================================
+        // DISPLAY BUDGETS
+        // ======================================
 
         BudgetCollectionView.ItemsSource =
             displayItems;
@@ -179,6 +237,7 @@ public partial class BudgetPage : ContentPage
 
         BudgetEmptyState.IsVisible =
             !hasBudgets;
+
 
         BudgetCollectionView.IsVisible =
             hasBudgets;
@@ -194,11 +253,13 @@ public partial class BudgetPage : ContentPage
         object? sender,
         EventArgs e)
     {
-        selectedBudget = null;
+        selectedBudget =
+            null;
 
 
         BudgetModalTitleLabel.Text =
             "ADD BUDGET";
+
 
         SaveBudgetButton.Text =
             "Add Budget";
@@ -211,12 +272,14 @@ public partial class BudgetPage : ContentPage
         BudgetCategoryPicker.SelectedIndex =
             -1;
 
+
         BudgetLimitEntry.Text =
             "";
 
 
         ModalBackground.IsVisible =
             true;
+
 
         BudgetModal.IsVisible =
             true;
@@ -256,8 +319,10 @@ public partial class BudgetPage : ContentPage
         BudgetModalTitleLabel.Text =
             "EDIT BUDGET";
 
+
         SaveBudgetButton.Text =
             "Save Changes";
+
 
         DeleteBudgetButton.IsVisible =
             true;
@@ -269,9 +334,14 @@ public partial class BudgetPage : ContentPage
                 .ToString("0.00");
 
 
-        // Find existing category in picker
+
+        // ======================================
+        // FIND CURRENT CATEGORY
+        // ======================================
+
         List<string>? categories =
-            BudgetCategoryPicker.ItemsSource
+            BudgetCategoryPicker
+                .ItemsSource
                 as List<string>;
 
 
@@ -289,10 +359,12 @@ public partial class BudgetPage : ContentPage
         ModalBackground.IsVisible =
             true;
 
+
         BudgetModal.IsVisible =
             true;
 
 
+        // Remove CollectionView highlight.
         BudgetCollectionView.SelectedItem =
             null;
     }
@@ -318,7 +390,11 @@ public partial class BudgetPage : ContentPage
                 .Trim() ?? "";
 
 
-        // Validate category
+
+        // ======================================
+        // VALIDATE CATEGORY
+        // ======================================
+
         if (string.IsNullOrWhiteSpace(
                 category))
         {
@@ -327,11 +403,16 @@ public partial class BudgetPage : ContentPage
                 "Choose a budget category.",
                 "OK");
 
+
             return;
         }
 
 
-        // Validate limit
+
+        // ======================================
+        // VALIDATE LIMIT
+        // ======================================
+
         if (!double.TryParse(
                 amountText,
                 out double limitAmount)
@@ -343,12 +424,14 @@ public partial class BudgetPage : ContentPage
                 "Enter a valid monthly budget amount.",
                 "OK");
 
+
             return;
         }
 
 
+
         // ======================================
-        // ADDING NEW BUDGET
+        // ADD NEW BUDGET
         // ======================================
 
         if (selectedBudget == null)
@@ -368,6 +451,7 @@ public partial class BudgetPage : ContentPage
                     $"You already have a budget for {category}. Click that budget to edit it.",
                     "OK");
 
+
                 return;
             }
 
@@ -382,8 +466,10 @@ public partial class BudgetPage : ContentPage
                 newBudget);
         }
 
+
+
         // ======================================
-        // EDITING EXISTING BUDGET
+        // EDIT EXISTING BUDGET
         // ======================================
 
         else
@@ -407,15 +493,16 @@ public partial class BudgetPage : ContentPage
                     $"You already have another budget for {category}.",
                     "OK");
 
+
                 return;
             }
 
 
-            // Your current database layer doesn't
-            // have UpdateBudgetLimit yet.
+            // The current database layer does
+            // not have UpdateBudgetLimit().
             //
-            // Delete the old one, then save the
-            // edited version.
+            // Delete the old budget and save
+            // the edited version.
 
             dataBaseManager
                 .DeleteBudgetLimitsByCategory(
@@ -434,6 +521,7 @@ public partial class BudgetPage : ContentPage
 
 
         CloseBudgetModal();
+
 
         LoadBudgets();
     }
@@ -475,6 +563,7 @@ public partial class BudgetPage : ContentPage
 
         CloseBudgetModal();
 
+
         LoadBudgets();
     }
 
@@ -494,7 +583,7 @@ public partial class BudgetPage : ContentPage
 
 
     // ==========================================
-    // CLICK DARK BACKGROUND
+    // CLICK MODAL BACKGROUND
     // ==========================================
 
     private void CloseBudgetModalClicked(
@@ -515,11 +604,35 @@ public partial class BudgetPage : ContentPage
         BudgetModal.IsVisible =
             false;
 
+
         ModalBackground.IsVisible =
             false;
 
+
         selectedBudget =
             null;
+    }
+
+
+
+    // ==========================================
+    // GET THEME COLOR
+    // ==========================================
+
+    private static Color GetThemeColor(
+        string resourceName,
+        string fallbackColor)
+    {
+        if (Application.Current != null &&
+            Application.Current.Resources[
+                resourceName] is Color color)
+        {
+            return color;
+        }
+
+
+        return Color.FromArgb(
+            fallbackColor);
     }
 
 
@@ -530,22 +643,35 @@ public partial class BudgetPage : ContentPage
 
     public class BudgetDisplayItem
     {
-        public BudgetLimit Budget { get; }
+        public BudgetLimit Budget
+        {
+            get;
+        }
+
 
         public string Category =>
             Budget.Category;
 
 
-        public double Spent { get; }
+        public double Spent
+        {
+            get;
+        }
 
 
         public double Remaining =>
-            Budget.LimitAmount - Spent;
+            Budget.LimitAmount -
+            Spent;
 
 
         public bool IsOverBudget =>
             Remaining < 0;
 
+
+
+        // ======================================
+        // PERCENT USED
+        // ======================================
 
         public double PercentUsed
         {
@@ -556,12 +682,19 @@ public partial class BudgetPage : ContentPage
                     return 0;
                 }
 
+
                 return
-                    (Spent / Budget.LimitAmount)
+                    (Spent /
+                     Budget.LimitAmount)
                     * 100;
             }
         }
 
+
+
+        // ======================================
+        // PROGRESS BAR VALUE
+        // ======================================
 
         public double Progress =>
             Math.Clamp(
@@ -569,6 +702,11 @@ public partial class BudgetPage : ContentPage
                 0,
                 1);
 
+
+
+        // ======================================
+        // DISPLAY TEXT
+        // ======================================
 
         public string SpentOfLimitText =>
             $"{Spent:C} of {Budget.LimitAmount:C}";
@@ -588,6 +726,11 @@ public partial class BudgetPage : ContentPage
                 : $"{Remaining:C} left";
 
 
+
+        // ======================================
+        // STATUS TEXT
+        // ======================================
+
         public string StatusText
         {
             get
@@ -597,47 +740,115 @@ public partial class BudgetPage : ContentPage
                     return "Over budget";
                 }
 
+
                 if (PercentUsed >= 80)
                 {
                     return "Getting close";
                 }
+
 
                 return "On track";
             }
         }
 
 
+
+        // ======================================
+        // PROGRESS COLOR
+        // ======================================
+
         public Color ProgressColor
         {
             get
             {
+                // Over budget always stays red.
                 if (IsOverBudget)
                 {
-                    return Color.FromArgb(
-                        "#DC2626");
+                    return GetThemeColor(
+                        "DangerColor",
+                        "#B91C1C");
                 }
 
+
+                // Near the limit always stays
+                // a warning color.
                 if (PercentUsed >= 80)
                 {
-                    return Color.FromArgb(
-                        "#D97706");
+                    return GetThemeColor(
+                        "WarningColor",
+                        "#B45309");
                 }
 
-                return Color.FromArgb(
+
+                // Healthy budget progress follows
+                // the user's chosen accent color.
+                return GetThemeColor(
+                    "ThemePrimary",
                     "#7C3AED");
             }
         }
 
 
-        public Color RemainingColor =>
-            IsOverBudget
-                ? Color.FromArgb("#B91C1C")
-                : Color.FromArgb("#15803D");
+
+        // ======================================
+        // REMAINING COLOR
+        // ======================================
+
+        public Color RemainingColor
+        {
+            get
+            {
+                if (IsOverBudget)
+                {
+                    return GetThemeColor(
+                        "DangerColor",
+                        "#B91C1C");
+                }
 
 
-        public Color StatusColor =>
-            ProgressColor;
+                return GetThemeColor(
+                    "SuccessColor",
+                    "#15803D");
+            }
+        }
 
+
+
+        // ======================================
+        // STATUS COLOR
+        // ======================================
+
+        public Color StatusColor
+        {
+            get
+            {
+                if (IsOverBudget)
+                {
+                    return GetThemeColor(
+                        "DangerColor",
+                        "#B91C1C");
+                }
+
+
+                if (PercentUsed >= 80)
+                {
+                    return GetThemeColor(
+                        "WarningColor",
+                        "#B45309");
+                }
+
+
+                return GetThemeColor(
+                    "SuccessColor",
+                    "#15803D");
+            }
+        }
+
+
+
+        // ======================================
+        // CONSTRUCTOR
+        // ======================================
 
         public BudgetDisplayItem(
             BudgetLimit budget,
@@ -645,6 +856,7 @@ public partial class BudgetPage : ContentPage
         {
             Budget =
                 budget;
+
 
             Spent =
                 spent;

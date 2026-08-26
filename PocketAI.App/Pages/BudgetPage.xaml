@@ -4,14 +4,15 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.BudgetPage"
-    BackgroundColor="#F5F7FA"
+    BackgroundColor="{DynamicResource PageBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid>
 
-        <!-- ===================================== -->
-        <!-- MAIN BUDGET PAGE                      -->
-        <!-- ===================================== -->
+
+        <!-- =====================================
+             MAIN BUDGET PAGE
+             ===================================== -->
 
         <ScrollView>
 
@@ -19,11 +20,15 @@
                 Padding="32"
                 Spacing="24">
 
-                <!-- HEADER -->
+
+                <!-- =================================
+                     HEADER
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,Auto"
                     ColumnSpacing="20">
+
 
                     <VerticalStackLayout
                         Grid.Column="0"
@@ -31,14 +36,20 @@
 
                         <Label
                             Text="BUDGET"
-                            FontSize="28"
+                            FontSize="12"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource ThemePrimary}" />
 
                         <Label
-                            Text="Plan your spending and stay within your limits."
+                            Text="Plan your monthly spending."
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                        <Label
+                            Text="Set simple category limits and see which areas need your attention."
                             FontSize="14"
-                            TextColor="#6B7280" />
+                            TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
 
@@ -47,150 +58,205 @@
                         Grid.Column="1"
                         Text="+ Add Budget"
                         Clicked="ShowAddBudgetClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="10"
+                        CornerRadius="12"
                         Padding="18,12"
-                        VerticalOptions="Start" />
+                        VerticalOptions="Center" />
 
                 </Grid>
 
 
-                <!-- ===================================== -->
-                <!-- SUMMARY CARDS                         -->
-                <!-- ===================================== -->
+
+                <!-- =================================
+                SUMMARY
+                ================================= -->
+
+            <VerticalStackLayout
+                Spacing="10">
+
+                <Label
+                    Text="THIS MONTH"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource TextSecondary}" />
+
 
                 <Grid
                     ColumnDefinitions="*,*,*,*"
-                    ColumnSpacing="16">
+                    ColumnSpacing="14">
 
-                    <!-- TOTAL BUDGET -->
+
+                    <!-- =================================
+                        TOTAL BUDGET
+                        ================================= -->
 
                     <Border
                         Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="8">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="TOTAL BUDGET"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="TotalBudgetLabel"
                                 Text="$0.00"
                                 FontSize="26"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Your spending plan"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
                     </Border>
 
 
-                    <!-- SPENT -->
+
+                    <!-- =================================
+                        SPENT
+                        ================================= -->
 
                     <Border
                         Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="8">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="SPENT"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="BudgetSpentLabel"
                                 Text="$0.00"
                                 FontSize="26"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Against your budgets"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
                     </Border>
 
 
-                    <!-- REMAINING -->
+
+                    <!-- =================================
+                        REMAINING
+                        ================================= -->
 
                     <Border
                         Grid.Column="2"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="8">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="REMAINING"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="BudgetRemainingLabel"
                                 Text="$0.00"
                                 FontSize="26"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Available in your plan"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
                     </Border>
 
 
-                    <!-- OVER BUDGET -->
+
+                    <!-- =================================
+                        OVER BUDGET
+                        ================================= -->
 
                     <Border
                         Grid.Column="3"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1"
                         Padding="20">
 
                         <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
+                            <RoundRectangle
+                                CornerRadius="16" />
                         </Border.StrokeShape>
 
-                        <VerticalStackLayout Spacing="8">
+
+                        <VerticalStackLayout
+                            Spacing="7">
 
                             <Label
                                 Text="OVER BUDGET"
-                                FontSize="11"
+                                FontSize="10"
                                 FontAttributes="Bold"
-                                TextColor="#6B7280" />
+                                TextColor="{DynamicResource ThemePrimary}" />
 
                             <Label
                                 x:Name="OverBudgetCountLabel"
                                 Text="0"
                                 FontSize="26"
                                 FontAttributes="Bold"
-                                TextColor="#111827" />
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Categories over limit"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
 
@@ -198,166 +264,229 @@
 
                 </Grid>
 
-
-                <!-- ===================================== -->
-                <!-- BUDGET CATEGORIES                     -->
-                <!-- ===================================== -->
-
-                <VerticalStackLayout Spacing="12">
-
-                    <Label
-                        Text="Monthly Categories"
-                        FontSize="18"
-                        FontAttributes="Bold"
-                        TextColor="#111827" />
+            </VerticalStackLayout>
 
 
-                    <!-- EMPTY STATE -->
 
-                    <Border
-                        x:Name="BudgetEmptyState"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
-                        StrokeThickness="1"
-                        Padding="35"
-                        IsVisible="False">
+                <!-- =================================
+                     CATEGORY HEADER
+                     ================================= -->
 
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                <Grid
+                    ColumnDefinitions="*,Auto">
 
-                        <VerticalStackLayout
-                            Spacing="8"
-                            HorizontalOptions="Center">
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="3">
+
+                        <Label
+                            Text="Monthly Categories"
+                            FontSize="19"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                        <Label
+                            Text="Select a category to edit its monthly limit."
+                            FontSize="12"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                    </VerticalStackLayout>
+
+                </Grid>
+
+
+
+                <!-- =================================
+                     EMPTY STATE
+                     ================================= -->
+
+                <Border
+                    x:Name="BudgetEmptyState"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1"
+                    Padding="40"
+                    IsVisible="False">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle
+                            CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout
+                        Spacing="10"
+                        HorizontalOptions="Center">
+
+                        <Border
+                            WidthRequest="52"
+                            HeightRequest="52"
+                            BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="0">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="16" />
+                            </Border.StrokeShape>
 
                             <Label
-                                Text="No budgets yet"
-                                FontSize="18"
-                                FontAttributes="Bold"
-                                TextColor="#111827"
-                                HorizontalTextAlignment="Center" />
+                                Text="◫"
+                                FontSize="22"
+                                TextColor="{DynamicResource ThemePrimary}"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
 
-                            <Label
-                                Text="Create a monthly category limit to start tracking your spending."
-                                FontSize="14"
-                                TextColor="#6B7280"
-                                HorizontalTextAlignment="Center" />
+                        </Border>
 
-                        </VerticalStackLayout>
+                        <Label
+                            Text="No budgets yet"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}"
+                            HorizontalTextAlignment="Center" />
 
-                    </Border>
+                        <Label
+                            Text="Create your first monthly category limit to start tracking your plan."
+                            FontSize="13"
+                            TextColor="{DynamicResource TextSecondary}"
+                            HorizontalTextAlignment="Center" />
 
+                        <Label
+                            Text="Budgets help BudgetAI understand what matters most to you."
+                            FontSize="12"
+                            TextColor="{DynamicResource TextMuted}"
+                            HorizontalTextAlignment="Center" />
 
-                    <!-- REAL BUDGETS -->
+                    </VerticalStackLayout>
 
-                    <CollectionView
-                        x:Name="BudgetCollectionView"
-                        SelectionMode="Single"
-                        SelectionChanged="BudgetSelected">
-
-                        <CollectionView.ItemTemplate>
-
-                            <DataTemplate>
-
-                                <Border
-                                    BackgroundColor="White"
-                                    Stroke="#E5E7EB"
-                                    StrokeThickness="1"
-                                    Padding="22"
-                                    Margin="0,0,0,12">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="14" />
-                                    </Border.StrokeShape>
-
-                                    <VerticalStackLayout Spacing="14">
-
-                                        <!-- CATEGORY / AMOUNT -->
-
-                                        <Grid
-                                            ColumnDefinitions="*,Auto"
-                                            ColumnSpacing="20">
-
-                                            <VerticalStackLayout
-                                                Grid.Column="0"
-                                                Spacing="4">
-
-                                                <Label
-                                                    Text="{Binding Category}"
-                                                    FontSize="17"
-                                                    FontAttributes="Bold"
-                                                    TextColor="#111827" />
-
-                                                <Label
-                                                    Text="{Binding SpentOfLimitText}"
-                                                    FontSize="13"
-                                                    TextColor="#6B7280" />
-
-                                            </VerticalStackLayout>
+                </Border>
 
 
-                                            <VerticalStackLayout
-                                                Grid.Column="1"
-                                                HorizontalOptions="End"
-                                                Spacing="4">
 
-                                                <Label
-                                                    Text="{Binding RemainingText}"
-                                                    FontSize="15"
-                                                    FontAttributes="Bold"
-                                                    TextColor="{Binding RemainingColor}"
-                                                    HorizontalTextAlignment="End" />
+                <!-- =================================
+                     REAL BUDGETS
+                     ================================= -->
 
-                                                <Label
-                                                    Text="{Binding StatusText}"
-                                                    FontSize="12"
-                                                    TextColor="{Binding StatusColor}"
-                                                    HorizontalTextAlignment="End" />
+                <CollectionView
+                    x:Name="BudgetCollectionView"
+                    SelectionMode="Single"
+                    SelectionChanged="BudgetSelected">
 
-                                            </VerticalStackLayout>
+                    <CollectionView.ItemTemplate>
 
-                                        </Grid>
+                        <DataTemplate>
 
+                            <Border
+                                BackgroundColor="{DynamicResource CardBackground}"
+                                Stroke="{DynamicResource BorderColor}"
+                                StrokeThickness="1"
+                                Padding="22"
+                                Margin="0,0,0,12">
 
-                                        <!-- PROGRESS BAR -->
-
-                                        <ProgressBar
-                                            Progress="{Binding Progress}"
-                                            ProgressColor="{Binding ProgressColor}"
-                                            BackgroundColor="#E5E7EB"
-                                            HeightRequest="8" />
+                                <Border.StrokeShape>
+                                    <RoundRectangle
+                                        CornerRadius="16" />
+                                </Border.StrokeShape>
 
 
-                                        <!-- PERCENT -->
+                                <VerticalStackLayout
+                                    Spacing="14">
 
-                                        <Grid ColumnDefinitions="*,Auto">
+
+                                    <!-- CATEGORY + STATUS -->
+
+                                    <Grid
+                                        ColumnDefinitions="*,Auto"
+                                        ColumnSpacing="20">
+
+
+                                        <VerticalStackLayout
+                                            Grid.Column="0"
+                                            Spacing="4">
 
                                             <Label
-                                                Grid.Column="0"
-                                                Text="{Binding SpentText}"
-                                                FontSize="12"
-                                                TextColor="#6B7280" />
+                                                Text="{Binding Category}"
+                                                FontSize="17"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource TextPrimary}" />
 
                                             <Label
-                                                Grid.Column="1"
-                                                Text="{Binding PercentText}"
+                                                Text="{Binding SpentOfLimitText}"
+                                                FontSize="13"
+                                                TextColor="{DynamicResource TextSecondary}" />
+
+                                        </VerticalStackLayout>
+
+
+
+                                        <VerticalStackLayout
+                                            Grid.Column="1"
+                                            HorizontalOptions="End"
+                                            Spacing="4">
+
+                                            <Label
+                                                Text="{Binding RemainingText}"
+                                                FontSize="15"
+                                                FontAttributes="Bold"
+                                                TextColor="{Binding RemainingColor}"
+                                                HorizontalTextAlignment="End" />
+
+                                            <Label
+                                                Text="{Binding StatusText}"
                                                 FontSize="12"
                                                 FontAttributes="Bold"
-                                                TextColor="#6B7280" />
+                                                TextColor="{Binding StatusColor}"
+                                                HorizontalTextAlignment="End" />
 
-                                        </Grid>
+                                        </VerticalStackLayout>
 
-                                    </VerticalStackLayout>
+                                    </Grid>
 
-                                </Border>
 
-                            </DataTemplate>
 
-                        </CollectionView.ItemTemplate>
+                                    <!-- PROGRESS -->
 
-                    </CollectionView>
+                                    <ProgressBar
+                                        Progress="{Binding Progress}"
+                                        ProgressColor="{Binding ProgressColor}"
+                                        BackgroundColor="{DynamicResource BorderColor}"
+                                        HeightRequest="8" />
 
-                </VerticalStackLayout>
+
+
+                                    <!-- SPENT / PERCENT -->
+
+                                    <Grid
+                                        ColumnDefinitions="*,Auto">
+
+                                        <Label
+                                            Grid.Column="0"
+                                            Text="{Binding SpentText}"
+                                            FontSize="12"
+                                            TextColor="{DynamicResource TextSecondary}" />
+
+                                        <Label
+                                            Grid.Column="1"
+                                            Text="{Binding PercentText}"
+                                            FontSize="12"
+                                            FontAttributes="Bold"
+                                            TextColor="{DynamicResource TextSecondary}" />
+
+                                    </Grid>
+
+                                </VerticalStackLayout>
+
+                            </Border>
+
+                        </DataTemplate>
+
+                    </CollectionView.ItemTemplate>
+
+                </CollectionView>
+
+
+                <BoxView
+                    HeightRequest="15"
+                    BackgroundColor="Transparent" />
 
             </VerticalStackLayout>
 
@@ -365,14 +494,14 @@
 
 
 
-        <!-- ===================================== -->
-        <!-- DARK MODAL BACKGROUND                 -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             MODAL BACKGROUND
+             ===================================== -->
 
         <BoxView
             x:Name="ModalBackground"
             ZIndex="10"
-            BackgroundColor="#80000000"
+            BackgroundColor="#90000000"
             IsVisible="False">
 
             <BoxView.GestureRecognizers>
@@ -386,16 +515,16 @@
 
 
 
-        <!-- ===================================== -->
-        <!-- ADD / EDIT BUDGET MODAL               -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             ADD / EDIT BUDGET MODAL
+             ===================================== -->
 
         <Border
             x:Name="BudgetModal"
             ZIndex="20"
             IsVisible="False"
-            BackgroundColor="White"
-            Stroke="#E5E7EB"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="28"
             WidthRequest="440"
@@ -403,57 +532,79 @@
             VerticalOptions="Center">
 
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="18" />
+                <RoundRectangle
+                    CornerRadius="18" />
             </Border.StrokeShape>
 
 
-            <VerticalStackLayout Spacing="18">
+            <VerticalStackLayout
+                Spacing="18">
 
-                <Label
-                    x:Name="BudgetModalTitleLabel"
-                    Text="ADD BUDGET"
-                    FontSize="22"
-                    FontAttributes="Bold"
-                    TextColor="#111827" />
+
+                <!-- HEADER -->
+
+                <VerticalStackLayout
+                    Spacing="4">
+
+                    <Label
+                        x:Name="BudgetModalTitleLabel"
+                        Text="ADD BUDGET"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+                    <Label
+                        Text="Choose a category and decide how much you want available this month."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                </VerticalStackLayout>
+
 
 
                 <!-- CATEGORY -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Category"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Picker
                         x:Name="BudgetCategoryPicker"
                         Title="Choose a category"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
+
                 <!-- LIMIT -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Monthly Limit"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Entry
                         x:Name="BudgetLimitEntry"
                         Placeholder="500.00"
+                        PlaceholderColor="{DynamicResource TextMuted}"
                         Keyboard="Numeric"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
+
 
 
                 <!-- BUTTONS -->
@@ -467,8 +618,10 @@
                         Grid.Column="0"
                         Text="Cancel"
                         Clicked="CancelBudgetClicked"
-                        BackgroundColor="#E5E7EB"
-                        TextColor="#374151"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BorderColor="{DynamicResource BorderColor}"
+                        BorderWidth="1"
                         CornerRadius="10" />
 
                     <Button
@@ -476,22 +629,23 @@
                         x:Name="SaveBudgetButton"
                         Text="Add Budget"
                         Clicked="SaveBudgetClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
                         CornerRadius="10" />
 
                 </Grid>
 
 
-                <!-- DELETE ONLY SHOWS WHILE EDITING -->
+
+                <!-- DELETE -->
 
                 <Button
                     x:Name="DeleteBudgetButton"
                     Text="Delete Budget"
                     Clicked="DeleteBudgetClicked"
-                    BackgroundColor="#FEE2E2"
-                    TextColor="#B91C1C"
+                    BackgroundColor="{DynamicResource DangerBackground}"
+                    TextColor="{DynamicResource DangerColor}"
                     FontAttributes="Bold"
                     CornerRadius="10"
                     IsVisible="False" />

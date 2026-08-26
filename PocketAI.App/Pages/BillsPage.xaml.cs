@@ -5,13 +5,20 @@ public partial class BillsPage : ContentPage
     private readonly DataBaseManager dataBaseManager;
     private readonly AnalyticsService analyticsService;
 
-    // All recurring bills from SQLite
+
+    // Stores every recurring bill.
     private List<RecurringExpenses> bills =
         new List<RecurringExpenses>();
 
-    // Bill currently being edited
+
+    // Stores the bill currently being edited.
     private RecurringExpenses? selectedBill;
 
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public BillsPage()
     {
@@ -25,7 +32,8 @@ public partial class BillsPage : ContentPage
 
 
         dataBaseManager =
-            new DataBaseManager(databasePath);
+            new DataBaseManager(
+                databasePath);
 
 
         analyticsService =
@@ -40,9 +48,14 @@ public partial class BillsPage : ContentPage
 
 
 
+    // ==========================================
+    // PAGE APPEARS
+    // ==========================================
+
     protected override void OnAppearing()
     {
         base.OnAppearing();
+
 
         LoadBills();
     }
@@ -87,13 +100,15 @@ public partial class BillsPage : ContentPage
         List<BillDisplayItem> displayItems =
             bills
                 .OrderByDescending(
-                    bill => bill.IsActive)
+                    bill =>
+                        bill.IsActive)
                 .ThenBy(
-                    bill => bill.IsActive
-                        ? analyticsService
-                            .GetDaysUntilDue(
-                                bill.DueDay)
-                        : int.MaxValue)
+                    bill =>
+                        bill.IsActive
+                            ? analyticsService
+                                .GetDaysUntilDue(
+                                    bill.DueDay)
+                            : int.MaxValue)
                 .Select(
                     bill =>
                         new BillDisplayItem(
@@ -117,7 +132,7 @@ public partial class BillsPage : ContentPage
 
 
     // ==========================================
-    // UPDATE SUMMARY CARDS
+    // UPDATE SUMMARY
     // ==========================================
 
     private void UpdateSummary()
@@ -125,19 +140,37 @@ public partial class BillsPage : ContentPage
         List<RecurringExpenses> activeBills =
             bills
                 .Where(
-                    bill => bill.IsActive)
+                    bill =>
+                        bill.IsActive)
                 .ToList();
 
 
+
+        // ======================================
+        // MONTHLY TOTAL
+        // ======================================
+
         double monthlyTotal =
             activeBills.Sum(
-                bill => bill.Amount);
+                bill =>
+                    bill.Amount);
 
+
+
+        // ======================================
+        // INACTIVE COUNT
+        // ======================================
 
         int inactiveCount =
             bills.Count(
-                bill => !bill.IsActive);
+                bill =>
+                    !bill.IsActive);
 
+
+
+        // ======================================
+        // UPDATE LABELS
+        // ======================================
 
         MonthlyBillsLabel.Text =
             monthlyTotal.ToString("C");
@@ -150,6 +183,11 @@ public partial class BillsPage : ContentPage
         InactiveBillsLabel.Text =
             inactiveCount.ToString();
 
+
+
+        // ======================================
+        // NEXT UPCOMING BILL
+        // ======================================
 
         RecurringExpenses? nextBill =
             activeBills
@@ -346,9 +384,10 @@ public partial class BillsPage : ContentPage
                 .Trim() ?? "";
 
 
-        // --------------------------------------
-        // NAME
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE NAME
+        // ======================================
 
         if (string.IsNullOrWhiteSpace(
                 name))
@@ -358,13 +397,15 @@ public partial class BillsPage : ContentPage
                 "Enter a name for the bill.",
                 "OK");
 
+
             return;
         }
 
 
-        // --------------------------------------
-        // CATEGORY
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE CATEGORY
+        // ======================================
 
         if (string.IsNullOrWhiteSpace(
                 category))
@@ -374,13 +415,15 @@ public partial class BillsPage : ContentPage
                 "Select a category.",
                 "OK");
 
+
             return;
         }
 
 
-        // --------------------------------------
-        // AMOUNT
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE AMOUNT
+        // ======================================
 
         if (!double.TryParse(
                 amountText,
@@ -393,13 +436,15 @@ public partial class BillsPage : ContentPage
                 "Enter a valid monthly amount.",
                 "OK");
 
+
             return;
         }
 
 
-        // --------------------------------------
-        // DUE DAY
-        // --------------------------------------
+
+        // ======================================
+        // VALIDATE DUE DAY
+        // ======================================
 
         if (!int.TryParse(
                 dueDayText,
@@ -414,12 +459,15 @@ public partial class BillsPage : ContentPage
                 "Enter a day between 1 and 31.",
                 "OK");
 
+
             return;
         }
 
 
+
         bool isActive =
             BillActiveSwitch.IsToggled;
+
 
 
         // ======================================
@@ -442,6 +490,8 @@ public partial class BillsPage : ContentPage
                 .AddRecurringExpense(
                     newBill);
         }
+
+
 
         // ======================================
         // UPDATE EXISTING BILL
@@ -466,6 +516,7 @@ public partial class BillsPage : ContentPage
 
 
         CloseBillModal();
+
 
         LoadBills();
     }
@@ -552,6 +603,7 @@ public partial class BillsPage : ContentPage
 
         CloseBillModal();
 
+
         LoadBills();
     }
 
@@ -571,7 +623,7 @@ public partial class BillsPage : ContentPage
 
 
     // ==========================================
-    // CLICK DARK BACKGROUND
+    // CLICK MODAL BACKGROUND
     // ==========================================
 
     private void CloseBillModalBackgroundClicked(
@@ -604,7 +656,29 @@ public partial class BillsPage : ContentPage
 
 
     // ==========================================
-    // DISPLAY MODEL
+    // GET APP THEME COLOR
+    // ==========================================
+
+    private static Color GetThemeColor(
+        string resourceName,
+        string fallbackColor)
+    {
+        if (Application.Current != null &&
+            Application.Current.Resources[
+                resourceName] is Color color)
+        {
+            return color;
+        }
+
+
+        return Color.FromArgb(
+            fallbackColor);
+    }
+
+
+
+    // ==========================================
+    // BILL DISPLAY MODEL
     // ==========================================
 
     public class BillDisplayItem
@@ -613,7 +687,10 @@ public partial class BillsPage : ContentPage
             analyticsService;
 
 
-        public RecurringExpenses Bill { get; }
+        public RecurringExpenses Bill
+        {
+            get;
+        }
 
 
         public string Name =>
@@ -628,6 +705,11 @@ public partial class BillsPage : ContentPage
             Bill.Amount.ToString("C");
 
 
+
+        // ======================================
+        // ACTIVE / INACTIVE
+        // ======================================
+
         public string ActiveStatusText =>
             Bill.IsActive
                 ? "ACTIVE"
@@ -640,21 +722,67 @@ public partial class BillsPage : ContentPage
                 : "Activate";
 
 
-        public Color StatusColor =>
-            Bill.IsActive
-                ? Color.FromArgb("#15803D")
-                : Color.FromArgb("#6B7280");
+
+        // ======================================
+        // ACTIVE STATUS COLOR
+        // ======================================
+
+        public Color StatusColor
+        {
+            get
+            {
+                if (Bill.IsActive)
+                {
+                    return GetThemeColor(
+                        "SuccessColor",
+                        "#15803D");
+                }
 
 
-        public Color StatusBackgroundColor =>
-            Bill.IsActive
-                ? Color.FromArgb("#DCFCE7")
-                : Color.FromArgb("#F3F4F6");
+                return GetThemeColor(
+                    "TextSecondary",
+                    "#6B7280");
+            }
+        }
 
+
+
+        // ======================================
+        // ACTIVE STATUS BACKGROUND
+        // ======================================
+
+        public Color StatusBackgroundColor
+        {
+            get
+            {
+                if (Bill.IsActive)
+                {
+                    return GetThemeColor(
+                        "SuccessBackground",
+                        "#DCFCE7");
+                }
+
+
+                return GetThemeColor(
+                    "SurfaceBackground",
+                    "#F3F4F6");
+            }
+        }
+
+
+
+        // ======================================
+        // DUE DATE
+        // ======================================
 
         public string DueDateText =>
             $"Day {Bill.DueDay}";
 
+
+
+        // ======================================
+        // DAYS UNTIL DUE
+        // ======================================
 
         public int DaysUntilDue
         {
@@ -672,6 +800,11 @@ public partial class BillsPage : ContentPage
             }
         }
 
+
+
+        // ======================================
+        // NEXT PAYMENT DATE
+        // ======================================
 
         public string NextPaymentText
         {
@@ -725,11 +858,16 @@ public partial class BillsPage : ContentPage
                 }
 
 
-                return dueDate
-                    .ToString("MMM d");
+                return dueDate.ToString(
+                    "MMM d");
             }
         }
 
+
+
+        // ======================================
+        // DUE STATUS TEXT
+        // ======================================
 
         public string DueStatusText
         {
@@ -759,36 +897,54 @@ public partial class BillsPage : ContentPage
         }
 
 
+
+        // ======================================
+        // DUE STATUS COLOR
+        // ======================================
+
         public Color DueStatusColor
         {
             get
             {
+                // Paused bill.
                 if (!Bill.IsActive)
                 {
-                    return Color.FromArgb(
+                    return GetThemeColor(
+                        "TextSecondary",
                         "#6B7280");
                 }
 
 
+                // Due within two days.
                 if (DaysUntilDue <= 2)
                 {
-                    return Color.FromArgb(
+                    return GetThemeColor(
+                        "DangerColor",
                         "#B91C1C");
                 }
 
 
+                // Due within one week.
                 if (DaysUntilDue <= 7)
                 {
-                    return Color.FromArgb(
+                    return GetThemeColor(
+                        "WarningColor",
                         "#B45309");
                 }
 
 
-                return Color.FromArgb(
+                // Plenty of time remaining.
+                return GetThemeColor(
+                    "SuccessColor",
                     "#15803D");
             }
         }
 
+
+
+        // ======================================
+        // CONSTRUCTOR
+        // ======================================
 
         public BillDisplayItem(
             RecurringExpenses bill,

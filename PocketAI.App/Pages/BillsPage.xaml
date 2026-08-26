@@ -4,14 +4,15 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.BillsPage"
-    BackgroundColor="#F5F7FA"
+    BackgroundColor="{DynamicResource PageBackground}"
     Shell.NavBarIsVisible="False">
 
     <Grid>
 
-        <!-- ===================================== -->
-        <!-- MAIN BILLS PAGE                       -->
-        <!-- ===================================== -->
+
+        <!-- =====================================
+             MAIN BILLS PAGE
+             ===================================== -->
 
         <ScrollView>
 
@@ -19,7 +20,10 @@
                 Padding="32"
                 Spacing="24">
 
-                <!-- HEADER -->
+
+                <!-- =================================
+                     HEADER
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,Auto"
@@ -31,14 +35,20 @@
 
                         <Label
                             Text="BILLS"
-                            FontSize="28"
+                            FontSize="12"
                             FontAttributes="Bold"
-                            TextColor="#111827" />
+                            TextColor="{DynamicResource ThemePrimary}" />
 
                         <Label
-                            Text="Track recurring expenses and upcoming payments."
+                            Text="Know what's coming before it hits."
+                            FontSize="28"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                        <Label
+                            Text="Track recurring expenses, upcoming due dates, and the money you need to protect."
                             FontSize="14"
-                            TextColor="#6B7280" />
+                            TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
 
@@ -47,179 +57,232 @@
                         Grid.Column="1"
                         Text="+ Add Bill"
                         Clicked="ShowAddBillClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="10"
+                        CornerRadius="12"
                         Padding="18,12"
-                        VerticalOptions="Start" />
+                        VerticalOptions="Center" />
 
                 </Grid>
 
 
 
-                <!-- ===================================== -->
-                <!-- BILL SUMMARY                          -->
-                <!-- ===================================== -->
+                <!-- =================================
+                     BILL SUMMARY
+                     ================================= -->
 
-                <Grid
-                    ColumnDefinitions="*,*,*,*"
-                    ColumnSpacing="16">
+                <VerticalStackLayout
+                    Spacing="10">
 
-
-                    <!-- MONTHLY TOTAL -->
-
-                    <Border
-                        Grid.Column="0"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
-                        StrokeThickness="1"
-                        Padding="20">
-
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
-
-                        <VerticalStackLayout Spacing="8">
-
-                            <Label
-                                Text="MONTHLY BILLS"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                TextColor="#6B7280" />
-
-                            <Label
-                                x:Name="MonthlyBillsLabel"
-                                Text="$0.00"
-                                FontSize="25"
-                                FontAttributes="Bold"
-                                TextColor="#111827" />
-
-                        </VerticalStackLayout>
-
-                    </Border>
+                    <Label
+                        Text="MONTHLY OBLIGATIONS"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
 
 
+                    <Grid
+                        ColumnDefinitions="*,*,*,*"
+                        ColumnSpacing="14">
 
-                    <!-- ACTIVE COUNT -->
 
-                    <Border
-                        Grid.Column="1"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
-                        StrokeThickness="1"
-                        Padding="20">
+                        <!-- =========================
+                             MONTHLY BILLS
+                             ========================= -->
 
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                        <Border
+                            Grid.Column="0"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1"
+                            Padding="20">
 
-                        <VerticalStackLayout Spacing="8">
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="16" />
+                            </Border.StrokeShape>
 
-                            <Label
-                                Text="ACTIVE BILLS"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                TextColor="#6B7280" />
 
-                            <Label
-                                x:Name="ActiveBillsLabel"
-                                Text="0"
-                                FontSize="25"
-                                FontAttributes="Bold"
-                                TextColor="#111827" />
+                            <VerticalStackLayout
+                                Spacing="7">
 
-                        </VerticalStackLayout>
+                                <Label
+                                    Text="MONTHLY BILLS"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
-                    </Border>
+                                <Label
+                                    x:Name="MonthlyBillsLabel"
+                                    Text="$0.00"
+                                    FontSize="25"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Active recurring costs"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource TextMuted}" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
 
 
 
-                    <!-- NEXT BILL -->
+                        <!-- =========================
+                             ACTIVE BILLS
+                             ========================= -->
 
-                    <Border
-                        Grid.Column="2"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
-                        StrokeThickness="1"
-                        Padding="20">
+                        <Border
+                            Grid.Column="1"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1"
+                            Padding="20">
 
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
-
-                        <VerticalStackLayout Spacing="8">
-
-                            <Label
-                                Text="NEXT BILL"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                TextColor="#6B7280" />
-
-                            <Label
-                                x:Name="NextBillLabel"
-                                Text="None"
-                                FontSize="18"
-                                FontAttributes="Bold"
-                                TextColor="#111827"
-                                LineBreakMode="TailTruncation" />
-
-                        </VerticalStackLayout>
-
-                    </Border>
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="16" />
+                            </Border.StrokeShape>
 
 
+                            <VerticalStackLayout
+                                Spacing="7">
 
-                    <!-- INACTIVE COUNT -->
+                                <Label
+                                    Text="ACTIVE BILLS"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
 
-                    <Border
-                        Grid.Column="3"
-                        BackgroundColor="White"
-                        Stroke="#E5E7EB"
-                        StrokeThickness="1"
-                        Padding="20">
+                                <Label
+                                    x:Name="ActiveBillsLabel"
+                                    Text="0"
+                                    FontSize="25"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
 
-                        <Border.StrokeShape>
-                            <RoundRectangle CornerRadius="14" />
-                        </Border.StrokeShape>
+                                <Label
+                                    Text="Currently included"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource TextMuted}" />
 
-                        <VerticalStackLayout Spacing="8">
+                            </VerticalStackLayout>
 
-                            <Label
-                                Text="INACTIVE"
-                                FontSize="11"
-                                FontAttributes="Bold"
-                                TextColor="#6B7280" />
-
-                            <Label
-                                x:Name="InactiveBillsLabel"
-                                Text="0"
-                                FontSize="25"
-                                FontAttributes="Bold"
-                                TextColor="#111827" />
-
-                        </VerticalStackLayout>
-
-                    </Border>
-
-                </Grid>
+                        </Border>
 
 
 
-                <!-- ===================================== -->
-                <!-- EMPTY STATE                           -->
-                <!-- ===================================== -->
+                        <!-- =========================
+                             NEXT BILL
+                             ========================= -->
+
+                        <Border
+                            Grid.Column="2"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1"
+                            Padding="20">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="16" />
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="7">
+
+                                <Label
+                                    Text="NEXT BILL"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    x:Name="NextBillLabel"
+                                    Text="None"
+                                    FontSize="18"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}"
+                                    LineBreakMode="TailTruncation" />
+
+                                <Label
+                                    Text="Closest upcoming payment"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource TextMuted}" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+
+                        <!-- =========================
+                             INACTIVE BILLS
+                             ========================= -->
+
+                        <Border
+                            Grid.Column="3"
+                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1"
+                            Padding="20">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="16" />
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="7">
+
+                                <Label
+                                    Text="INACTIVE"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    x:Name="InactiveBillsLabel"
+                                    Text="0"
+                                    FontSize="25"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Paused recurring bills"
+                                    FontSize="11"
+                                    TextColor="{DynamicResource TextMuted}" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+
+
+
+                <!-- =================================
+                     EMPTY STATE
+                     ================================= -->
 
                 <Border
                     x:Name="BillsEmptyState"
                     IsVisible="False"
-                    BackgroundColor="White"
-                    Stroke="#E5E7EB"
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
                     Padding="45">
 
                     <Border.StrokeShape>
-                        <RoundRectangle CornerRadius="16" />
+                        <RoundRectangle
+                            CornerRadius="16" />
                     </Border.StrokeShape>
 
 
@@ -227,25 +290,50 @@
                         HorizontalOptions="Center"
                         Spacing="12">
 
+
+                        <Border
+                            WidthRequest="54"
+                            HeightRequest="54"
+                            BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="0">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle
+                                    CornerRadius="17" />
+                            </Border.StrokeShape>
+
+
+                            <Label
+                                Text="◷"
+                                FontSize="23"
+                                TextColor="{DynamicResource ThemePrimary}"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                        </Border>
+
+
                         <Label
                             Text="No recurring bills yet"
                             FontSize="21"
                             FontAttributes="Bold"
-                            TextColor="#111827"
+                            TextColor="{DynamicResource TextPrimary}"
                             HorizontalTextAlignment="Center" />
+
 
                         <Label
                             Text="Add recurring expenses so PocketAI can plan around your monthly obligations."
                             FontSize="14"
-                            TextColor="#6B7280"
+                            TextColor="{DynamicResource TextSecondary}"
                             HorizontalTextAlignment="Center"
                             WidthRequest="500" />
+
 
                         <Button
                             Text="+ Add Your First Bill"
                             Clicked="ShowAddBillClicked"
-                            BackgroundColor="#7C3AED"
-                            TextColor="White"
+                            BackgroundColor="{DynamicResource ThemePrimary}"
+                            TextColor="{DynamicResource TextOnPrimary}"
                             FontAttributes="Bold"
                             CornerRadius="10"
                             Margin="0,8,0,0"
@@ -257,67 +345,104 @@
 
 
 
-                <!-- ===================================== -->
-                <!-- BILL LIST                             -->
-                <!-- ===================================== -->
+                <!-- =================================
+                     BILL LIST
+                     ================================= -->
 
-                <VerticalStackLayout Spacing="12">
+                <VerticalStackLayout
+                    Spacing="12">
 
-                    <Label
-                        Text="Recurring Bills"
-                        FontSize="18"
-                        FontAttributes="Bold"
-                        TextColor="#111827" />
+
+                    <VerticalStackLayout
+                        Spacing="3">
+
+                        <Label
+                            Text="Recurring Bills"
+                            FontSize="19"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                        <Label
+                            Text="Active bills are included when PocketAI determines how much money is available."
+                            FontSize="12"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                    </VerticalStackLayout>
+
 
 
                     <VerticalStackLayout
                         x:Name="BillsContainer"
                         Spacing="14">
 
+
                         <BindableLayout.ItemTemplate>
 
                             <DataTemplate>
 
+
+                                <!-- =========================
+                                     BILL CARD
+                                     ========================= -->
+
                                 <Border
-                                    BackgroundColor="White"
-                                    Stroke="#E5E7EB"
+                                    BackgroundColor="{DynamicResource CardBackground}"
+                                    Stroke="{DynamicResource BorderColor}"
                                     StrokeThickness="1"
                                     Padding="22">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="16" />
+                                        <RoundRectangle
+                                            CornerRadius="16" />
                                     </Border.StrokeShape>
 
 
-                                    <VerticalStackLayout Spacing="16">
+                                    <VerticalStackLayout
+                                        Spacing="16">
 
-                                        <!-- TOP ROW -->
+
+                                        <!-- =================
+                                             TOP ROW
+                                             ================= -->
 
                                         <Grid
                                             ColumnDefinitions="*,Auto"
                                             ColumnSpacing="20">
 
+
                                             <VerticalStackLayout
                                                 Grid.Column="0"
                                                 Spacing="5">
 
-                                                <HorizontalStackLayout Spacing="10">
+
+                                                <HorizontalStackLayout
+                                                    Spacing="10">
+
+
+                                                    <!-- BILL NAME -->
 
                                                     <Label
                                                         Text="{Binding Name}"
                                                         FontSize="18"
                                                         FontAttributes="Bold"
-                                                        TextColor="#111827" />
+                                                        TextColor="{DynamicResource TextPrimary}"
+                                                        VerticalOptions="Center" />
 
+
+
+                                                    <!-- ACTIVE STATUS -->
 
                                                     <Border
                                                         BackgroundColor="{Binding StatusBackgroundColor}"
                                                         StrokeThickness="0"
-                                                        Padding="9,3">
+                                                        Padding="9,3"
+                                                        VerticalOptions="Center">
 
                                                         <Border.StrokeShape>
-                                                            <RoundRectangle CornerRadius="8" />
+                                                            <RoundRectangle
+                                                                CornerRadius="8" />
                                                         </Border.StrokeShape>
+
 
                                                         <Label
                                                             Text="{Binding ActiveStatusText}"
@@ -330,32 +455,50 @@
                                                 </HorizontalStackLayout>
 
 
+
+                                                <!-- CATEGORY -->
+
                                                 <Label
                                                     Text="{Binding Category}"
                                                     FontSize="13"
-                                                    TextColor="#6B7280" />
+                                                    TextColor="{DynamicResource TextSecondary}" />
 
                                             </VerticalStackLayout>
 
+
+
+                                            <!-- AMOUNT -->
 
                                             <Label
                                                 Grid.Column="1"
                                                 Text="{Binding AmountText}"
                                                 FontSize="20"
                                                 FontAttributes="Bold"
-                                                TextColor="#111827"
+                                                TextColor="{DynamicResource TextPrimary}"
                                                 VerticalOptions="Center" />
 
                                         </Grid>
 
 
 
-                                        <!-- BILL DETAILS -->
+                                        <!-- DIVIDER -->
+
+                                        <BoxView
+                                            HeightRequest="1"
+                                            BackgroundColor="{DynamicResource BorderColor}" />
+
+
+
+                                        <!-- =================
+                                             BILL DETAILS
+                                             ================= -->
 
                                         <Grid
                                             ColumnDefinitions="*,*,*"
                                             ColumnSpacing="20">
 
+
+                                            <!-- DUE DATE -->
 
                                             <VerticalStackLayout
                                                 Grid.Column="0"
@@ -365,17 +508,19 @@
                                                     Text="DUE DATE"
                                                     FontSize="10"
                                                     FontAttributes="Bold"
-                                                    TextColor="#9CA3AF" />
+                                                    TextColor="{DynamicResource TextMuted}" />
 
                                                 <Label
                                                     Text="{Binding DueDateText}"
                                                     FontSize="14"
                                                     FontAttributes="Bold"
-                                                    TextColor="#374151" />
+                                                    TextColor="{DynamicResource TextPrimary}" />
 
                                             </VerticalStackLayout>
 
 
+
+                                            <!-- NEXT PAYMENT -->
 
                                             <VerticalStackLayout
                                                 Grid.Column="1"
@@ -385,17 +530,19 @@
                                                     Text="NEXT PAYMENT"
                                                     FontSize="10"
                                                     FontAttributes="Bold"
-                                                    TextColor="#9CA3AF" />
+                                                    TextColor="{DynamicResource TextMuted}" />
 
                                                 <Label
                                                     Text="{Binding NextPaymentText}"
                                                     FontSize="14"
                                                     FontAttributes="Bold"
-                                                    TextColor="#374151" />
+                                                    TextColor="{DynamicResource TextPrimary}" />
 
                                             </VerticalStackLayout>
 
 
+
+                                            <!-- STATUS -->
 
                                             <VerticalStackLayout
                                                 Grid.Column="2"
@@ -405,7 +552,7 @@
                                                     Text="STATUS"
                                                     FontSize="10"
                                                     FontAttributes="Bold"
-                                                    TextColor="#9CA3AF" />
+                                                    TextColor="{DynamicResource TextMuted}" />
 
                                                 <Label
                                                     Text="{Binding DueStatusText}"
@@ -419,17 +566,22 @@
 
 
 
-                                        <!-- ACTIONS -->
+                                        <!-- =================
+                                             ACTIONS
+                                             ================= -->
 
                                         <HorizontalStackLayout
                                             HorizontalOptions="End"
                                             Spacing="10">
 
+
                                             <Button
                                                 Text="{Binding ToggleText}"
                                                 Clicked="ToggleBillActiveClicked"
-                                                BackgroundColor="#EDE9FE"
-                                                TextColor="#6D28D9"
+                                                BackgroundColor="{DynamicResource SurfaceBackground}"
+                                                TextColor="{DynamicResource ThemePrimary}"
+                                                BorderColor="{DynamicResource ThemePrimary}"
+                                                BorderWidth="1"
                                                 FontAttributes="Bold"
                                                 CornerRadius="9"
                                                 Padding="14,8" />
@@ -438,8 +590,10 @@
                                             <Button
                                                 Text="Edit"
                                                 Clicked="ShowEditBillClicked"
-                                                BackgroundColor="#E5E7EB"
-                                                TextColor="#374151"
+                                                BackgroundColor="{DynamicResource SurfaceBackground}"
+                                                TextColor="{DynamicResource TextPrimary}"
+                                                BorderColor="{DynamicResource BorderColor}"
+                                                BorderWidth="1"
                                                 FontAttributes="Bold"
                                                 CornerRadius="9"
                                                 Padding="14,8" />
@@ -458,21 +612,29 @@
 
                 </VerticalStackLayout>
 
+
+
+                <!-- BOTTOM SPACING -->
+
+                <BoxView
+                    HeightRequest="15"
+                    BackgroundColor="Transparent" />
+
             </VerticalStackLayout>
 
         </ScrollView>
 
 
 
-        <!-- ===================================== -->
-        <!-- MODAL BACKGROUND                      -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             MODAL BACKGROUND
+             ===================================== -->
 
         <BoxView
             x:Name="ModalBackground"
             ZIndex="10"
             IsVisible="False"
-            BackgroundColor="#80000000">
+            BackgroundColor="#90000000">
 
             <BoxView.GestureRecognizers>
 
@@ -485,9 +647,9 @@
 
 
 
-        <!-- ===================================== -->
-        <!-- ADD / EDIT BILL MODAL                 -->
-        <!-- ===================================== -->
+        <!-- =====================================
+             ADD / EDIT BILL MODAL
+             ===================================== -->
 
         <Border
             x:Name="BillModal"
@@ -495,150 +657,202 @@
             IsVisible="False"
             WidthRequest="460"
             Padding="28"
-            BackgroundColor="White"
-            Stroke="#E5E7EB"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
             <Border.StrokeShape>
-                <RoundRectangle CornerRadius="18" />
+                <RoundRectangle
+                    CornerRadius="18" />
             </Border.StrokeShape>
 
 
-            <VerticalStackLayout Spacing="17">
-
-                <Label
-                    x:Name="BillModalTitleLabel"
-                    Text="ADD BILL"
-                    FontSize="22"
-                    FontAttributes="Bold"
-                    TextColor="#111827" />
+            <VerticalStackLayout
+                Spacing="17">
 
 
-                <!-- BILL NAME -->
+                <!-- =================================
+                     MODAL HEADER
+                     ================================= -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="4">
+
+                    <Label
+                        x:Name="BillModalTitleLabel"
+                        Text="ADD BILL"
+                        FontSize="22"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+                    <Label
+                        Text="Add a recurring payment so PocketAI can reserve money for it."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- =================================
+                     BILL NAME
+                     ================================= -->
+
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Bill Name"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Entry
                         x:Name="BillNameEntry"
                         Placeholder="Netflix"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        PlaceholderColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
 
-                <!-- CATEGORY -->
+                <!-- =================================
+                     CATEGORY
+                     ================================= -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Category"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Picker
                         x:Name="BillCategoryPicker"
                         Title="Select a category"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
 
-                <!-- AMOUNT -->
+                <!-- =================================
+                     AMOUNT
+                     ================================= -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Monthly Amount"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Entry
                         x:Name="BillAmountEntry"
                         Placeholder="25.00"
+                        PlaceholderColor="{DynamicResource TextMuted}"
                         Keyboard="Numeric"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                 </VerticalStackLayout>
 
 
 
-                <!-- DUE DAY -->
+                <!-- =================================
+                     DUE DAY
+                     ================================= -->
 
-                <VerticalStackLayout Spacing="6">
+                <VerticalStackLayout
+                    Spacing="6">
 
                     <Label
                         Text="Due Day"
                         FontSize="13"
                         FontAttributes="Bold"
-                        TextColor="#374151" />
+                        TextColor="{DynamicResource TextSecondary}" />
 
                     <Entry
                         x:Name="BillDueDayEntry"
                         Placeholder="15"
+                        PlaceholderColor="{DynamicResource TextMuted}"
                         Keyboard="Numeric"
-                        BackgroundColor="#F9FAFB"
-                        TextColor="#111827" />
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
 
                     <Label
                         Text="Enter a day from 1 to 31."
                         FontSize="11"
-                        TextColor="#9CA3AF" />
+                        TextColor="{DynamicResource TextMuted}" />
 
                 </VerticalStackLayout>
 
 
 
-                <!-- ACTIVE -->
+                <!-- =================================
+                     ACTIVE BILL
+                     ================================= -->
 
-                <Grid
-                    ColumnDefinitions="*,Auto"
-                    Padding="0,4">
+                <Border
+                    BackgroundColor="{DynamicResource SurfaceBackground}"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1"
+                    Padding="12">
 
-                    <VerticalStackLayout
-                        Grid.Column="0"
-                        Spacing="3">
-
-                        <Label
-                            Text="Active Bill"
-                            FontSize="13"
-                            FontAttributes="Bold"
-                            TextColor="#374151" />
-
-                        <Label
-                            Text="Inactive bills won't reduce available money."
-                            FontSize="11"
-                            TextColor="#9CA3AF" />
-
-                    </VerticalStackLayout>
+                    <Border.StrokeShape>
+                        <RoundRectangle
+                            CornerRadius="10" />
+                    </Border.StrokeShape>
 
 
-                    <Switch
-                        x:Name="BillActiveSwitch"
-                        Grid.Column="1"
-                        IsToggled="True"
-                        VerticalOptions="Center"
-                        OnColor="#7C3AED" />
-
-                </Grid>
+                    <Grid
+                        ColumnDefinitions="*,Auto">
 
 
+                        <VerticalStackLayout
+                            Grid.Column="0"
+                            Spacing="3">
 
-                <!-- SAVE / CANCEL -->
+                            <Label
+                                Text="Active Bill"
+                                FontSize="13"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Inactive bills won't reduce available money."
+                                FontSize="11"
+                                TextColor="{DynamicResource TextMuted}" />
+
+                        </VerticalStackLayout>
+
+
+                        <Switch
+                            x:Name="BillActiveSwitch"
+                            Grid.Column="1"
+                            IsToggled="True"
+                            VerticalOptions="Center"
+                            OnColor="{DynamicResource ThemePrimary}" />
+
+                    </Grid>
+
+                </Border>
+
+
+
+                <!-- =================================
+                     SAVE / CANCEL
+                     ================================= -->
 
                 <Grid
                     ColumnDefinitions="*,*"
@@ -649,8 +863,10 @@
                         Grid.Column="0"
                         Text="Cancel"
                         Clicked="CancelBillModalClicked"
-                        BackgroundColor="#E5E7EB"
-                        TextColor="#374151"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BorderColor="{DynamicResource BorderColor}"
+                        BorderWidth="1"
                         CornerRadius="10" />
 
 
@@ -659,8 +875,8 @@
                         Grid.Column="1"
                         Text="Add Bill"
                         Clicked="SaveBillClicked"
-                        BackgroundColor="#7C3AED"
-                        TextColor="White"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
                         CornerRadius="10" />
 
@@ -668,14 +884,16 @@
 
 
 
-                <!-- DELETE -->
+                <!-- =================================
+                     DELETE
+                     ================================= -->
 
                 <Button
                     x:Name="DeleteBillButton"
                     Text="Delete Bill"
                     Clicked="DeleteBillClicked"
-                    BackgroundColor="#FEE2E2"
-                    TextColor="#B91C1C"
+                    BackgroundColor="{DynamicResource DangerBackground}"
+                    TextColor="{DynamicResource DangerColor}"
                     FontAttributes="Bold"
                     CornerRadius="10"
                     IsVisible="False" />
