@@ -39,7 +39,7 @@
                     Text="◉ PocketAI"
                     FontSize="22"
                     FontAttributes="Bold"
-                    TextColor="White" />
+                    TextColor="{DynamicResource SidebarText}" />
 
             </VerticalStackLayout>
 
@@ -120,7 +120,7 @@
                             Grid.Column="2"
                             Text="Home"
                             FontSize="15"
-                            TextColor="White"
+                            TextColor="{DynamicResource SidebarText}"
                             VerticalOptions="Center" />
 
                     </Grid>

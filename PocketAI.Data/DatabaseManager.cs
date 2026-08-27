@@ -54,7 +54,11 @@ public class DataBaseManager
             TargetAmount REAL NOT NULL,
             CurrentAmount REAL NOT NULL,
             DeadLine TEXT NOT NULL,
-            IsPrimary INTEGER NOT NULL DEFAULT 0
+            IsPrimary INTEGER NOT NULL DEFAULT 0,
+            Priorityrank INTEGER NOT NULL DEFAULT 0,
+            IsEssential INTEGER NOT NULL DEFAULT 0,
+            CustomAllocationPercentage REAL NULL
+
             );
         ";
 
@@ -121,12 +125,22 @@ public class DataBaseManager
     }
 
 
+    // ==========================================
+    // MAKE OLD SAVINGS DATABASES COMPATIBLE
+    // ==========================================
+
     private void EnsureSavingsGoalColumns(
         SqliteConnection connection)
     {
-        bool hasIsPrimaryColumn = false;
+        // ======================================
+        // FIND EXISTING COLUMNS
+        // ======================================
 
-        // Check the existing SavingsGoals table
+        HashSet<string> existingColumns =
+            new HashSet<string>(
+                StringComparer.OrdinalIgnoreCase);
+
+
         using (SqliteCommand command =
             new SqliteCommand(
                 "PRAGMA table_info(SavingsGoals);",
@@ -135,60 +149,266 @@ public class DataBaseManager
             using SqliteDataReader reader =
                 command.ExecuteReader();
 
+
             while (reader.Read())
             {
                 string columnName =
                     reader.GetString(1);
 
-                if (columnName.Equals(
-                    "IsPrimary",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    hasIsPrimaryColumn = true;
-                    break;
-                }
+
+                existingColumns.Add(
+                    columnName);
             }
         }
 
 
-        // Older databases will not have this column
-        if (!hasIsPrimaryColumn)
+
+        // ======================================
+        // IS PRIMARY
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "IsPrimary"))
         {
-            using SqliteCommand alterCommand =
+            using SqliteCommand command =
                 new SqliteCommand(
-                    @"ALTER TABLE SavingsGoals
+                    @"
+                    ALTER TABLE SavingsGoals
                     ADD COLUMN IsPrimary
-                    INTEGER NOT NULL DEFAULT 0;",
+                    INTEGER NOT NULL DEFAULT 0;
+                    ",
                     connection);
 
-            alterCommand.ExecuteNonQuery();
+
+            command.ExecuteNonQuery();
         }
 
 
-        // If an old savings goal already exists,
-        // make the first one the primary goal.
-        using SqliteCommand primaryCommand =
+
+        // ======================================
+        // PRIORITY RANK
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "PriorityRank"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN PriorityRank
+                    INTEGER NOT NULL DEFAULT 0;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+
+        // ======================================
+        // ESSENTIAL GOAL
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "IsEssential"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN IsEssential
+                    INTEGER NOT NULL DEFAULT 0;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+
+        // ======================================
+        // CUSTOM ALLOCATION
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "CustomAllocationPercentage"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN CustomAllocationPercentage
+                    REAL NULL;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+
+        // ======================================
+        // MAKE SURE A PRIMARY GOAL EXISTS
+        // ======================================
+
+        // This keeps your current Home-page
+        // savings behavior working.
+        using (SqliteCommand primaryCommand =
             new SqliteCommand(
                 @"
                 UPDATE SavingsGoals
+
                 SET IsPrimary = 1
-                WHERE Id = (
+
+                WHERE Id =
+                (
                     SELECT Id
                     FROM SavingsGoals
                     ORDER BY Id
                     LIMIT 1
                 )
-                AND NOT EXISTS (
+
+                AND NOT EXISTS
+                (
                     SELECT 1
                     FROM SavingsGoals
                     WHERE IsPrimary = 1
                 );
                 ",
-                connection);
+                connection))
+        {
+            primaryCommand.ExecuteNonQuery();
+        }
 
-        primaryCommand.ExecuteNonQuery();
+
+
+        // ======================================
+        // ASSIGN PRIORITIES TO OLD GOALS
+        // ======================================
+
+        // Existing users already have goals,
+        // but those goals will initially have
+        // PriorityRank = 0.
+        //
+        // We assign them safe starting ranks.
+        //
+        // The existing Primary goal receives
+        // Priority 1 ONLY as an initial migration
+        // default.
+        //
+        // After migration, IsPrimary and
+        // PriorityRank remain independent.
+
+        int highestExistingPriority =
+            0;
+
+
+        using (SqliteCommand command =
+            new SqliteCommand(
+                @"
+                SELECT COALESCE(
+                    MAX(PriorityRank),
+                    0
+                )
+
+                FROM SavingsGoals
+
+                WHERE PriorityRank > 0;
+                ",
+                connection))
+        {
+            object? result =
+                command.ExecuteScalar();
+
+
+            highestExistingPriority =
+                Convert.ToInt32(
+                    result ?? 0);
+        }
+
+
+
+        int nextPriorityRank =
+            highestExistingPriority + 1;
+
+
+
+        List<int> unrankedGoalIds =
+            new List<int>();
+
+
+        using (SqliteCommand command =
+            new SqliteCommand(
+                @"
+                SELECT Id
+
+                FROM SavingsGoals
+
+                WHERE PriorityRank <= 0
+
+                ORDER BY
+                    IsPrimary DESC,
+                    Id ASC;
+                ",
+                connection))
+        {
+            using SqliteDataReader reader =
+                command.ExecuteReader();
+
+
+            while (reader.Read())
+            {
+                unrankedGoalIds.Add(
+                    reader.GetInt32(0));
+            }
+        }
+
+
+
+        // Assign sequential ranks:
+        //
+        // Priority 1
+        // Priority 2
+        // Priority 3
+        // etc.
+
+        foreach (int goalId
+                in unrankedGoalIds)
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    UPDATE SavingsGoals
+
+                    SET PriorityRank =
+                        @PriorityRank
+
+                    WHERE Id =
+                        @Id;
+                    ",
+                    connection);
+
+
+            command.Parameters.AddWithValue(
+                "@PriorityRank",
+                nextPriorityRank);
+
+
+            command.Parameters.AddWithValue(
+                "@Id",
+                goalId);
+
+
+            command.ExecuteNonQuery();
+
+
+            nextPriorityRank++;
+        }
     }
-
 
     //Saves a new expense in the database 
     public void AddExpense(Expense expense)
@@ -331,8 +551,7 @@ public class DataBaseManager
         return null;
     }
 
-    //Saves or updates the user's savings goal in the database.
-   // ==========================================
+    // ==========================================
     // ADD A NEW SAVINGS GOAL
     // ==========================================
 
@@ -340,24 +559,35 @@ public class DataBaseManager
         SavingsGoal savingsGoal)
     {
         using SqliteConnection connection =
-            new SqliteConnection(connectionString);
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
 
-        // First goal automatically becomes primary
-        string countGoals = @"
+
+        // ======================================
+        // FIRST GOAL BECOMES HOME PRIMARY
+        // ======================================
+
+        string countGoals =
+            @"
             SELECT COUNT(*)
             FROM SavingsGoals;
-        ";
+            ";
+
 
         using SqliteCommand countCommand =
             new SqliteCommand(
                 countGoals,
                 connection);
 
+
         long goalCount =
-            (long)(countCommand.ExecuteScalar() ?? 0L);
+            (long)(
+                countCommand.ExecuteScalar()
+                ?? 0L);
 
 
         bool shouldBePrimary =
@@ -365,24 +595,77 @@ public class DataBaseManager
             goalCount == 0;
 
 
-        string insertGoal = @"
+
+        // ======================================
+        // DETERMINE PRIORITY
+        // ======================================
+
+        int priorityRank =
+            savingsGoal.PriorityRank;
+
+
+        // Current/older UI does not provide
+        // a priority yet.
+        //
+        // Automatically place new goals
+        // at the bottom of the priority list.
+        if (priorityRank <= 0)
+        {
+            using SqliteCommand priorityCommand =
+                new SqliteCommand(
+                    @"
+                    SELECT
+                        COALESCE(
+                            MAX(PriorityRank),
+                            0
+                        ) + 1
+
+                    FROM SavingsGoals;
+                    ",
+                    connection);
+
+
+            object? priorityResult =
+                priorityCommand.ExecuteScalar();
+
+
+            priorityRank =
+                Convert.ToInt32(
+                    priorityResult ?? 1);
+        }
+
+
+
+        // ======================================
+        // INSERT GOAL
+        // ======================================
+
+        string insertGoal =
+            @"
             INSERT INTO SavingsGoals
             (
                 Name,
                 TargetAmount,
                 CurrentAmount,
                 DeadLine,
-                IsPrimary
+                IsPrimary,
+                PriorityRank,
+                IsEssential,
+                CustomAllocationPercentage
             )
+
             VALUES
             (
                 @Name,
                 @TargetAmount,
                 @CurrentAmount,
                 @DeadLine,
-                @IsPrimary
+                @IsPrimary,
+                @PriorityRank,
+                @IsEssential,
+                @CustomAllocationPercentage
             );
-        ";
+            ";
 
 
         using SqliteCommand command =
@@ -390,32 +673,63 @@ public class DataBaseManager
                 insertGoal,
                 connection);
 
+
         command.Parameters.AddWithValue(
             "@Name",
             savingsGoal.Name);
+
 
         command.Parameters.AddWithValue(
             "@TargetAmount",
             savingsGoal.TargetAmount);
 
+
         command.Parameters.AddWithValue(
             "@CurrentAmount",
             savingsGoal.CurrentAmount);
 
+
         command.Parameters.AddWithValue(
             "@DeadLine",
             savingsGoal.DeadLine
-                .ToString("yyyy-MM-dd"));
+                .ToString(
+                    "yyyy-MM-dd"));
+
 
         command.Parameters.AddWithValue(
             "@IsPrimary",
-            shouldBePrimary ? 1 : 0);
+            shouldBePrimary
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@PriorityRank",
+            priorityRank);
+
+
+        command.Parameters.AddWithValue(
+            "@IsEssential",
+            savingsGoal.IsEssential
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@CustomAllocationPercentage",
+            savingsGoal
+                .CustomAllocationPercentage
+                is null
+
+                    ? DBNull.Value
+
+                    : savingsGoal
+                        .CustomAllocationPercentage
+                        .Value);
 
 
         command.ExecuteNonQuery();
     }
-
-
 
     // ==========================================
     // LOAD ALL SAVINGS GOALS
@@ -428,22 +742,34 @@ public class DataBaseManager
 
 
         using SqliteConnection connection =
-            new SqliteConnection(connectionString);
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
 
-        string selectGoals = @"
+
+        string selectGoals =
+            @"
             SELECT
                 Id,
                 Name,
                 TargetAmount,
                 CurrentAmount,
                 DeadLine,
-                IsPrimary
+                IsPrimary,
+                PriorityRank,
+                IsEssential,
+                CustomAllocationPercentage
+
             FROM SavingsGoals
-            ORDER BY IsPrimary DESC, Id ASC;
-        ";
+
+            ORDER BY
+                PriorityRank ASC,
+                Id ASC;
+            ";
+
 
 
         using SqliteCommand command =
@@ -451,8 +777,10 @@ public class DataBaseManager
                 selectGoals,
                 connection);
 
+
         using SqliteDataReader reader =
             command.ExecuteReader();
+
 
 
         while (reader.Read())
@@ -460,21 +788,44 @@ public class DataBaseManager
             int id =
                 reader.GetInt32(0);
 
+
             string name =
                 reader.GetString(1);
+
 
             double targetAmount =
                 reader.GetDouble(2);
 
+
             double currentAmount =
                 reader.GetDouble(3);
+
 
             DateTime deadLine =
                 DateTime.Parse(
                     reader.GetString(4));
 
+
             bool isPrimary =
                 reader.GetInt32(5) == 1;
+
+
+            int priorityRank =
+                reader.GetInt32(6);
+
+
+            bool isEssential =
+                reader.GetInt32(7) == 1;
+
+
+
+            double? customAllocationPercentage =
+                reader.IsDBNull(8)
+
+                    ? null
+
+                    : reader.GetDouble(8);
+
 
 
             SavingsGoal savingsGoal =
@@ -484,7 +835,10 @@ public class DataBaseManager
                     targetAmount,
                     currentAmount,
                     deadLine,
-                    isPrimary);
+                    isPrimary,
+                    priorityRank,
+                    isEssential,
+                    customAllocationPercentage);
 
 
             savingsGoals.Add(
@@ -505,20 +859,69 @@ public class DataBaseManager
         SavingsGoal savingsGoal)
     {
         using SqliteConnection connection =
-            new SqliteConnection(connectionString);
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
 
-        string updateGoal = @"
+
+        string updateGoal =
+            @"
             UPDATE SavingsGoals
+
             SET
-                Name = @Name,
-                TargetAmount = @TargetAmount,
-                CurrentAmount = @CurrentAmount,
-                DeadLine = @DeadLine
-            WHERE Id = @Id;
-        ";
+                Name =
+                    @Name,
+
+                TargetAmount =
+                    @TargetAmount,
+
+                CurrentAmount =
+                    @CurrentAmount,
+
+                DeadLine =
+                    @DeadLine,
+
+
+                PriorityRank =
+                    CASE
+
+                        WHEN @PriorityRank > 0
+                        THEN @PriorityRank
+
+                        ELSE PriorityRank
+
+                    END,
+
+
+                IsEssential =
+                    CASE
+
+                        WHEN @PriorityRank > 0
+                        THEN @IsEssential
+
+                        ELSE IsEssential
+
+                    END,
+
+
+                CustomAllocationPercentage =
+                    CASE
+
+                        WHEN @PriorityRank > 0
+                        THEN @CustomAllocationPercentage
+
+                        ELSE CustomAllocationPercentage
+
+                    END
+
+
+            WHERE Id =
+                @Id;
+            ";
+
 
 
         using SqliteCommand command =
@@ -526,22 +929,53 @@ public class DataBaseManager
                 updateGoal,
                 connection);
 
+
         command.Parameters.AddWithValue(
             "@Name",
             savingsGoal.Name);
+
 
         command.Parameters.AddWithValue(
             "@TargetAmount",
             savingsGoal.TargetAmount);
 
+
         command.Parameters.AddWithValue(
             "@CurrentAmount",
             savingsGoal.CurrentAmount);
 
+
         command.Parameters.AddWithValue(
             "@DeadLine",
             savingsGoal.DeadLine
-                .ToString("yyyy-MM-dd"));
+                .ToString(
+                    "yyyy-MM-dd"));
+
+
+        command.Parameters.AddWithValue(
+            "@PriorityRank",
+            savingsGoal.PriorityRank);
+
+
+        command.Parameters.AddWithValue(
+            "@IsEssential",
+            savingsGoal.IsEssential
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@CustomAllocationPercentage",
+            savingsGoal
+                .CustomAllocationPercentage
+                is null
+
+                    ? DBNull.Value
+
+                    : savingsGoal
+                        .CustomAllocationPercentage
+                        .Value);
+
 
         command.Parameters.AddWithValue(
             "@Id",

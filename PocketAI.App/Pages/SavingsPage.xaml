@@ -4,25 +4,25 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="PocketAI.App.Pages.SavingsPage"
-    BackgroundColor="{DynamicResource PageBackground}"
-    Shell.NavBarIsVisible="False">
+    Title="Savings"
+    BackgroundColor="{DynamicResource PageBackground}">
 
     <Grid>
 
 
-        <!-- =====================================
+        <!-- ==========================================
              MAIN PAGE
-             ===================================== -->
+             ========================================== -->
 
         <ScrollView>
 
             <VerticalStackLayout
-                Padding="32"
+                Padding="28"
                 Spacing="24">
 
 
                 <!-- =================================
-                     HEADER
+                     PAGE HEADER
                      ================================= -->
 
                 <Grid
@@ -31,23 +31,17 @@
 
                     <VerticalStackLayout
                         Grid.Column="0"
-                        Spacing="5">
+                        Spacing="4">
 
                         <Label
-                            Text="SAVINGS"
-                            FontSize="12"
-                            FontAttributes="Bold"
-                            TextColor="{DynamicResource ThemePrimary}" />
-
-                        <Label
-                            Text="Build your goals one step at a time."
+                            Text="Savings"
                             FontSize="28"
                             FontAttributes="Bold"
                             TextColor="{DynamicResource TextPrimary}" />
 
                         <Label
-                            Text="Track progress, know what you need each week, and keep your priorities clear."
-                            FontSize="14"
+                            Text="Build goals, set priorities, and let PocketAI help you save smarter."
+                            FontSize="13"
                             TextColor="{DynamicResource TextSecondary}" />
 
                     </VerticalStackLayout>
@@ -60,8 +54,8 @@
                         BackgroundColor="{DynamicResource ThemePrimary}"
                         TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="12"
-                        Padding="18,12"
+                        CornerRadius="10"
+                        Padding="18,10"
                         VerticalOptions="Center" />
 
                 </Grid>
@@ -69,187 +63,324 @@
 
 
                 <!-- =================================
-                     SUMMARY
+                     SUMMARY CARDS
                      ================================= -->
 
-                <VerticalStackLayout
-                    Spacing="10">
+                <Grid
+                    ColumnDefinitions="*,*,*,*"
+                    ColumnSpacing="14">
 
-                    <Label
-                        Text="YOUR SAVINGS"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextSecondary}" />
+
+                    <!-- TOTAL SAVED -->
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout
+                            Spacing="7">
+
+                            <Label
+                                Text="TOTAL SAVED"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextMuted}" />
+
+                            <Label
+                                x:Name="TotalSavedLabel"
+                                Text="$0.00"
+                                FontSize="22"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Across all goals"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- TOTAL TARGET -->
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout
+                            Spacing="7">
+
+                            <Label
+                                Text="TOTAL TARGET"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextMuted}" />
+
+                            <Label
+                                x:Name="TotalTargetLabel"
+                                Text="$0.00"
+                                FontSize="22"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Combined goal value"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- REMAINING -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout
+                            Spacing="7">
+
+                            <Label
+                                Text="REMAINING"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextMuted}" />
+
+                            <Label
+                                x:Name="TotalRemainingLabel"
+                                Text="$0.00"
+                                FontSize="22"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Still needed"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- ACTIVE GOALS -->
+
+                    <Border
+                        Grid.Column="3"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout
+                            Spacing="7">
+
+                            <Label
+                                Text="ACTIVE GOALS"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextMuted}" />
+
+                            <Label
+                                x:Name="GoalCountLabel"
+                                Text="0"
+                                FontSize="22"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                            <Label
+                                Text="Still being funded"
+                                FontSize="11"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+
+
+                <!-- =================================
+                     AVAILABLE FOR SAVINGS
+                     ================================= -->
+
+                <Border
+                    BackgroundColor="{DynamicResource CardBackground}"
+                    Stroke="{DynamicResource BorderColor}"
+                    StrokeThickness="1"
+                    Padding="20">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle
+                            CornerRadius="15" />
+                    </Border.StrokeShape>
 
 
                     <Grid
-                        ColumnDefinitions="*,*,*,*"
-                        ColumnSpacing="14">
+                        ColumnDefinitions="*,Auto"
+                        ColumnSpacing="25">
 
 
-                        <!-- TOTAL SAVED -->
+                        <!-- LEFT SIDE -->
 
-                        <Border
+                        <VerticalStackLayout
                             Grid.Column="0"
-                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
-                            Stroke="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="1"
-                            Padding="20">
+                            Spacing="6">
 
-                            <Border.StrokeShape>
-                                <RoundRectangle
-                                    CornerRadius="16" />
-                            </Border.StrokeShape>
+                            <Label
+                                Text="AVAILABLE FOR SAVINGS"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
 
-                            <VerticalStackLayout
-                                Spacing="7">
+                            <Label
+                                Text="PocketAI savings estimate"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
 
-                                <Label
-                                    Text="TOTAL SAVED"
+                            <Label
+                                Text="Based on your projected finances for the rest of this month."
+                                FontSize="11"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+
+                            <!-- BUFFER / CUSTOM EXPLANATION -->
+
+                            <Label
+                                x:Name="SavingsBufferLabel"
+                                Text=""
+                                FontSize="11"
+                                LineBreakMode="WordWrap"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+
+
+                            <!-- USER CONTROL -->
+
+                            <HorizontalStackLayout
+                                Spacing="8"
+                                Margin="0,8,0,0">
+
+
+                                <!-- USE POCKETAI -->
+
+                                <Button
+                                    Text="Use PocketAI Estimate"
+                                    Clicked="UsePocketAiSavingsEstimateClicked"
+                                    BackgroundColor="{DynamicResource SurfaceBackground}"
+                                    TextColor="{DynamicResource ThemePrimary}"
+                                    BorderColor="{DynamicResource BorderColor}"
+                                    BorderWidth="1"
                                     FontSize="10"
                                     FontAttributes="Bold"
-                                    TextColor="{DynamicResource ThemePrimary}" />
+                                    CornerRadius="8"
+                                    Padding="13,7" />
 
-                                <Label
-                                    x:Name="TotalSavedLabel"
-                                    Text="$0.00"
-                                    FontSize="25"
+
+
+                                <!-- ADJUST -->
+
+                                <Button
+                                    Text="Adjust Amount"
+                                    Clicked="AdjustSavingsAmountClicked"
+                                    BackgroundColor="{DynamicResource ThemePrimary}"
+                                    TextColor="{DynamicResource TextOnPrimary}"
+                                    FontSize="10"
                                     FontAttributes="Bold"
-                                    TextColor="{DynamicResource TextPrimary}" />
+                                    CornerRadius="8"
+                                    Padding="13,7" />
 
-                                <Label
-                                    Text="Across all goals"
-                                    FontSize="11"
-                                    TextColor="{DynamicResource TextMuted}" />
+                            </HorizontalStackLayout>
 
-                            </VerticalStackLayout>
-
-                        </Border>
+                        </VerticalStackLayout>
 
 
 
-                        <!-- TOTAL TARGET -->
+                        <!-- RIGHT SIDE -->
 
-                        <Border
+                        <VerticalStackLayout
                             Grid.Column="1"
-                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
-                            Stroke="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="1"
-                            Padding="20">
+                            Spacing="3"
+                            HorizontalOptions="End"
+                            VerticalOptions="Center">
 
-                            <Border.StrokeShape>
-                                <RoundRectangle
-                                    CornerRadius="16" />
-                            </Border.StrokeShape>
+                            <Label
+                                x:Name="AvailableForSavingsLabel"
+                                Text="$0.00"
+                                FontSize="28"
+                                FontAttributes="Bold"
+                                HorizontalTextAlignment="End"
+                                TextColor="{DynamicResource ThemePrimary}" />
 
-                            <VerticalStackLayout
-                                Spacing="7">
+                            <Label
+                                Text="this month"
+                                FontSize="11"
+                                HorizontalTextAlignment="End"
+                                TextColor="{DynamicResource TextSecondary}" />
 
-                                <Label
-                                    Text="TOTAL TARGET"
-                                    FontSize="10"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource ThemePrimary}" />
-
-                                <Label
-                                    x:Name="TotalTargetLabel"
-                                    Text="$0.00"
-                                    FontSize="25"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource TextPrimary}" />
-
-                                <Label
-                                    Text="Combined goal value"
-                                    FontSize="11"
-                                    TextColor="{DynamicResource TextMuted}" />
-
-                            </VerticalStackLayout>
-
-                        </Border>
-
-
-
-                        <!-- REMAINING -->
-
-                        <Border
-                            Grid.Column="2"
-                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
-                            Stroke="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="1"
-                            Padding="20">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle
-                                    CornerRadius="16" />
-                            </Border.StrokeShape>
-
-                            <VerticalStackLayout
-                                Spacing="7">
-
-                                <Label
-                                    Text="REMAINING"
-                                    FontSize="10"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource ThemePrimary}" />
-
-                                <Label
-                                    x:Name="TotalRemainingLabel"
-                                    Text="$0.00"
-                                    FontSize="25"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource TextPrimary}" />
-
-                                <Label
-                                    Text="Still needed"
-                                    FontSize="11"
-                                    TextColor="{DynamicResource TextMuted}" />
-
-                            </VerticalStackLayout>
-
-                        </Border>
-
-
-
-                        <!-- GOALS -->
-
-                        <Border
-                            Grid.Column="3"
-                            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
-                            Stroke="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="1"
-                            Padding="20">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle
-                                    CornerRadius="16" />
-                            </Border.StrokeShape>
-
-                            <VerticalStackLayout
-                                Spacing="7">
-
-                                <Label
-                                    Text="GOALS"
-                                    FontSize="10"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource ThemePrimary}" />
-
-                                <Label
-                                    x:Name="GoalCountLabel"
-                                    Text="0"
-                                    FontSize="25"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource TextPrimary}" />
-
-                                <Label
-                                    Text="Active savings plans"
-                                    FontSize="11"
-                                    TextColor="{DynamicResource TextMuted}" />
-
-                            </VerticalStackLayout>
-
-                        </Border>
+                        </VerticalStackLayout>
 
                     </Grid>
+
+                </Border>
+
+
+
+                <!-- =================================
+                     YOUR GOALS HEADER
+                     ================================= -->
+
+                <VerticalStackLayout
+                    Spacing="4">
+
+                    <Label
+                        Text="Your Goals"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+                    <Label
+                        Text="Priority 1 is the highest financial priority. Goals can share the same priority when they matter equally."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}" />
 
                 </VerticalStackLayout>
 
@@ -261,11 +392,11 @@
 
                 <Border
                     x:Name="SavingsEmptyState"
+                    IsVisible="False"
                     BackgroundColor="{DynamicResource CardBackground}"
                     Stroke="{DynamicResource BorderColor}"
                     StrokeThickness="1"
-                    Padding="45"
-                    IsVisible="False">
+                    Padding="32">
 
                     <Border.StrokeShape>
                         <RoundRectangle
@@ -274,55 +405,36 @@
 
 
                     <VerticalStackLayout
-                        HorizontalOptions="Center"
-                        Spacing="12">
+                        Spacing="10"
+                        HorizontalOptions="Center">
 
-
-                        <Border
-                            WidthRequest="54"
-                            HeightRequest="54"
-                            BackgroundColor="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="0">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle
-                                    CornerRadius="17" />
-                            </Border.StrokeShape>
-
-                            <Label
-                                Text="◎"
-                                FontSize="23"
-                                TextColor="{DynamicResource ThemePrimary}"
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center" />
-
-                        </Border>
-
+                        <Label
+                            Text="◎"
+                            FontSize="36"
+                            HorizontalTextAlignment="Center"
+                            TextColor="{DynamicResource ThemePrimary}" />
 
                         <Label
                             Text="No savings goals yet"
-                            FontSize="21"
+                            FontSize="18"
                             FontAttributes="Bold"
-                            TextColor="{DynamicResource TextPrimary}"
-                            HorizontalTextAlignment="Center" />
-
+                            HorizontalTextAlignment="Center"
+                            TextColor="{DynamicResource TextPrimary}" />
 
                         <Label
-                            Text="Create your first goal and PocketAI will help you understand the progress."
-                            FontSize="14"
-                            TextColor="{DynamicResource TextSecondary}"
-                            HorizontalTextAlignment="Center" />
-
+                            Text="Create your first goal and PocketAI will help you build a savings plan."
+                            FontSize="12"
+                            HorizontalTextAlignment="Center"
+                            TextColor="{DynamicResource TextSecondary}" />
 
                         <Button
                             Text="+ Create Goal"
                             Clicked="ShowAddGoalClicked"
+                            Margin="0,8,0,0"
                             BackgroundColor="{DynamicResource ThemePrimary}"
                             TextColor="{DynamicResource TextOnPrimary}"
                             FontAttributes="Bold"
-                            CornerRadius="10"
-                            Margin="0,8,0,0"
-                            HorizontalOptions="Center" />
+                            CornerRadius="9" />
 
                     </VerticalStackLayout>
 
@@ -331,181 +443,245 @@
 
 
                 <!-- =================================
-                     SAVINGS GOALS
+                     SAVINGS GOAL CARDS
                      ================================= -->
 
                 <VerticalStackLayout
-                    Spacing="12">
+                    x:Name="SavingsGoalsContainer"
+                    Spacing="16">
+
+                    <BindableLayout.ItemTemplate>
+
+                        <DataTemplate>
+
+                            <Border
+                                BackgroundColor="{DynamicResource CardBackground}"
+                                Stroke="{DynamicResource BorderColor}"
+                                StrokeThickness="1"
+                                Padding="22">
+
+                                <Border.StrokeShape>
+                                    <RoundRectangle
+                                        CornerRadius="16" />
+                                </Border.StrokeShape>
 
 
-                    <VerticalStackLayout
-                        Spacing="3">
-
-                        <Label
-                            Text="Your Goals"
-                            FontSize="19"
-                            FontAttributes="Bold"
-                            TextColor="{DynamicResource TextPrimary}" />
-
-                        <Label
-                            Text="Your primary goal is the one PocketAI should treat as your top savings priority."
-                            FontSize="12"
-                            TextColor="{DynamicResource TextSecondary}" />
-
-                    </VerticalStackLayout>
+                                <VerticalStackLayout
+                                    Spacing="18">
 
 
-
-                    <VerticalStackLayout
-                        x:Name="SavingsGoalsContainer"
-                        Spacing="14">
-
-
-                        <BindableLayout.ItemTemplate>
-
-                            <DataTemplate>
-
-
-                                <!-- =========================
-                                     SAVINGS GOAL CARD
-                                     ========================= -->
-
-                                <Border
-                                    BackgroundColor="{DynamicResource CardBackground}"
-                                    Stroke="{DynamicResource BorderColor}"
-                                    StrokeThickness="1"
-                                    Padding="24">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle
-                                            CornerRadius="16" />
-                                    </Border.StrokeShape>
-
+                                    <!-- =================
+                                         GOAL HEADER
+                                         ================= -->
 
                                     <VerticalStackLayout
-                                        Spacing="17">
+                                        Spacing="8">
 
 
-                                        <!-- =================
-                                             GOAL HEADER
-                                             ================= -->
+                                        <!-- NAME -->
 
-                                        <Grid
-                                            ColumnDefinitions="*,Auto"
-                                            ColumnSpacing="20">
-
-
-                                            <VerticalStackLayout
-                                                Grid.Column="0"
-                                                Spacing="5">
-
-
-                                                <HorizontalStackLayout
-                                                    Spacing="10">
-
-
-                                                    <Label
-                                                        Text="{Binding Name}"
-                                                        FontSize="19"
-                                                        FontAttributes="Bold"
-                                                        TextColor="{DynamicResource TextPrimary}"
-                                                        VerticalOptions="Center" />
+                                        <Label
+                                            Text="{Binding Name}"
+                                            FontSize="20"
+                                            FontAttributes="Bold"
+                                            TextColor="{DynamicResource TextPrimary}" />
 
 
 
-                                                    <!-- PRIMARY BADGE -->
+                                        <!-- BADGES -->
 
-                                                    <Border
-                                                        IsVisible="{Binding IsPrimary}"
-                                                        BackgroundColor="{DynamicResource ThemePrimaryLight}"
-                                                        StrokeThickness="0"
-                                                        Padding="9,3"
-                                                        VerticalOptions="Center">
-
-                                                        <Border.StrokeShape>
-                                                            <RoundRectangle
-                                                                CornerRadius="8" />
-                                                        </Border.StrokeShape>
+                                        <HorizontalStackLayout
+                                            Spacing="7">
 
 
-                                                        <Label
-                                                            Text="★ PRIMARY"
-                                                            FontSize="10"
-                                                            FontAttributes="Bold"
-                                                            TextColor="{DynamicResource ThemePrimary}" />
+                                            <!-- PRIORITY -->
 
-                                                    </Border>
+                                            <Border
+                                                BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                                                Stroke="{DynamicResource ThemePrimary}"
+                                                StrokeThickness="1"
+                                                Padding="10,5">
 
-                                                </HorizontalStackLayout>
-
-
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle
+                                                        CornerRadius="8" />
+                                                </Border.StrokeShape>
 
                                                 <Label
-                                                    Text="{Binding DeadlineText}"
-                                                    FontSize="13"
-                                                    TextColor="{DynamicResource TextSecondary}" />
+                                                    Text="{Binding PriorityText}"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{Binding PriorityColor}" />
 
-                                            </VerticalStackLayout>
+                                            </Border>
 
 
 
-                                            <!-- CURRENT / TARGET -->
+                                            <!-- ESSENTIAL / OPTIONAL -->
+
+                                            <Border
+                                                BackgroundColor="{DynamicResource SurfaceBackground}"
+                                                Stroke="{DynamicResource BorderColor}"
+                                                StrokeThickness="1"
+                                                Padding="9,5">
+
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle
+                                                        CornerRadius="8" />
+                                                </Border.StrokeShape>
+
+                                                <Label
+                                                    Text="{Binding EssentialText}"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{Binding EssentialColor}" />
+
+                                            </Border>
+
+
+
+                                            <!-- SHOWN ON HOME -->
+
+                                            <Border
+                                                IsVisible="{Binding IsPrimary}"
+                                                BackgroundColor="{DynamicResource SuccessBackground}"
+                                                StrokeThickness="0"
+                                                Padding="9,5">
+
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle
+                                                        CornerRadius="8" />
+                                                </Border.StrokeShape>
+
+                                                <Label
+                                                    Text="SHOWN ON HOME"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{DynamicResource SuccessColor}" />
+
+                                            </Border>
+
+
+
+                                            <!-- COMPLETED -->
+
+                                            <Border
+                                                IsVisible="{Binding IsCompleted}"
+                                                BackgroundColor="{DynamicResource SuccessBackground}"
+                                                StrokeThickness="0"
+                                                Padding="9,5">
+
+                                                <Border.StrokeShape>
+                                                    <RoundRectangle
+                                                        CornerRadius="8" />
+                                                </Border.StrokeShape>
+
+                                                <Label
+                                                    Text="✓ GOAL COMPLETED"
+                                                    FontSize="10"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{DynamicResource SuccessColor}" />
+
+                                            </Border>
+
+                                        </HorizontalStackLayout>
+
+                                    </VerticalStackLayout>
+
+
+
+                                    <!-- =================
+                                         SAVED / PROGRESS
+                                         ================= -->
+
+                                    <Grid
+                                        ColumnDefinitions="*,Auto"
+                                        ColumnSpacing="15">
+
+                                        <VerticalStackLayout
+                                            Grid.Column="0"
+                                            Spacing="4">
+
+                                            <Label
+                                                Text="SAVED"
+                                                FontSize="9"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource TextMuted}" />
+
+                                            <Label
+                                                Text="{Binding AmountText}"
+                                                FontSize="18"
+                                                FontAttributes="Bold"
+                                                TextColor="{DynamicResource TextPrimary}" />
+
+                                        </VerticalStackLayout>
+
+
+                                        <VerticalStackLayout
+                                            Grid.Column="1"
+                                            Spacing="4"
+                                            HorizontalOptions="End">
+
+                                            <Label
+                                                Text="PROGRESS"
+                                                FontSize="9"
+                                                FontAttributes="Bold"
+                                                HorizontalTextAlignment="End"
+                                                TextColor="{DynamicResource TextMuted}" />
+
+                                            <Label
+                                                Text="{Binding PercentText}"
+                                                FontSize="18"
+                                                FontAttributes="Bold"
+                                                HorizontalTextAlignment="End"
+                                                TextColor="{DynamicResource ThemePrimary}" />
+
+                                        </VerticalStackLayout>
+
+                                    </Grid>
+
+
+
+                                    <!-- =================
+                                         PROGRESS BAR
+                                         ================= -->
+
+                                    <ProgressBar
+                                        Progress="{Binding Progress}"
+                                        ProgressColor="{DynamicResource ThemePrimary}"
+                                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                                        HeightRequest="12" />
+
+
+
+                                    <!-- =================
+                                         GOAL DETAILS
+                                         ================= -->
+
+                                    <Grid
+                                        ColumnDefinitions="*,*,*"
+                                        ColumnSpacing="10">
+
+
+                                        <!-- REMAINING -->
+
+                                        <Border
+                                            Grid.Column="0"
+                                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                                            StrokeThickness="0"
+                                            Padding="13">
+
+                                            <Border.StrokeShape>
+                                                <RoundRectangle
+                                                    CornerRadius="10" />
+                                            </Border.StrokeShape>
 
                                             <VerticalStackLayout
-                                                Grid.Column="1"
-                                                HorizontalOptions="End"
                                                 Spacing="4">
 
                                                 <Label
-                                                    Text="{Binding AmountText}"
-                                                    FontSize="16"
-                                                    FontAttributes="Bold"
-                                                    TextColor="{DynamicResource TextPrimary}"
-                                                    HorizontalTextAlignment="End" />
-
-                                                <Label
-                                                    Text="{Binding PercentText}"
-                                                    FontSize="13"
-                                                    FontAttributes="Bold"
-                                                    TextColor="{DynamicResource ThemePrimary}"
-                                                    HorizontalTextAlignment="End" />
-
-                                            </VerticalStackLayout>
-
-                                        </Grid>
-
-
-
-                                        <!-- =================
-                                             PROGRESS
-                                             ================= -->
-
-                                        <ProgressBar
-                                            Progress="{Binding Progress}"
-                                            ProgressColor="{DynamicResource ThemePrimary}"
-                                            BackgroundColor="{DynamicResource BorderColor}"
-                                            HeightRequest="9" />
-
-
-
-                                        <!-- =================
-                                             GOAL DETAILS
-                                             ================= -->
-
-                                        <Grid
-                                            ColumnDefinitions="*,*,*"
-                                            ColumnSpacing="20">
-
-
-                                            <!-- REMAINING -->
-
-                                            <VerticalStackLayout
-                                                Grid.Column="0"
-                                                Spacing="3">
-
-                                                <Label
                                                     Text="REMAINING"
-                                                    FontSize="10"
+                                                    FontSize="9"
                                                     FontAttributes="Bold"
                                                     TextColor="{DynamicResource TextMuted}" />
 
@@ -517,17 +693,29 @@
 
                                             </VerticalStackLayout>
 
+                                        </Border>
 
 
-                                            <!-- TIME LEFT -->
+
+                                        <!-- TIME LEFT -->
+
+                                        <Border
+                                            Grid.Column="1"
+                                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                                            StrokeThickness="0"
+                                            Padding="13">
+
+                                            <Border.StrokeShape>
+                                                <RoundRectangle
+                                                    CornerRadius="10" />
+                                            </Border.StrokeShape>
 
                                             <VerticalStackLayout
-                                                Grid.Column="1"
-                                                Spacing="3">
+                                                Spacing="4">
 
                                                 <Label
                                                     Text="TIME LEFT"
-                                                    FontSize="10"
+                                                    FontSize="9"
                                                     FontAttributes="Bold"
                                                     TextColor="{DynamicResource TextMuted}" />
 
@@ -539,17 +727,29 @@
 
                                             </VerticalStackLayout>
 
+                                        </Border>
 
 
-                                            <!-- NEEDED PER WEEK -->
+
+                                        <!-- NEEDED PER WEEK -->
+
+                                        <Border
+                                            Grid.Column="2"
+                                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                                            StrokeThickness="0"
+                                            Padding="13">
+
+                                            <Border.StrokeShape>
+                                                <RoundRectangle
+                                                    CornerRadius="10" />
+                                            </Border.StrokeShape>
 
                                             <VerticalStackLayout
-                                                Grid.Column="2"
-                                                Spacing="3">
+                                                Spacing="4">
 
                                                 <Label
                                                     Text="NEEDED / WEEK"
-                                                    FontSize="10"
+                                                    FontSize="9"
                                                     FontAttributes="Bold"
                                                     TextColor="{DynamicResource TextMuted}" />
 
@@ -561,95 +761,241 @@
 
                                             </VerticalStackLayout>
 
-                                        </Grid>
-
-
-
-                                        <!-- =================
-                                             STATUS
-                                             ================= -->
-
-                                        <Border
-                                            BackgroundColor="{DynamicResource SurfaceBackground}"
-                                            Stroke="{DynamicResource BorderColor}"
-                                            StrokeThickness="1"
-                                            Padding="12">
-
-                                            <Border.StrokeShape>
-                                                <RoundRectangle
-                                                    CornerRadius="10" />
-                                            </Border.StrokeShape>
-
-                                            <Label
-                                                Text="{Binding StatusText}"
-                                                FontSize="13"
-                                                FontAttributes="Bold"
-                                                TextColor="{Binding StatusColor}" />
-
                                         </Border>
 
+                                    </Grid>
 
 
-                                        <!-- =================
-                                             ACTIONS
-                                             ================= -->
 
-                                        <HorizontalStackLayout
-                                            Spacing="10"
-                                            HorizontalOptions="End">
+                                    <!-- =================
+                                         TARGET DATE
+                                         ================= -->
+
+                                    <Label
+                                        Text="{Binding DeadlineText}"
+                                        FontSize="11"
+                                        TextColor="{DynamicResource TextSecondary}" />
 
 
-                                            <Button
-                                                Text="Make Primary"
-                                                IsVisible="{Binding CanMakePrimary}"
-                                                Clicked="MakePrimaryClicked"
-                                                BackgroundColor="{DynamicResource SurfaceBackground}"
-                                                TextColor="{DynamicResource ThemePrimary}"
-                                                BorderColor="{DynamicResource ThemePrimary}"
-                                                BorderWidth="1"
+
+                                    <!-- =================================
+                                         POCKETAI RECOMMENDATION
+                                         ================================= -->
+
+                                    <Border
+                                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                                        Stroke="{DynamicResource ThemePrimaryLight}"
+                                        StrokeThickness="1"
+                                        Padding="15">
+
+                                        <Border.StrokeShape>
+                                            <RoundRectangle
+                                                CornerRadius="11" />
+                                        </Border.StrokeShape>
+
+
+                                        <VerticalStackLayout
+                                            Spacing="10">
+
+
+                                            <!-- RECOMMENDATION HEADER -->
+
+                                            <Grid
+                                                ColumnDefinitions="*,Auto"
+                                                ColumnSpacing="15">
+
+                                                <VerticalStackLayout
+                                                    Grid.Column="0"
+                                                    Spacing="3">
+
+                                                    <Label
+                                                        Text="POCKETAI RECOMMENDS"
+                                                        FontSize="9"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{DynamicResource ThemePrimary}" />
+
+                                                    <Label
+                                                        Text="{Binding RecommendedAmountText}"
+                                                        FontSize="18"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{DynamicResource TextPrimary}" />
+
+                                                </VerticalStackLayout>
+
+
+
+                                                <!-- PERCENTAGE -->
+
+                                                <Border
+                                                    Grid.Column="1"
+                                                    BackgroundColor="{DynamicResource CardBackground}"
+                                                    Stroke="{DynamicResource ThemePrimaryLight}"
+                                                    StrokeThickness="1"
+                                                    Padding="11,6"
+                                                    VerticalOptions="Center">
+
+                                                    <Border.StrokeShape>
+                                                        <RoundRectangle
+                                                            CornerRadius="8" />
+                                                    </Border.StrokeShape>
+
+                                                    <Label
+                                                        Text="{Binding RecommendedPercentageText}"
+                                                        FontSize="11"
+                                                        FontAttributes="Bold"
+                                                        TextColor="{DynamicResource ThemePrimary}" />
+
+                                                </Border>
+
+                                            </Grid>
+
+
+
+                                            <!-- DIVIDER -->
+
+                                            <BoxView
+                                                HeightRequest="1"
+                                                BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                                                Opacity="0.6" />
+
+
+
+                                            <!-- WHY -->
+
+                                            <VerticalStackLayout
+                                                Spacing="3">
+
+                                                <Label
+                                                    Text="WHY?"
+                                                    FontSize="9"
+                                                    FontAttributes="Bold"
+                                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                                <Label
+                                                    Text="{Binding RecommendationReason}"
+                                                    FontSize="11"
+                                                    LineBreakMode="WordWrap"
+                                                    TextColor="{DynamicResource TextSecondary}" />
+
+                                            </VerticalStackLayout>
+
+                                        </VerticalStackLayout>
+
+                                    </Border>
+
+
+
+                                    <!-- =================
+                                         STATUS
+                                         ================= -->
+
+                                    <Border
+                                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                                        StrokeThickness="0"
+                                        Padding="13">
+
+                                        <Border.StrokeShape>
+                                            <RoundRectangle
+                                                CornerRadius="10" />
+                                        </Border.StrokeShape>
+
+                                        <Grid
+                                            ColumnDefinitions="Auto,*"
+                                            ColumnSpacing="8">
+
+                                            <Label
+                                                Grid.Column="0"
+                                                Text="STATUS"
+                                                FontSize="9"
                                                 FontAttributes="Bold"
-                                                CornerRadius="9"
-                                                Padding="14,8" />
+                                                VerticalOptions="Center"
+                                                TextColor="{DynamicResource TextMuted}" />
 
-
-                                            <Button
-                                                Text="+ Add Savings"
-                                                Clicked="ShowAddSavingsClicked"
-                                                BackgroundColor="{DynamicResource ThemePrimary}"
-                                                TextColor="{DynamicResource TextOnPrimary}"
+                                            <Label
+                                                Grid.Column="1"
+                                                Text="{Binding StatusText}"
+                                                FontSize="12"
                                                 FontAttributes="Bold"
-                                                CornerRadius="9"
-                                                Padding="14,8" />
+                                                VerticalOptions="Center"
+                                                TextColor="{Binding StatusColor}" />
+
+                                        </Grid>
+
+                                    </Border>
 
 
-                                            <Button
-                                                Text="Edit"
-                                                Clicked="ShowEditGoalClicked"
-                                                BackgroundColor="{DynamicResource SurfaceBackground}"
-                                                TextColor="{DynamicResource TextPrimary}"
-                                                BorderColor="{DynamicResource BorderColor}"
-                                                BorderWidth="1"
-                                                FontAttributes="Bold"
-                                                CornerRadius="9"
-                                                Padding="14,8" />
 
-                                        </HorizontalStackLayout>
+                                    <!-- =================
+                                         ACTIONS
+                                         ================= -->
 
-                                    </VerticalStackLayout>
+                                    <Grid
+                                        ColumnDefinitions="*,*,*"
+                                        ColumnSpacing="10">
 
-                                </Border>
 
-                            </DataTemplate>
+                                        <!-- SHOW ON HOME -->
 
-                        </BindableLayout.ItemTemplate>
+                                        <Button
+                                            Grid.Column="0"
+                                            Text="Show on Home"
+                                            Clicked="MakePrimaryClicked"
+                                            IsVisible="{Binding CanMakePrimary}"
+                                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                                            TextColor="{DynamicResource TextSecondary}"
+                                            BorderColor="{DynamicResource BorderColor}"
+                                            BorderWidth="1"
+                                            FontSize="11"
+                                            FontAttributes="Bold"
+                                            CornerRadius="8" />
 
-                    </VerticalStackLayout>
+
+
+                                        <!-- ADD SAVINGS -->
+
+                                        <Button
+                                            Grid.Column="1"
+                                            Text="+ Add Savings"
+                                            Clicked="ShowAddSavingsClicked"
+                                            BackgroundColor="{DynamicResource ThemePrimary}"
+                                            TextColor="{DynamicResource TextOnPrimary}"
+                                            FontSize="11"
+                                            FontAttributes="Bold"
+                                            CornerRadius="8" />
+
+
+
+                                        <!-- EDIT -->
+
+                                        <Button
+                                            Grid.Column="2"
+                                            Text="Edit Goal"
+                                            Clicked="ShowEditGoalClicked"
+                                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                                            TextColor="{DynamicResource TextSecondary}"
+                                            BorderColor="{DynamicResource BorderColor}"
+                                            BorderWidth="1"
+                                            FontSize="11"
+                                            FontAttributes="Bold"
+                                            CornerRadius="8" />
+
+                                    </Grid>
+
+                                </VerticalStackLayout>
+
+                            </Border>
+
+                        </DataTemplate>
+
+                    </BindableLayout.ItemTemplate>
 
                 </VerticalStackLayout>
 
 
 
-                <!-- BOTTOM SPACE -->
+                <!-- =================================
+                     BOTTOM SPACING
+                     ================================= -->
 
                 <BoxView
                     HeightRequest="15"
@@ -661,42 +1007,43 @@
 
 
 
-        <!-- =====================================
+        <!-- ==========================================
              MODAL BACKGROUND
-             ===================================== -->
+             ========================================== -->
 
-        <BoxView
+        <Grid
             x:Name="ModalBackground"
-            ZIndex="10"
+            IsVisible="False"
             BackgroundColor="#90000000"
-            IsVisible="False">
+            ZIndex="50">
 
-            <BoxView.GestureRecognizers>
+            <Grid.GestureRecognizers>
 
                 <TapGestureRecognizer
                     Tapped="CloseSavingsModalsClicked" />
 
-            </BoxView.GestureRecognizers>
+            </Grid.GestureRecognizers>
 
-        </BoxView>
+        </Grid>
 
 
 
-        <!-- =====================================
-             CREATE / EDIT GOAL MODAL
-             ===================================== -->
+        <!-- ==========================================
+             ADD / EDIT SAVINGS GOAL MODAL
+             ========================================== -->
 
         <Border
             x:Name="GoalModal"
-            ZIndex="20"
             IsVisible="False"
+            ZIndex="100"
+            WidthRequest="520"
+            MaximumHeightRequest="720"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
             BackgroundColor="{DynamicResource CardBackground}"
             Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
-            Padding="28"
-            WidthRequest="460"
-            HorizontalOptions="Center"
-            VerticalOptions="Center">
+            Padding="0">
 
             <Border.StrokeShape>
                 <RoundRectangle
@@ -704,184 +1051,341 @@
             </Border.StrokeShape>
 
 
-            <VerticalStackLayout
-                Spacing="17">
-
-
-                <!-- MODAL HEADER -->
+            <ScrollView>
 
                 <VerticalStackLayout
-                    Spacing="4">
-
-                    <Label
-                        x:Name="GoalModalTitleLabel"
-                        Text="ADD SAVINGS GOAL"
-                        FontSize="22"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextPrimary}" />
-
-                    <Label
-                        Text="Create a target so PocketAI can help track the plan."
-                        FontSize="12"
-                        TextColor="{DynamicResource TextSecondary}" />
-
-                </VerticalStackLayout>
+                    Padding="26"
+                    Spacing="18">
 
 
+                    <!-- =============================
+                         HEADER
+                         ============================= -->
 
-                <!-- NAME -->
+                    <Grid
+                        ColumnDefinitions="*,Auto">
 
-                <VerticalStackLayout
-                    Spacing="6">
+                        <VerticalStackLayout
+                            Grid.Column="0"
+                            Spacing="3">
 
-                    <Label
-                        Text="Goal Name"
-                        FontSize="13"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextSecondary}" />
+                            <Label
+                                x:Name="GoalModalTitleLabel"
+                                Text="ADD SAVINGS GOAL"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
 
-                    <Entry
-                        x:Name="GoalNameEntry"
-                        Placeholder="Emergency Fund"
-                        PlaceholderColor="{DynamicResource TextMuted}"
+                            <Label
+                                Text="Savings Goal"
+                                FontSize="22"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                        </VerticalStackLayout>
+
+
+                        <Button
+                            Grid.Column="1"
+                            Text="✕"
+                            Clicked="CancelSavingsModalClicked"
+                            BackgroundColor="Transparent"
+                            TextColor="{DynamicResource TextSecondary}"
+                            FontSize="17"
+                            Padding="8" />
+
+                    </Grid>
+
+
+
+                    <!-- =============================
+                         GOAL NAME
+                         ============================= -->
+
+                    <VerticalStackLayout
+                        Spacing="6">
+
+                        <Label
+                            Text="Goal Name"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <Entry
+                            x:Name="GoalNameEntry"
+                            Placeholder="Example: Emergency Fund"
+                            PlaceholderColor="{DynamicResource TextMuted}"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="{DynamicResource SurfaceBackground}" />
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- =============================
+                         TARGET AMOUNT
+                         ============================= -->
+
+                    <VerticalStackLayout
+                        Spacing="6">
+
+                        <Label
+                            Text="Target Amount"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <Entry
+                            x:Name="GoalTargetEntry"
+                            Placeholder="Example: 5000"
+                            PlaceholderColor="{DynamicResource TextMuted}"
+                            Keyboard="Numeric"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="{DynamicResource SurfaceBackground}" />
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- =============================
+                         ALREADY SAVED
+                         ============================= -->
+
+                    <VerticalStackLayout
+                        Spacing="6">
+
+                        <Label
+                            Text="Already Saved"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <Entry
+                            x:Name="GoalCurrentEntry"
+                            Placeholder="0.00"
+                            PlaceholderColor="{DynamicResource TextMuted}"
+                            Keyboard="Numeric"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="{DynamicResource SurfaceBackground}" />
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- =============================
+                         TARGET DATE
+                         ============================= -->
+
+                    <VerticalStackLayout
+                        Spacing="6">
+
+                        <Label
+                            Text="Target Date"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <DatePicker
+                            x:Name="GoalDeadlinePicker"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="{DynamicResource SurfaceBackground}" />
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- =============================
+                         PRIORITY
+                         ============================= -->
+
+                    <VerticalStackLayout
+                        Spacing="6">
+
+                        <Label
+                            Text="Priority Level"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                        <Picker
+                            x:Name="GoalPriorityPicker"
+                            Title="Choose a priority"
+                            TitleColor="{DynamicResource TextMuted}"
+                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                        <Label
+                            Text="Priority 1 is highest. Goals can share the same priority if they matter equally."
+                            FontSize="10"
+                            TextColor="{DynamicResource TextMuted}" />
+
+                    </VerticalStackLayout>
+
+
+
+                    <!-- =============================
+                         ESSENTIAL GOAL
+                         ============================= -->
+
+                    <Border
                         BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}" />
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="14">
 
-                </VerticalStackLayout>
-
-
-
-                <!-- TARGET -->
-
-                <VerticalStackLayout
-                    Spacing="6">
-
-                    <Label
-                        Text="Target Amount"
-                        FontSize="13"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextSecondary}" />
-
-                    <Entry
-                        x:Name="GoalTargetEntry"
-                        Placeholder="6000.00"
-                        PlaceholderColor="{DynamicResource TextMuted}"
-                        Keyboard="Numeric"
-                        BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}" />
-
-                </VerticalStackLayout>
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="10" />
+                        </Border.StrokeShape>
 
 
+                        <Grid
+                            ColumnDefinitions="*,Auto"
+                            ColumnSpacing="15">
 
-                <!-- CURRENT -->
+                            <VerticalStackLayout
+                                Grid.Column="0"
+                                Spacing="4">
 
-                <VerticalStackLayout
-                    Spacing="6">
+                                <Label
+                                    Text="Essential Goal"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
 
-                    <Label
-                        Text="Already Saved"
-                        FontSize="13"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextSecondary}" />
+                                <Label
+                                    Text="Essential goals receive extra protection when PocketAI divides available savings."
+                                    FontSize="10"
+                                    TextColor="{DynamicResource TextSecondary}" />
 
-                    <Entry
-                        x:Name="GoalCurrentEntry"
-                        Placeholder="0.00"
-                        PlaceholderColor="{DynamicResource TextMuted}"
-                        Keyboard="Numeric"
-                        BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}" />
+                            </VerticalStackLayout>
 
-                </VerticalStackLayout>
+
+                            <Switch
+                                x:Name="GoalEssentialSwitch"
+                                Grid.Column="1"
+                                VerticalOptions="Center"
+                                OnColor="{DynamicResource ThemePrimary}" />
+
+                        </Grid>
+
+                    </Border>
 
 
 
-                <!-- DEADLINE -->
+                    <!-- =============================
+                         EDUCATION
+                         ============================= -->
 
-                <VerticalStackLayout
-                    Spacing="6">
+                    <Border
+                        BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                        StrokeThickness="0"
+                        Padding="14">
 
-                    <Label
-                        Text="Target Date"
-                        FontSize="13"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextSecondary}" />
-
-                    <DatePicker
-                        x:Name="GoalDeadlinePicker"
-                        BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}" />
-
-                </VerticalStackLayout>
+                        <Border.StrokeShape>
+                            <RoundRectangle
+                                CornerRadius="10" />
+                        </Border.StrokeShape>
 
 
+                        <VerticalStackLayout
+                            Spacing="5">
 
-                <!-- SAVE / CANCEL -->
+                            <Label
+                                Text="How Priority Savings works"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
 
-                <Grid
-                    ColumnDefinitions="*,*"
-                    ColumnSpacing="12"
-                    Margin="0,8,0,0">
+                            <Label
+                                Text="Priority tells PocketAI how financially important this goal is. Essential tells PocketAI whether this goal should receive extra protection when money is limited."
+                                FontSize="10"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                            <Label
+                                Text="Shown on Home is separate. It only controls which savings goal appears on your dashboard."
+                                FontSize="10"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- =============================
+                         SAVE / CANCEL
+                         ============================= -->
+
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        ColumnSpacing="10">
+
+                        <Button
+                            Grid.Column="0"
+                            Text="Cancel"
+                            Clicked="CancelSavingsModalClicked"
+                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                            TextColor="{DynamicResource TextSecondary}"
+                            BorderColor="{DynamicResource BorderColor}"
+                            BorderWidth="1"
+                            FontAttributes="Bold"
+                            CornerRadius="9" />
+
+
+                        <Button
+                            x:Name="SaveGoalButton"
+                            Grid.Column="1"
+                            Text="Add Goal"
+                            Clicked="SaveGoalClicked"
+                            BackgroundColor="{DynamicResource ThemePrimary}"
+                            TextColor="{DynamicResource TextOnPrimary}"
+                            FontAttributes="Bold"
+                            CornerRadius="9" />
+
+                    </Grid>
+
+
+
+                    <!-- =============================
+                         DELETE
+                         ============================= -->
 
                     <Button
-                        Grid.Column="0"
-                        Text="Cancel"
-                        Clicked="CancelSavingsModalClicked"
-                        BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}"
-                        BorderColor="{DynamicResource BorderColor}"
+                        x:Name="DeleteGoalButton"
+                        IsVisible="False"
+                        Text="Delete Savings Goal"
+                        Clicked="DeleteGoalClicked"
+                        BackgroundColor="{DynamicResource DangerBackground}"
+                        TextColor="{DynamicResource DangerColor}"
+                        BorderColor="{DynamicResource DangerColor}"
                         BorderWidth="1"
-                        CornerRadius="10" />
-
-
-                    <Button
-                        x:Name="SaveGoalButton"
-                        Grid.Column="1"
-                        Text="Add Goal"
-                        Clicked="SaveGoalClicked"
-                        BackgroundColor="{DynamicResource ThemePrimary}"
-                        TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="10" />
+                        CornerRadius="9" />
 
-                </Grid>
+                </VerticalStackLayout>
 
-
-
-                <!-- DELETE -->
-
-                <Button
-                    x:Name="DeleteGoalButton"
-                    Text="Delete Goal"
-                    Clicked="DeleteGoalClicked"
-                    BackgroundColor="{DynamicResource DangerBackground}"
-                    TextColor="{DynamicResource DangerColor}"
-                    FontAttributes="Bold"
-                    CornerRadius="10"
-                    IsVisible="False" />
-
-            </VerticalStackLayout>
+            </ScrollView>
 
         </Border>
 
 
 
-        <!-- =====================================
+        <!-- ==========================================
              ADD SAVINGS MODAL
-             ===================================== -->
+             ========================================== -->
 
         <Border
             x:Name="AddSavingsModal"
-            ZIndex="30"
             IsVisible="False"
+            ZIndex="100"
+            WidthRequest="440"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
             BackgroundColor="{DynamicResource CardBackground}"
             Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
-            Padding="28"
-            WidthRequest="420"
-            HorizontalOptions="Center"
-            VerticalOptions="Center">
+            Padding="26">
 
             <Border.StrokeShape>
                 <RoundRectangle
@@ -895,23 +1399,39 @@
 
                 <!-- HEADER -->
 
-                <VerticalStackLayout
-                    Spacing="4">
+                <Grid
+                    ColumnDefinitions="*,Auto">
 
-                    <Label
-                        Text="ADD SAVINGS"
-                        FontSize="22"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource TextPrimary}" />
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="3">
 
-                    <Label
-                        x:Name="AddSavingsGoalNameLabel"
-                        Text="Savings Goal"
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        TextColor="{DynamicResource ThemePrimary}" />
+                        <Label
+                            Text="ADD SAVINGS"
+                            FontSize="10"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource ThemePrimary}" />
 
-                </VerticalStackLayout>
+                        <Label
+                            x:Name="AddSavingsGoalNameLabel"
+                            Text="Savings Goal"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="✕"
+                        Clicked="CancelSavingsModalClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource TextSecondary}"
+                        FontSize="17"
+                        Padding="8" />
+
+                </Grid>
 
 
 
@@ -921,20 +1441,41 @@
                     Spacing="6">
 
                     <Label
-                        Text="Amount"
-                        FontSize="13"
+                        Text="Amount to Add"
+                        FontSize="12"
                         FontAttributes="Bold"
                         TextColor="{DynamicResource TextSecondary}" />
 
                     <Entry
                         x:Name="AddSavingsAmountEntry"
-                        Placeholder="100.00"
+                        Placeholder="Example: 100.00"
                         PlaceholderColor="{DynamicResource TextMuted}"
                         Keyboard="Numeric"
-                        BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}" />
+                        TextColor="{DynamicResource TextPrimary}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}" />
 
                 </VerticalStackLayout>
+
+
+
+                <!-- INFO -->
+
+                <Border
+                    BackgroundColor="{DynamicResource SurfaceBackground}"
+                    StrokeThickness="0"
+                    Padding="12">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle
+                            CornerRadius="9" />
+                    </Border.StrokeShape>
+
+                    <Label
+                        Text="This updates the progress of this savings goal. PocketAI does not move money between accounts yet."
+                        FontSize="10"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                </Border>
 
 
 
@@ -942,17 +1483,18 @@
 
                 <Grid
                     ColumnDefinitions="*,*"
-                    ColumnSpacing="12">
+                    ColumnSpacing="10">
 
                     <Button
                         Grid.Column="0"
                         Text="Cancel"
                         Clicked="CancelSavingsModalClicked"
                         BackgroundColor="{DynamicResource SurfaceBackground}"
-                        TextColor="{DynamicResource TextPrimary}"
+                        TextColor="{DynamicResource TextSecondary}"
                         BorderColor="{DynamicResource BorderColor}"
                         BorderWidth="1"
-                        CornerRadius="10" />
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
 
 
                     <Button
@@ -962,7 +1504,177 @@
                         BackgroundColor="{DynamicResource ThemePrimary}"
                         TextColor="{DynamicResource TextOnPrimary}"
                         FontAttributes="Bold"
-                        CornerRadius="10" />
+                        CornerRadius="9" />
+
+                </Grid>
+
+            </VerticalStackLayout>
+
+        </Border>
+
+
+
+        <!-- ==========================================
+             ADJUST AVAILABLE SAVINGS MODAL
+             ========================================== -->
+
+        <Border
+            x:Name="AdjustSavingsModal"
+            IsVisible="False"
+            ZIndex="100"
+            WidthRequest="430"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            BackgroundColor="{DynamicResource CardBackground}"
+            Stroke="{DynamicResource BorderColor}"
+            StrokeThickness="1"
+            Padding="26">
+
+            <Border.StrokeShape>
+                <RoundRectangle
+                    CornerRadius="18" />
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout
+                Spacing="18">
+
+
+                <!-- =============================
+                     HEADER
+                     ============================= -->
+
+                <Grid
+                    ColumnDefinitions="*,Auto">
+
+                    <VerticalStackLayout
+                        Grid.Column="0"
+                        Spacing="4">
+
+                        <Label
+                            Text="ADJUST SAVINGS"
+                            FontSize="10"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource ThemePrimary}" />
+
+                        <Label
+                            Text="How much do you want to save?"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource TextPrimary}" />
+
+                    </VerticalStackLayout>
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="✕"
+                        Clicked="CancelSavingsModalClicked"
+                        BackgroundColor="Transparent"
+                        TextColor="{DynamicResource TextSecondary}"
+                        FontSize="17"
+                        Padding="8" />
+
+                </Grid>
+
+
+
+                <!-- DESCRIPTION -->
+
+                <Label
+                    Text="PocketAI will recalculate every goal's recommendation using the amount you choose."
+                    FontSize="11"
+                    TextColor="{DynamicResource TextSecondary}" />
+
+
+
+                <!-- =============================
+                     AMOUNT
+                     ============================= -->
+
+                <VerticalStackLayout
+                    Spacing="6">
+
+                    <Label
+                        Text="Savings Amount"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+                    <Entry
+                        x:Name="AdjustSavingsAmountEntry"
+                        Placeholder="Example: 500.00"
+                        PlaceholderColor="{DynamicResource TextMuted}"
+                        Keyboard="Numeric"
+                        TextColor="{DynamicResource TextPrimary}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- =============================
+                     EDUCATION
+                     ============================= -->
+
+                <Border
+                    BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                    StrokeThickness="0"
+                    Padding="12">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle
+                            CornerRadius="9" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout
+                        Spacing="4">
+
+                        <Label
+                            Text="You stay in control"
+                            FontSize="10"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource ThemePrimary}" />
+
+                        <Label
+                            Text="Changing this amount updates PocketAI's recommendation only. It does not transfer money or change any savings balances."
+                            FontSize="10"
+                            TextColor="{DynamicResource TextSecondary}" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+
+                <!-- =============================
+                     BUTTONS
+                     ============================= -->
+
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="10">
+
+                    <Button
+                        Grid.Column="0"
+                        Text="Cancel"
+                        Clicked="CancelSavingsModalClicked"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextSecondary}"
+                        BorderColor="{DynamicResource BorderColor}"
+                        BorderWidth="1"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
+
+
+                    <Button
+                        Grid.Column="1"
+                        Text="Use This Amount"
+                        Clicked="SaveAdjustedSavingsAmountClicked"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
+                        FontAttributes="Bold"
+                        CornerRadius="9" />
 
                 </Grid>
 

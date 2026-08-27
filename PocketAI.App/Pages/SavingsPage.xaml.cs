@@ -1,19 +1,88 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 namespace PocketAI.App.Pages;
 
 public partial class SavingsPage : ContentPage
 {
+    // ==========================================
+    // SERVICES
+    // ==========================================
+
     private readonly DataBaseManager dataBaseManager;
+
     private readonly AnalyticsService analyticsService;
 
+    private readonly SavingsAllocationService
+        savingsAllocationService;
 
-    // Stores all savings goals.
+
+
+    // ==========================================
+    // SAVINGS GOALS
+    // ==========================================
+
     private List<SavingsGoal> savingsGoals =
         new List<SavingsGoal>();
 
 
-    // Stores the goal currently being edited
-    // or receiving a savings contribution.
     private SavingsGoal? selectedGoal;
+
+
+
+    // ==========================================
+    // POCKETAI SAVINGS RECOMMENDATION
+    // ==========================================
+
+    // Amount currently being divided
+    // between the user's savings goals.
+    private double availableForSavings;
+
+
+    // PocketAI's recommended amount to
+    // keep available instead of allocating.
+    private double recommendedSavingsBuffer;
+
+
+    // PocketAI's projected amount remaining
+    // at the end of the current month.
+    private double projectedEndOfMonthMoney;
+
+
+    // Decimal form.
+    //
+    // Example:
+    // 0.30 = 30%
+    private double
+        recommendedSavingsBufferPercentage;
+
+
+    // Explanation shown to the user.
+    private string savingsBufferReason =
+        "";
+
+
+    // PocketAI's calculated savings amount
+    // before a user manually adjusts it.
+    private double pocketAiEstimatedSavings;
+
+
+    // null:
+    // use PocketAI's estimate.
+    //
+    // number:
+    // use the amount manually selected
+    // by the user.
+    private double?
+        userSavingsAmountOverride;
+
+
+    // Current recommendation across all
+    // active savings goals.
+    private SavingsAllocationPlan?
+        currentAllocationPlan;
 
 
 
@@ -41,6 +110,10 @@ public partial class SavingsPage : ContentPage
             new AnalyticsService();
 
 
+        savingsAllocationService =
+            new SavingsAllocationService();
+
+
         dataBaseManager.CreateTables();
     }
 
@@ -61,24 +134,490 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // LOAD ALL SAVINGS GOALS
+    // CALCULATE SAVINGS RECOMMENDATION
+    // ==========================================
+
+    private void CalculateSavingsRecommendation()
+    {
+        // ======================================
+        // LOAD CURRENT FINANCIAL DATA
+        // ======================================
+
+        List<Expense> expenses =
+            dataBaseManager
+                .GetAllExpenses();
+
+
+        Income? income =
+            dataBaseManager
+                .GetIncome();
+
+
+        AccountBalance? accountBalance =
+            dataBaseManager
+                .GetAccountBalance();
+
+
+        SavingsGoal? primarySavingsGoal =
+            dataBaseManager
+                .GetSavingsGoal();
+
+
+        List<BudgetLimit> budgetLimits =
+            dataBaseManager
+                .GetBudgetLimits();
+
+
+        List<RecurringExpenses> recurringExpenses =
+            dataBaseManager
+                .GetRecuringExpenses();
+
+
+
+        // ======================================
+        // BUILD FINANCIAL SUMMARY
+        // ======================================
+
+        FinancialSummary summary =
+            analyticsService
+                .BuildFinancialSummary(
+                    expenses,
+                    income,
+                    accountBalance,
+                    primarySavingsGoal,
+                    budgetLimits,
+                    recurringExpenses);
+
+
+
+        // ======================================
+        // DAYS LEFT IN CURRENT MONTH
+        // ======================================
+
+        DateTime today =
+            DateTime.Today;
+
+
+        int daysInMonth =
+            DateTime.DaysInMonth(
+                today.Year,
+                today.Month);
+
+
+        int daysLeftInMonth =
+            Math.Max(
+                daysInMonth -
+                today.Day,
+                0);
+
+
+
+        // ======================================
+        // CURRENT DAILY SPENDING RATE
+        // ======================================
+
+        double averageDailySpending =
+            analyticsService
+                .GetAverageDailySpending(
+                    summary.CurrentMonthSpent,
+                    today.Day);
+
+
+
+        // ======================================
+        // PROJECT REST-OF-MONTH SPENDING
+        // ======================================
+
+        double projectedAdditionalSpending =
+            analyticsService
+                .GetProjectedAdditionalSpending(
+                    averageDailySpending,
+                    daysLeftInMonth);
+
+
+
+        // ======================================
+        // PROJECT END-OF-MONTH MONEY
+        // ======================================
+
+        projectedEndOfMonthMoney =
+            analyticsService
+                .GetProjectedEndOfMonthMoney(
+                    summary.MoneyLeft,
+                    projectedAdditionalSpending);
+
+
+
+        // ======================================
+        // DYNAMIC BUFFER PERCENTAGE
+        // ======================================
+
+        recommendedSavingsBufferPercentage =
+            savingsAllocationService
+                .CalculateRecommendedBufferPercentage(
+                    projectedEndOfMonthMoney,
+                    summary.MonthlyIncome,
+                    summary.MonthlyRecurringExpenses,
+                    summary.OverBudgetCount);
+
+
+
+        // ======================================
+        // RECOMMENDED BUFFER
+        // ======================================
+
+        recommendedSavingsBuffer =
+            savingsAllocationService
+                .CalculateRecommendedBuffer(
+                    projectedEndOfMonthMoney,
+                    summary.MonthlyIncome,
+                    summary.MonthlyRecurringExpenses,
+                    summary.OverBudgetCount);
+
+
+
+        // ======================================
+        // POCKETAI'S AVAILABLE SAVINGS ESTIMATE
+        // ======================================
+
+        pocketAiEstimatedSavings =
+            savingsAllocationService
+                .CalculateAvailableForSavings(
+                    projectedEndOfMonthMoney,
+                    summary.MonthlyIncome,
+                    summary.MonthlyRecurringExpenses,
+                    summary.OverBudgetCount);
+
+
+
+        // ======================================
+        // AMOUNT ACTUALLY USED
+        // ======================================
+        //
+        // PocketAI recommends an amount,
+        // but the user remains in control.
+        // ======================================
+
+        availableForSavings =
+            userSavingsAmountOverride
+            ??
+            pocketAiEstimatedSavings;
+
+
+
+        // ======================================
+        // BUFFER EXPLANATION
+        // ======================================
+
+        savingsBufferReason =
+            BuildSavingsBufferReason(
+                summary);
+
+
+
+        // ======================================
+        // DIVIDE AVAILABLE SAVINGS
+        // ======================================
+
+        currentAllocationPlan =
+            savingsAllocationService
+                .CalculateRecommendedAllocation(
+                    savingsGoals,
+                    availableForSavings);
+    }
+
+
+
+    // ==========================================
+    // BUILD SAVINGS BUFFER EXPLANATION
+    // ==========================================
+
+    private string BuildSavingsBufferReason(
+        FinancialSummary summary)
+    {
+        // ======================================
+        // NO POSITIVE SURPLUS
+        // ======================================
+
+        if (projectedEndOfMonthMoney <= 0)
+        {
+            return
+                "PocketAI is not recommending additional savings because your projected month-end money is too limited.";
+        }
+
+
+
+        int bufferPercent =
+            (int)Math.Round(
+                recommendedSavingsBufferPercentage
+                *
+                100);
+
+
+
+        // ======================================
+        // MONTHLY INCOME NOT SET
+        // ======================================
+
+        if (summary.MonthlyIncome <= 0)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) as a buffer because reliable monthly income has not been set yet.";
+        }
+
+
+
+        // ======================================
+        // FINANCIAL PRESSURE RATIOS
+        // ======================================
+
+        double recurringRatio =
+            summary.MonthlyRecurringExpenses
+            /
+            summary.MonthlyIncome;
+
+
+        double surplusRatio =
+            projectedEndOfMonthMoney
+            /
+            summary.MonthlyIncome;
+
+
+
+        // ======================================
+        // HIGH FINANCIAL PRESSURE
+        // ======================================
+
+        if (summary.OverBudgetCount >= 2 &&
+            recurringRatio >= 0.35)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available because several budgets are over their limits and recurring bills are using a significant part of your income.";
+        }
+
+
+
+        // ======================================
+        // MULTIPLE BUDGETS OVER LIMIT
+        // ======================================
+
+        if (summary.OverBudgetCount >= 2)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) as extra protection because multiple budget categories are currently over their limits.";
+        }
+
+
+
+        // ======================================
+        // ONE BUDGET OVER LIMIT
+        // ======================================
+
+        if (summary.OverBudgetCount == 1)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available because one of your budget categories is currently over its limit.";
+        }
+
+
+
+        // ======================================
+        // VERY HIGH RECURRING BILL PRESSURE
+        // ======================================
+
+        if (recurringRatio >= 0.50)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available because recurring bills are using a large portion of your monthly income.";
+        }
+
+
+
+        // ======================================
+        // MODERATE RECURRING BILL PRESSURE
+        // ======================================
+
+        if (recurringRatio >= 0.35)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available because a significant portion of your income is already committed to recurring bills.";
+        }
+
+
+
+        // ======================================
+        // VERY TIGHT MONTH
+        // ======================================
+
+        if (surplusRatio <= 0.10)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available because your projected month-end surplus is tight.";
+        }
+
+
+
+        // ======================================
+        // TIGHT MONTH
+        // ======================================
+
+        if (surplusRatio <= 0.20)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) as a larger safety cushion because this month has limited extra cash.";
+        }
+
+
+
+        // ======================================
+        // BALANCED MONTH
+        // ======================================
+
+        if (surplusRatio <= 0.35)
+        {
+            return
+                $"PocketAI is keeping " +
+                $"{recommendedSavingsBuffer:C} " +
+                $"({bufferPercent}%) available as a balanced financial buffer.";
+        }
+
+
+
+        // ======================================
+        // STRONG MONTH
+        // ======================================
+
+        return
+            $"PocketAI is keeping " +
+            $"{recommendedSavingsBuffer:C} " +
+            $"({bufferPercent}%) available as a safety buffer while putting more of your strong projected surplus toward savings.";
+    }
+
+
+
+    // ==========================================
+    // LOAD SAVINGS GOALS
     // ==========================================
 
     private void LoadSavingsGoals()
     {
+        // ======================================
+        // LOAD GOALS FROM DATABASE
+        // ======================================
+
         savingsGoals =
             dataBaseManager
                 .GetSavingsGoals();
 
 
-        List<SavingsGoalDisplayItem> displayItems =
-            savingsGoals
-                .Select(
-                    goal =>
-                        new SavingsGoalDisplayItem(
-                            goal,
-                            analyticsService))
-                .ToList();
+
+        // ======================================
+        // SET UP PRIORITY DROPDOWN
+        // ======================================
+
+        SetupPriorityOptions();
+
+
+
+        // ======================================
+        // CALCULATE POCKETAI PLAN
+        // ======================================
+
+        CalculateSavingsRecommendation();
+
+
+
+        // ======================================
+        // AVAILABLE FOR SAVINGS DISPLAY
+        // ======================================
+
+        AvailableForSavingsLabel.Text =
+            availableForSavings
+                .ToString("C");
+
+
+
+        // ======================================
+        // BUFFER / CUSTOM AMOUNT EXPLANATION
+        // ======================================
+
+        if (userSavingsAmountOverride.HasValue)
+        {
+            if (availableForSavings >
+                pocketAiEstimatedSavings)
+            {
+                SavingsBufferLabel.Text =
+                    $"You chose {availableForSavings:C} for savings. " +
+                    $"PocketAI's estimate is {pocketAiEstimatedSavings:C}, " +
+                    $"so your custom amount uses more of the buffer PocketAI recommended keeping available.";
+            }
+            else if (availableForSavings <
+                     pocketAiEstimatedSavings)
+            {
+                SavingsBufferLabel.Text =
+                    $"You chose {availableForSavings:C} for savings. " +
+                    $"PocketAI estimates you could save about {pocketAiEstimatedSavings:C}, " +
+                    $"so your plan keeps additional money available.";
+            }
+            else
+            {
+                SavingsBufferLabel.Text =
+                    $"Your custom amount matches PocketAI's current estimate of {pocketAiEstimatedSavings:C}.";
+            }
+        }
+        else
+        {
+            SavingsBufferLabel.Text =
+                savingsBufferReason;
+        }
+
+
+
+        // ======================================
+        // BUILD GOAL DISPLAY ITEMS
+        // ======================================
+
+        List<SavingsGoalDisplayItem>
+            displayItems =
+                savingsGoals
+                    .Select(
+                        goal =>
+                        {
+                            SavingsAllocationItem?
+                                allocation =
+                                    currentAllocationPlan?
+                                        .Allocations
+                                        .FirstOrDefault(
+                                            item =>
+                                                item.GoalId
+                                                ==
+                                                goal.Id);
+
+
+                            return
+                                new SavingsGoalDisplayItem(
+                                    goal,
+                                    allocation,
+                                    availableForSavings);
+                        })
+                    .ToList();
+
 
 
         BindableLayout.SetItemsSource(
@@ -101,7 +640,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // SUMMARY
+        // TOTAL SAVED
         // ======================================
 
         double totalSaved =
@@ -110,19 +649,31 @@ public partial class SavingsPage : ContentPage
                     goal.CurrentAmount);
 
 
+
+        // ======================================
+        // TOTAL TARGET
+        // ======================================
+
         double totalTarget =
             savingsGoals.Sum(
                 goal =>
                     goal.TargetAmount);
 
 
+
+        // ======================================
+        // TOTAL REMAINING
+        // ======================================
+
         double totalRemaining =
             savingsGoals.Sum(
                 goal =>
                     Math.Max(
-                        goal.TargetAmount -
+                        goal.TargetAmount
+                        -
                         goal.CurrentAmount,
                         0));
+
 
 
         TotalSavedLabel.Text =
@@ -137,14 +688,91 @@ public partial class SavingsPage : ContentPage
             totalRemaining.ToString("C");
 
 
+
+        // ======================================
+        // ACTIVE GOAL COUNT
+        // ======================================
+
+        int activeGoalCount =
+            savingsGoals.Count(
+                goal =>
+                    goal.CurrentAmount
+                    <
+                    goal.TargetAmount);
+
+
         GoalCountLabel.Text =
-            savingsGoals.Count.ToString();
+            activeGoalCount
+                .ToString();
     }
 
 
 
     // ==========================================
-    // SHOW ADD GOAL
+    // SET UP PRIORITY OPTIONS
+    // ==========================================
+
+    private void SetupPriorityOptions()
+    {
+        int highestPriority =
+            savingsGoals
+                .Where(
+                    goal =>
+                        goal.PriorityRank > 0)
+                .Select(
+                    goal =>
+                        goal.PriorityRank)
+                .DefaultIfEmpty(0)
+                .Max();
+
+
+
+        // Always provide at least five
+        // priority levels.
+        //
+        // If the user has more goals or
+        // already uses higher priorities,
+        // automatically provide more.
+        int numberOfPriorityOptions =
+            Math.Max(
+                5,
+                Math.Max(
+                    savingsGoals.Count + 1,
+                    highestPriority + 1));
+
+
+
+        List<string> priorityOptions =
+            new List<string>();
+
+
+
+        for (int priority = 1;
+             priority <= numberOfPriorityOptions;
+             priority++)
+        {
+            if (priority == 1)
+            {
+                priorityOptions.Add(
+                    "Priority 1 — Highest");
+            }
+            else
+            {
+                priorityOptions.Add(
+                    $"Priority {priority}");
+            }
+        }
+
+
+
+        GoalPriorityPicker.ItemsSource =
+            priorityOptions;
+    }
+
+
+
+    // ==========================================
+    // SHOW ADD GOAL MODAL
     // ==========================================
 
     private void ShowAddGoalClicked(
@@ -153,6 +781,10 @@ public partial class SavingsPage : ContentPage
     {
         selectedGoal =
             null;
+
+
+        SetupPriorityOptions();
+
 
 
         GoalModalTitleLabel.Text =
@@ -167,6 +799,11 @@ public partial class SavingsPage : ContentPage
             false;
 
 
+
+        // ======================================
+        // CLEAR FORM
+        // ======================================
+
         GoalNameEntry.Text =
             "";
 
@@ -180,10 +817,59 @@ public partial class SavingsPage : ContentPage
 
 
         GoalDeadlinePicker.Date =
-            DateTime.Today.AddMonths(6);
+            DateTime.Today
+                .AddMonths(6);
+
+
+
+        // ======================================
+        // DEFAULT PRIORITY
+        // ======================================
+        //
+        // A new goal begins after the
+        // currently lowest-ranked tier.
+        //
+        // The user can freely choose another
+        // Priority, including one already used
+        // by another goal.
+        // ======================================
+
+        int nextPriority =
+            savingsGoals
+                .Where(
+                    goal =>
+                        goal.PriorityRank > 0)
+                .Select(
+                    goal =>
+                        goal.PriorityRank)
+                .DefaultIfEmpty(0)
+                .Max()
+            +
+            1;
+
+
+
+        GoalPriorityPicker.SelectedIndex =
+            Math.Max(
+                nextPriority - 1,
+                0);
+
+
+
+        // ======================================
+        // DEFAULT ESSENTIAL STATUS
+        // ======================================
+
+        GoalEssentialSwitch.IsToggled =
+            false;
+
 
 
         AddSavingsModal.IsVisible =
+            false;
+
+
+        AdjustSavingsModal.IsVisible =
             false;
 
 
@@ -198,7 +884,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW EDIT GOAL
+    // SHOW EDIT GOAL MODAL
     // ==========================================
 
     private void ShowEditGoalClicked(
@@ -218,8 +904,13 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         selectedGoal =
             item.Goal;
+
+
+        SetupPriorityOptions();
+
 
 
         GoalModalTitleLabel.Text =
@@ -233,6 +924,11 @@ public partial class SavingsPage : ContentPage
         DeleteGoalButton.IsVisible =
             true;
 
+
+
+        // ======================================
+        // CURRENT VALUES
+        // ======================================
 
         GoalNameEntry.Text =
             selectedGoal.Name;
@@ -252,7 +948,36 @@ public partial class SavingsPage : ContentPage
             selectedGoal.DeadLine;
 
 
+
+        // ======================================
+        // CURRENT PRIORITY
+        // ======================================
+
+        int currentPriority =
+            Math.Max(
+                selectedGoal.PriorityRank,
+                1);
+
+
+        GoalPriorityPicker.SelectedIndex =
+            currentPriority - 1;
+
+
+
+        // ======================================
+        // CURRENT ESSENTIAL STATUS
+        // ======================================
+
+        GoalEssentialSwitch.IsToggled =
+            selectedGoal.IsEssential;
+
+
+
         AddSavingsModal.IsVisible =
+            false;
+
+
+        AdjustSavingsModal.IsVisible =
             false;
 
 
@@ -267,7 +992,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SAVE NEW / EDITED GOAL
+    // SAVE GOAL
     // ==========================================
 
     private async void SaveGoalClicked(
@@ -276,22 +1001,28 @@ public partial class SavingsPage : ContentPage
     {
         string name =
             GoalNameEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
 
 
         string targetText =
             GoalTargetEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
 
 
         string currentText =
             GoalCurrentEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
 
 
 
         // ======================================
-        // VALIDATE NAME
+        // NAME
         // ======================================
 
         if (string.IsNullOrWhiteSpace(
@@ -309,7 +1040,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // VALIDATE TARGET
+        // TARGET
         // ======================================
 
         if (!double.TryParse(
@@ -330,7 +1061,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // VALIDATE CURRENT SAVINGS
+        // CURRENT SAVINGS
         // ======================================
 
         if (!double.TryParse(
@@ -351,12 +1082,15 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // TARGET DATE
+        // DEADLINE
         // ======================================
 
         DateTime deadline =
             GoalDeadlinePicker.Date
-            ?? DateTime.Today.AddMonths(6);
+            ??
+            DateTime.Today
+                .AddMonths(6);
+
 
 
         if (deadline.Date <
@@ -374,7 +1108,40 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // NEW GOAL
+        // PRIORITY
+        // ======================================
+
+        if (GoalPriorityPicker.SelectedIndex < 0)
+        {
+            await DisplayAlertAsync(
+                "Missing Priority",
+                "Choose a priority level for this savings goal.",
+                "OK");
+
+
+            return;
+        }
+
+
+
+        int priorityRank =
+            GoalPriorityPicker.SelectedIndex
+            +
+            1;
+
+
+
+        // ======================================
+        // ESSENTIAL
+        // ======================================
+
+        bool isEssential =
+            GoalEssentialSwitch.IsToggled;
+
+
+
+        // ======================================
+        // ADD NEW GOAL
         // ======================================
 
         if (selectedGoal == null)
@@ -387,6 +1154,22 @@ public partial class SavingsPage : ContentPage
                     deadline);
 
 
+
+            newGoal.PriorityRank =
+                priorityRank;
+
+
+            newGoal.IsEssential =
+                isEssential;
+
+
+            // null means PocketAI currently
+            // controls the recommended split.
+            newGoal.CustomAllocationPercentage =
+                null;
+
+
+
             dataBaseManager.AddSavingsGoal(
                 newGoal);
         }
@@ -394,7 +1177,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // EDIT EXISTING GOAL
+        // UPDATE EXISTING GOAL
         // ======================================
 
         else
@@ -406,12 +1189,28 @@ public partial class SavingsPage : ContentPage
                     targetAmount,
                     currentAmount,
                     deadline,
-                    selectedGoal.IsPrimary);
+
+                    // Controls which goal
+                    // appears on Home.
+                    selectedGoal.IsPrimary,
+
+                    // Financial importance.
+                    priorityRank,
+
+                    // Essential protection.
+                    isEssential,
+
+                    // Preserve a future custom
+                    // allocation percentage.
+                    selectedGoal
+                        .CustomAllocationPercentage);
+
 
 
             dataBaseManager.UpdateSavingsGoal(
                 updatedGoal);
         }
+
 
 
         CloseSavingsModals();
@@ -423,7 +1222,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW ADD SAVINGS
+    // SHOW ADD SAVINGS MODAL
     // ==========================================
 
     private void ShowAddSavingsClicked(
@@ -443,6 +1242,7 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         selectedGoal =
             item.Goal;
 
@@ -455,7 +1255,12 @@ public partial class SavingsPage : ContentPage
             "";
 
 
+
         GoalModal.IsVisible =
+            false;
+
+
+        AdjustSavingsModal.IsVisible =
             false;
 
 
@@ -470,7 +1275,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // ADD SAVINGS
+    // ADD SAVINGS TO GOAL
     // ==========================================
 
     private async void AddSavingsClicked(
@@ -483,9 +1288,13 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         string amountText =
             AddSavingsAmountEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
+
 
 
         if (!double.TryParse(
@@ -504,11 +1313,16 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         double newCurrentAmount =
-            selectedGoal.CurrentAmount +
+            selectedGoal.CurrentAmount
+            +
             amount;
 
 
+
+        // Preserve all Priority Savings
+        // information while updating progress.
         SavingsGoal updatedGoal =
             new SavingsGoal(
                 selectedGoal.Id,
@@ -516,11 +1330,17 @@ public partial class SavingsPage : ContentPage
                 selectedGoal.TargetAmount,
                 newCurrentAmount,
                 selectedGoal.DeadLine,
-                selectedGoal.IsPrimary);
+                selectedGoal.IsPrimary,
+                selectedGoal.PriorityRank,
+                selectedGoal.IsEssential,
+                selectedGoal
+                    .CustomAllocationPercentage);
+
 
 
         dataBaseManager.UpdateSavingsGoal(
             updatedGoal);
+
 
 
         CloseSavingsModals();
@@ -532,7 +1352,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // MAKE PRIMARY
+    // SHOW GOAL ON HOME
     // ==========================================
 
     private void MakePrimaryClicked(
@@ -552,9 +1372,16 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
+        // Internal property remains IsPrimary
+        // for backwards compatibility.
+        //
+        // In the UI this is called
+        // "Shown on Home".
         dataBaseManager
             .SetPrimarySavingsGoal(
                 item.Goal.Id);
+
 
 
         LoadSavingsGoals();
@@ -576,6 +1403,7 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         bool confirmed =
             await DisplayAlertAsync(
                 "Delete Savings Goal",
@@ -584,15 +1412,18 @@ public partial class SavingsPage : ContentPage
                 "Cancel");
 
 
+
         if (!confirmed)
         {
             return;
         }
 
 
+
         dataBaseManager
             .DeleteSavingsGoalById(
                 selectedGoal.Id);
+
 
 
         CloseSavingsModals();
@@ -604,7 +1435,126 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CANCEL
+    // ADJUST AVAILABLE SAVINGS
+    // ==========================================
+
+    private void AdjustSavingsAmountClicked(
+        object? sender,
+        EventArgs e)
+    {
+        // Start with the amount currently
+        // being used by the recommendation.
+        AdjustSavingsAmountEntry.Text =
+            availableForSavings
+                .ToString("0.00");
+
+
+
+        GoalModal.IsVisible =
+            false;
+
+
+        AddSavingsModal.IsVisible =
+            false;
+
+
+        ModalBackground.IsVisible =
+            true;
+
+
+        AdjustSavingsModal.IsVisible =
+            true;
+    }
+
+
+
+    // ==========================================
+    // SAVE ADJUSTED SAVINGS AMOUNT
+    // ==========================================
+
+    private async void SaveAdjustedSavingsAmountClicked(
+        object? sender,
+        EventArgs e)
+    {
+        string amountText =
+            AdjustSavingsAmountEntry.Text?
+                .Trim()
+            ??
+            "";
+
+
+
+        if (!double.TryParse(
+                amountText,
+                out double amount)
+            ||
+            amount < 0)
+        {
+            await DisplayAlertAsync(
+                "Invalid Amount",
+                "Enter a valid savings amount.",
+                "OK");
+
+
+            return;
+        }
+
+
+
+        // Respect the user's choice.
+        //
+        // This affects the recommendation only.
+        // No money is transferred.
+        userSavingsAmountOverride =
+            amount;
+
+
+
+        AdjustSavingsModal.IsVisible =
+            false;
+
+
+        ModalBackground.IsVisible =
+            false;
+
+
+
+        LoadSavingsGoals();
+    }
+
+
+
+    // ==========================================
+    // USE POCKETAI ESTIMATE
+    // ==========================================
+
+    private void UsePocketAiSavingsEstimateClicked(
+        object? sender,
+        EventArgs e)
+    {
+        // null means return to PocketAI's
+        // calculated amount.
+        userSavingsAmountOverride =
+            null;
+
+
+
+        AdjustSavingsModal.IsVisible =
+            false;
+
+
+        ModalBackground.IsVisible =
+            false;
+
+
+
+        LoadSavingsGoals();
+    }
+
+
+
+    // ==========================================
+    // CANCEL / CLOSE MODALS
     // ==========================================
 
     private void CancelSavingsModalClicked(
@@ -617,7 +1567,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CLICK DARK BACKGROUND
+    // CLICK OUTSIDE MODAL
     // ==========================================
 
     private void CloseSavingsModalsClicked(
@@ -630,7 +1580,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CLOSE ALL MODALS
+    // CLOSE ALL SAVINGS MODALS
     // ==========================================
 
     private void CloseSavingsModals()
@@ -640,6 +1590,10 @@ public partial class SavingsPage : ContentPage
 
 
         AddSavingsModal.IsVisible =
+            false;
+
+
+        AdjustSavingsModal.IsVisible =
             false;
 
 
@@ -654,7 +1608,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // GET APP THEME COLOR
+    // GET THEME COLOR
     // ==========================================
 
     private static Color GetThemeColor(
@@ -669,6 +1623,7 @@ public partial class SavingsPage : ContentPage
         }
 
 
+
         return Color.FromArgb(
             fallbackColor);
     }
@@ -676,20 +1631,47 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SAVINGS GOAL DISPLAY MODEL
+    // SAVINGS GOAL DISPLAY ITEM
     // ==========================================
 
     public class SavingsGoalDisplayItem
     {
+        // ======================================
+        // REAL SAVINGS GOAL
+        // ======================================
+
         public SavingsGoal Goal
         {
             get;
         }
 
 
+
+        // Recommendation for this specific goal.
+        private readonly SavingsAllocationItem?
+            allocation;
+
+
+
+        // Total amount currently available
+        // to divide between goals.
+        private readonly double
+            availableForSavings;
+
+
+
+        // ======================================
+        // BASIC INFORMATION
+        // ======================================
+
         public string Name =>
             Goal.Name;
 
+
+
+        // ======================================
+        // SHOWN ON HOME
+        // ======================================
 
         public bool IsPrimary =>
             Goal.IsPrimary;
@@ -701,14 +1683,91 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
+        // PRIORITY
+        // ======================================
+
+        public int PriorityRank =>
+            Goal.PriorityRank;
+
+
+        public string PriorityText
+        {
+            get
+            {
+                if (Goal.PriorityRank <= 0)
+                {
+                    return
+                        "UNRANKED";
+                }
+
+
+                return
+                    $"PRIORITY {Goal.PriorityRank}";
+            }
+        }
+
+
+
+        public Color PriorityColor =>
+            GetThemeColor(
+                "ThemePrimary",
+                "#7C3AED");
+
+
+
+        // ======================================
+        // ESSENTIAL / OPTIONAL
+        // ======================================
+
+        public bool IsEssential =>
+            Goal.IsEssential;
+
+
+        public string EssentialText =>
+            Goal.IsEssential
+                ? "ESSENTIAL"
+                : "OPTIONAL";
+
+
+        public Color EssentialColor
+        {
+            get
+            {
+                if (Goal.IsEssential)
+                {
+                    return GetThemeColor(
+                        "WarningColor",
+                        "#B45309");
+                }
+
+
+                return GetThemeColor(
+                    "TextSecondary",
+                    "#6B7280");
+            }
+        }
+
+
+
+        // ======================================
         // REMAINING
         // ======================================
 
         public double Remaining =>
             Math.Max(
-                Goal.TargetAmount -
+                Goal.TargetAmount
+                -
                 Goal.CurrentAmount,
                 0);
+
+
+
+        // ======================================
+        // COMPLETED
+        // ======================================
+
+        public bool IsCompleted =>
+            Remaining <= 0;
 
 
 
@@ -726,10 +1785,15 @@ public partial class SavingsPage : ContentPage
                 }
 
 
+
                 return Math.Clamp(
-                    (Goal.CurrentAmount /
-                     Goal.TargetAmount)
-                    * 100,
+                    (
+                        Goal.CurrentAmount
+                        /
+                        Goal.TargetAmount
+                    )
+                    *
+                    100,
                     0,
                     100);
             }
@@ -738,7 +1802,9 @@ public partial class SavingsPage : ContentPage
 
 
         public double Progress =>
-            Percent / 100.0;
+            Percent
+            /
+            100.0;
 
 
 
@@ -748,9 +1814,11 @@ public partial class SavingsPage : ContentPage
 
         public double DaysLeft =>
             (
-                Goal.DeadLine.Date -
+                Goal.DeadLine.Date
+                -
                 DateTime.Today
-            ).TotalDays;
+            )
+            .TotalDays;
 
 
 
@@ -769,8 +1837,12 @@ public partial class SavingsPage : ContentPage
                 }
 
 
+
                 double weeksLeft =
-                    DaysLeft / 7.0;
+                    DaysLeft
+                    /
+                    7.0;
+
 
 
                 if (weeksLeft <= 0)
@@ -779,8 +1851,10 @@ public partial class SavingsPage : ContentPage
                 }
 
 
+
                 return
-                    Remaining /
+                    Remaining
+                    /
                     weeksLeft;
             }
         }
@@ -812,10 +1886,20 @@ public partial class SavingsPage : ContentPage
         {
             get
             {
-                if (Remaining <= 0)
+                if (IsCompleted)
                 {
-                    return "Complete";
+                    return
+                        "Complete";
                 }
+
+
+
+                if (DaysLeft <= 0)
+                {
+                    return
+                        "Date reached";
+                }
+
 
 
                 int days =
@@ -825,6 +1909,7 @@ public partial class SavingsPage : ContentPage
                         0);
 
 
+
                 return
                     $"{days} days";
             }
@@ -832,35 +1917,216 @@ public partial class SavingsPage : ContentPage
 
 
 
-        public string WeeklyNeededText =>
-            WeeklyNeeded.ToString("C");
-
-
-
-        // ======================================
-        // STATUS TEXT
-        // ======================================
-
-        public string StatusText
+        public string WeeklyNeededText
         {
             get
             {
-                if (Remaining <= 0)
+                if (IsCompleted)
                 {
                     return
-                        "✓ Goal complete";
+                        "Complete";
                 }
 
 
                 if (DaysLeft <= 0)
                 {
                     return
-                        $"⚠ Target date reached with {Remaining:C} remaining";
+                        "—";
                 }
 
 
                 return
-                    $"Save about {WeeklyNeeded:C} per week to stay on track.";
+                    WeeklyNeeded
+                        .ToString("C");
+            }
+        }
+
+
+
+        // ======================================
+        // POCKETAI RECOMMENDED AMOUNT
+        // ======================================
+
+        public double RecommendedAmount =>
+            allocation?
+                .RecommendedAmount
+            ??
+            0;
+
+
+
+        // ======================================
+        // POCKETAI RECOMMENDED PERCENTAGE
+        // ======================================
+
+        public double RecommendedPercentage =>
+            allocation?
+                .RecommendedPercentage
+            ??
+            0;
+
+
+
+        // ======================================
+        // RECOMMENDED AMOUNT TEXT
+        // ======================================
+
+        public string RecommendedAmountText
+        {
+            get
+            {
+                if (IsCompleted)
+                {
+                    return
+                        "Goal complete";
+                }
+
+
+
+                if (availableForSavings <= 0)
+                {
+                    return
+                        "$0.00 this month";
+                }
+
+
+
+                return
+                    $"{RecommendedAmount:C} this month";
+            }
+        }
+
+
+
+        // ======================================
+        // RECOMMENDED PERCENTAGE TEXT
+        // ======================================
+
+        public string RecommendedPercentageText
+        {
+            get
+            {
+                if (IsCompleted)
+                {
+                    return
+                        "";
+                }
+
+
+
+                if (availableForSavings <= 0)
+                {
+                    return
+                        "0% of available savings";
+                }
+
+
+
+                return
+                    $"{RecommendedPercentage:F0}% of available savings";
+            }
+        }
+
+
+
+        // ======================================
+        // WHY POCKETAI RECOMMENDED IT
+        // ======================================
+
+        public string RecommendationReason
+        {
+            get
+            {
+                if (IsCompleted)
+                {
+                    return
+                        "This goal is already fully funded, so PocketAI does not allocate additional savings to it.";
+                }
+
+
+
+                if (availableForSavings <= 0)
+                {
+                    return
+                        "PocketAI is not recommending a contribution right now because your projected month-end finances are too limited.";
+                }
+
+
+
+                if (Goal.PriorityRank == 1 &&
+                    Goal.IsEssential)
+                {
+                    return
+                        "This goal receives extra weight because it is Priority 1 and marked Essential.";
+                }
+
+
+
+                if (Goal.IsEssential &&
+                    Goal.PriorityRank > 0)
+                {
+                    return
+                        $"This goal is Priority {Goal.PriorityRank} and Essential, so PocketAI gives it extra protection.";
+                }
+
+
+
+                if (Goal.PriorityRank == 1)
+                {
+                    return
+                        "This goal receives a larger share because it is Priority 1.";
+                }
+
+
+
+                if (Goal.PriorityRank > 0)
+                {
+                    return
+                        $"This recommendation reflects its Priority {Goal.PriorityRank} level.";
+                }
+
+
+
+                return
+                    "This goal is currently unranked, so PocketAI treats it as a lower-priority goal.";
+            }
+        }
+
+
+
+        // ======================================
+        // STATUS
+        // ======================================
+
+        public string StatusText
+        {
+            get
+            {
+                if (IsCompleted)
+                {
+                    return
+                        "✓ Goal completed";
+                }
+
+
+
+                if (DaysLeft <= 0)
+                {
+                    return
+                        $"⚠ Target date passed • {Remaining:C} remaining";
+                }
+
+
+
+                // Keep this short.
+                //
+                // Needed / Week already shows
+                // the deadline requirement.
+                //
+                // PocketAI Recommendation shows
+                // what finances support.
+                return
+                    "Goal in progress";
             }
         }
 
@@ -874,8 +2140,7 @@ public partial class SavingsPage : ContentPage
         {
             get
             {
-                // Completed goal.
-                if (Remaining <= 0)
+                if (IsCompleted)
                 {
                     return GetThemeColor(
                         "SuccessColor",
@@ -883,7 +2148,7 @@ public partial class SavingsPage : ContentPage
                 }
 
 
-                // Deadline missed.
+
                 if (DaysLeft <= 0)
                 {
                     return GetThemeColor(
@@ -892,7 +2157,7 @@ public partial class SavingsPage : ContentPage
                 }
 
 
-                // Goal currently on track.
+
                 return GetThemeColor(
                     "SuccessColor",
                     "#15803D");
@@ -907,10 +2172,19 @@ public partial class SavingsPage : ContentPage
 
         public SavingsGoalDisplayItem(
             SavingsGoal goal,
-            AnalyticsService analyticsService)
+            SavingsAllocationItem? allocation,
+            double availableForSavings)
         {
             Goal =
                 goal;
+
+
+            this.allocation =
+                allocation;
+
+
+            this.availableForSavings =
+                availableForSavings;
         }
     }
 }
