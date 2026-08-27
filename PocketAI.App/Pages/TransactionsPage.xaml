@@ -52,7 +52,7 @@
 
 
                         <Label
-                            Text="Search, filter, add, edit, or remove expenses from one place."
+                            Text="See where your money went, which account paid for it, and how each purchase affects your budget."
                             FontSize="14"
                             TextColor="{DynamicResource TextSecondary}" />
 
@@ -233,7 +233,7 @@
 
 
                                 <Label
-                                    Text="Select a transaction to edit or delete it."
+                                    Text="Select a transaction to view, edit, or delete it."
                                     FontSize="11"
                                     TextColor="{DynamicResource TextMuted}" />
 
@@ -254,7 +254,7 @@
                              ================================= -->
 
                         <Grid
-                            ColumnDefinitions="120,2*,1.5*,120"
+                            ColumnDefinitions="110,2*,1.4*,1.2*,120"
                             Padding="18,14"
                             BackgroundColor="{DynamicResource SurfaceBackground}">
 
@@ -285,6 +285,14 @@
 
                             <Label
                                 Grid.Column="3"
+                                Text="PAID FROM"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+
+                            <Label
+                                Grid.Column="4"
                                 Text="AMOUNT"
                                 FontSize="11"
                                 FontAttributes="Bold"
@@ -337,7 +345,7 @@
 
 
                                         <Grid
-                                            ColumnDefinitions="120,2*,1.5*,120"
+                                            ColumnDefinitions="110,2*,1.4*,1.2*,120"
                                             Padding="18,15">
 
 
@@ -375,10 +383,21 @@
 
 
 
-                                            <!-- AMOUNT -->
+                                            <!-- PAID FROM -->
 
                                             <Label
                                                 Grid.Column="3"
+                                                Text="{Binding PaidFromText}"
+                                                FontSize="14"
+                                                TextColor="{DynamicResource TextSecondary}"
+                                                VerticalOptions="Center" />
+
+
+
+                                            <!-- AMOUNT -->
+
+                                            <Label
+                                                Grid.Column="4"
                                                 Text="{Binding AmountText}"
                                                 FontSize="14"
                                                 FontAttributes="Bold"
@@ -455,7 +474,7 @@
             Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="28"
-            WidthRequest="440"
+            WidthRequest="460"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
@@ -469,7 +488,7 @@
 
 
             <VerticalStackLayout
-                Spacing="17">
+                Spacing="15">
 
 
                 <!-- HEADER -->
@@ -486,7 +505,7 @@
 
 
                     <Label
-                        Text="Record a new transaction in your budget."
+                        Text="Record a purchase and where it was paid."
                         FontSize="12"
                         TextColor="{DynamicResource TextSecondary}" />
 
@@ -567,6 +586,30 @@
 
 
 
+                <!-- PAID FROM -->
+
+                <VerticalStackLayout
+                    Spacing="6">
+
+
+                    <Label
+                        Text="Paid From"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+
+                    <Picker
+                        x:Name="ExpensePaidFromPicker"
+                        Title="Choose an account"
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+                </VerticalStackLayout>
+
+
+
                 <!-- DATE -->
 
                 <VerticalStackLayout
@@ -637,7 +680,7 @@
             Stroke="{DynamicResource BorderColor}"
             StrokeThickness="1"
             Padding="28"
-            WidthRequest="440"
+            WidthRequest="460"
             HorizontalOptions="Center"
             VerticalOptions="Center">
 
@@ -651,7 +694,7 @@
 
 
             <VerticalStackLayout
-                Spacing="17">
+                Spacing="15">
 
 
                 <!-- HEADER -->
@@ -737,6 +780,30 @@
                     <Picker
                         x:Name="EditExpenseCategoryPicker"
                         Title="Choose a category"
+                        TitleColor="{DynamicResource TextMuted}"
+                        BackgroundColor="{DynamicResource SurfaceBackground}"
+                        TextColor="{DynamicResource TextPrimary}" />
+
+                </VerticalStackLayout>
+
+
+
+                <!-- PAID FROM -->
+
+                <VerticalStackLayout
+                    Spacing="6">
+
+
+                    <Label
+                        Text="Paid From"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+
+                    <Picker
+                        x:Name="EditExpensePaidFromPicker"
+                        Title="Choose an account"
                         TitleColor="{DynamicResource TextMuted}"
                         BackgroundColor="{DynamicResource SurfaceBackground}"
                         TextColor="{DynamicResource TextPrimary}" />

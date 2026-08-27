@@ -16,13 +16,22 @@ public class Expense
     // Stores the expense date
     public DateTime Date { get; set; }
 
+    public string? PaidFromAccount {get; set;}
+
     // Builds a new expense object
-    public Expense(int id, string name, double amount, string category, DateTime date)
+    public Expense(
+        int id,
+        string name,
+        double amount,
+        string category,
+        DateTime date,
+        string? paidFromAccount = null)
     {
         Id = id;
         Name = name;
         Amount = amount;
         Category = category;
         Date = date;
+        PaidFromAccount = paidFromAccount;
     }
 }

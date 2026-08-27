@@ -35,7 +35,8 @@ public class DataBaseManager
             Name TEXT NOT NULL,
             Amount REAL NOT NULL,
             Category TEXT NOT NULL,
-            Date TEXT NOT NULL
+            Date TEXT NOT NULL,
+            PaidFromAccount TEXT NOT NULL
             );
         ";
 
@@ -99,6 +100,7 @@ public class DataBaseManager
 
         using SqliteCommand command = new SqliteCommand(createExpenseTable, connection);
         command.ExecuteNonQuery();
+        EnsureExpenseColumns(connection);
 
         using SqliteCommand incomeCommand = new SqliteCommand(createIncomeTable, connection);
         incomeCommand.ExecuteNonQuery();
@@ -125,6 +127,63 @@ public class DataBaseManager
     }
 
 
+    // ==========================================
+    // MAKE OLD EXPENSE DATABASES COMPATIBLE
+    // ==========================================
+
+    private void EnsureExpenseColumns(
+        SqliteConnection connection)
+    {
+        HashSet<string> existingColumns =
+            new HashSet<string>(
+                StringComparer.OrdinalIgnoreCase);
+
+
+        // ======================================
+        // FIND EXISTING EXPENSE COLUMNS
+        // ======================================
+
+        using (SqliteCommand command =
+            new SqliteCommand(
+                "PRAGMA table_info(Expenses);",
+                connection))
+        {
+            using SqliteDataReader reader =
+                command.ExecuteReader();
+
+
+            while (reader.Read())
+            {
+                string columnName =
+                    reader.GetString(1);
+
+
+                existingColumns.Add(
+                    columnName);
+            }
+        }
+
+
+        // ======================================
+        // PAID FROM ACCOUNT
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "PaidFromAccount"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE Expenses
+                    ADD COLUMN PaidFromAccount
+                    TEXT NULL;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+    }
     // ==========================================
     // MAKE OLD SAVINGS DATABASES COMPATIBLE
     // ==========================================
@@ -410,100 +469,540 @@ public class DataBaseManager
         }
     }
 
-    //Saves a new expense in the database 
-    public void AddExpense(Expense expense)
+    // ==========================================
+    // ADD EXPENSE
+    // ==========================================
+
+    public void AddExpense(
+        Expense expense)
     {
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
+
+        using SqliteTransaction transaction =
+            connection.BeginTransaction();
+
+
+        // ======================================
+        // SAVE EXPENSE
+        // ======================================
+
         string insertExpense = @"
-        INSERT INTO Expenses (Name, Amount, Category, Date)
-        VALUES (@Name, @Amount, @Category, @Date);
+            INSERT INTO Expenses
+            (
+                Name,
+                Amount,
+                Category,
+                Date,
+                PaidFromAccount
+            )
+
+            VALUES
+            (
+                @Name,
+                @Amount,
+                @Category,
+                @Date,
+                @PaidFromAccount
+            );
         ";
 
-        using SqliteCommand command = new SqliteCommand(insertExpense, connection);
 
-        //Add Values safely into the SQL command
-        command.Parameters.AddWithValue("@Name", expense.Name);
-        command.Parameters.AddWithValue("@Amount", expense.Amount);
-        command.Parameters.AddWithValue("@Category", expense.Category);
-        command.Parameters.AddWithValue("@Date", expense.Date.ToString("yyyy-MM-dd"));
+        using (SqliteCommand command =
+            new SqliteCommand(
+                insertExpense,
+                connection,
+                transaction))
+        {
+            command.Parameters.AddWithValue(
+                "@Name",
+                expense.Name);
 
-        command.ExecuteNonQuery();
+
+            command.Parameters.AddWithValue(
+                "@Amount",
+                expense.Amount);
+
+
+            command.Parameters.AddWithValue(
+                "@Category",
+                expense.Category);
+
+
+            command.Parameters.AddWithValue(
+                "@Date",
+                expense.Date.ToString(
+                    "yyyy-MM-dd"));
+
+
+            command.Parameters.AddWithValue(
+                "@PaidFromAccount",
+                expense.PaidFromAccount is null
+                    ? DBNull.Value
+                    : expense.PaidFromAccount);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+        // ======================================
+        // REDUCE SELECTED ACCOUNT
+        // ======================================
+
+        AdjustAccountBalance(
+            connection,
+            transaction,
+            expense.PaidFromAccount,
+            -expense.Amount);
+
+
+        transaction.Commit();
     }
+
+    // ==========================================
+    // GET ALL EXPENSES
+    // ==========================================
 
     public List<Expense> GetAllExpenses()
     {
-        List<Expense> expenses = new List<Expense>();
+        List<Expense> expenses =
+            new List<Expense>();
 
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
         connection.Open();
 
+
         string selectExpense = @"
-        SELECT Id, Name, Amount, Category, Date
-        FROM Expenses; 
+            SELECT
+                Id,
+                Name,
+                Amount,
+                Category,
+                Date,
+                PaidFromAccount
+
+            FROM Expenses;
         ";
 
-        using SqliteCommand command = new SqliteCommand(selectExpense, connection);
 
-        using SqliteDataReader reader = command.ExecuteReader();
+        using SqliteCommand command =
+            new SqliteCommand(
+                selectExpense,
+                connection);
+
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
 
         while (reader.Read())
         {
-            int id = reader.GetInt32(0);
-            string name = reader.GetString(1);
-            double amount = reader.GetDouble(2);
-            string category = reader.GetString(3);
-            DateTime date = DateTime.Parse(reader.GetString(4));
+            int id =
+                reader.GetInt32(0);
 
-            Expense expense = new Expense(id, name, amount, category, date);
 
-            expenses.Add(expense);
+            string name =
+                reader.GetString(1);
+
+
+            double amount =
+                reader.GetDouble(2);
+
+
+            string category =
+                reader.GetString(3);
+
+
+            DateTime date =
+                DateTime.Parse(
+                    reader.GetString(4));
+
+
+            string? paidFromAccount =
+                reader.IsDBNull(5)
+                    ? null
+                    : reader.GetString(5);
+
+
+            Expense expense =
+                new Expense(
+                    id,
+                    name,
+                    amount,
+                    category,
+                    date,
+                    paidFromAccount);
+
+
+            expenses.Add(
+                expense);
         }
+
+
         return expenses;
     }
 
-    public void DeleteExpenseById(int id)
+    // ==========================================
+    // DELETE EXPENSE
+    // ==========================================
+
+    public void DeleteExpenseById(
+        int id)
     {
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
-        string deleteExpense = @"
-        DELETE FROM Expenses
-        WHERE Id = @Id;
-        ";
 
-        using SqliteCommand command = new SqliteCommand(deleteExpense, connection);
-        command.Parameters.AddWithValue("@Id", id);
+        using SqliteTransaction transaction =
+            connection.BeginTransaction();
 
-        command.ExecuteNonQuery();
+
+        double expenseAmount =
+            0;
+
+
+        string? paidFromAccount =
+            null;
+
+
+        bool expenseFound =
+            false;
+
+
+        // ======================================
+        // LOAD EXPENSE BEFORE DELETING
+        // ======================================
+
+        using (SqliteCommand findCommand =
+            new SqliteCommand(
+                @"
+                SELECT
+                    Amount,
+                    PaidFromAccount
+
+                FROM Expenses
+
+                WHERE Id = @Id;
+                ",
+                connection,
+                transaction))
+        {
+            findCommand.Parameters.AddWithValue(
+                "@Id",
+                id);
+
+
+            using SqliteDataReader reader =
+                findCommand.ExecuteReader();
+
+
+            if (reader.Read())
+            {
+                expenseFound =
+                    true;
+
+
+                expenseAmount =
+                    reader.GetDouble(0);
+
+
+                paidFromAccount =
+                    reader.IsDBNull(1)
+                        ? null
+                        : reader.GetString(1);
+            }
+        }
+
+
+        if (!expenseFound)
+        {
+            return;
+        }
+
+
+        // ======================================
+        // DELETE EXPENSE
+        // ======================================
+
+        using (SqliteCommand deleteCommand =
+            new SqliteCommand(
+                @"
+                DELETE FROM Expenses
+                WHERE Id = @Id;
+                ",
+                connection,
+                transaction))
+        {
+            deleteCommand.Parameters.AddWithValue(
+                "@Id",
+                id);
+
+
+            deleteCommand.ExecuteNonQuery();
+        }
+
+
+        // ======================================
+        // RESTORE MONEY TO ORIGINAL ACCOUNT
+        // ======================================
+
+        AdjustAccountBalance(
+            connection,
+            transaction,
+            paidFromAccount,
+            expenseAmount);
+
+
+        transaction.Commit();
     }
 
-    //Updates an existing expense in the database
-    public void UpdateExpense(Expense expense)
+    
+    // ==========================================
+    // UPDATE EXPENSE
+    // ==========================================
+
+    public void UpdateExpense(
+        Expense expense)
     {
-        using SqliteConnection connection = new SqliteConnection(connectionString);
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
 
         connection.Open();
 
-        string updateExpense = @"
-        UPDATE Expenses
-        SET Name = @Name, Amount = @Amount, Category = @Category, Date = @Date
-        WHERE Id = @Id;
+
+        using SqliteTransaction transaction =
+            connection.BeginTransaction();
+
+
+        double originalAmount =
+            0;
+
+
+        string? originalPaidFromAccount =
+            null;
+
+
+        bool expenseFound =
+            false;
+
+
+        // ======================================
+        // LOAD ORIGINAL EXPENSE
+        // ======================================
+
+        using (SqliteCommand findCommand =
+            new SqliteCommand(
+                @"
+                SELECT
+                    Amount,
+                    PaidFromAccount
+
+                FROM Expenses
+
+                WHERE Id = @Id;
+                ",
+                connection,
+                transaction))
+        {
+            findCommand.Parameters.AddWithValue(
+                "@Id",
+                expense.Id);
+
+
+            using SqliteDataReader reader =
+                findCommand.ExecuteReader();
+
+
+            if (reader.Read())
+            {
+                expenseFound =
+                    true;
+
+
+                originalAmount =
+                    reader.GetDouble(0);
+
+
+                originalPaidFromAccount =
+                    reader.IsDBNull(1)
+                        ? null
+                        : reader.GetString(1);
+            }
+        }
+
+
+        if (!expenseFound)
+        {
+            return;
+        }
+
+
+        // ======================================
+        // UPDATE EXPENSE
+        // ======================================
+
+        using (SqliteCommand updateCommand =
+            new SqliteCommand(
+                @"
+                UPDATE Expenses
+
+                SET
+                    Name = @Name,
+                    Amount = @Amount,
+                    Category = @Category,
+                    Date = @Date,
+                    PaidFromAccount = @PaidFromAccount
+
+                WHERE Id = @Id;
+                ",
+                connection,
+                transaction))
+        {
+            updateCommand.Parameters.AddWithValue(
+                "@Name",
+                expense.Name);
+
+
+            updateCommand.Parameters.AddWithValue(
+                "@Amount",
+                expense.Amount);
+
+
+            updateCommand.Parameters.AddWithValue(
+                "@Category",
+                expense.Category);
+
+
+            updateCommand.Parameters.AddWithValue(
+                "@Date",
+                expense.Date.ToString(
+                    "yyyy-MM-dd"));
+
+
+            updateCommand.Parameters.AddWithValue(
+                "@PaidFromAccount",
+                expense.PaidFromAccount is null
+                    ? DBNull.Value
+                    : expense.PaidFromAccount);
+
+
+            updateCommand.Parameters.AddWithValue(
+                "@Id",
+                expense.Id);
+
+
+            updateCommand.ExecuteNonQuery();
+        }
+
+
+        // ======================================
+        // REVERSE OLD ACCOUNT EFFECT
+        // ======================================
+
+        AdjustAccountBalance(
+            connection,
+            transaction,
+            originalPaidFromAccount,
+            originalAmount);
+
+
+        // ======================================
+        // APPLY NEW ACCOUNT EFFECT
+        // ======================================
+
+        AdjustAccountBalance(
+            connection,
+            transaction,
+            expense.PaidFromAccount,
+            -expense.Amount);
+
+
+        transaction.Commit();
+    }
+
+
+    // ==========================================
+    // ADJUST ACCOUNT BALANCE
+    // ==========================================
+
+    private void AdjustAccountBalance(
+        SqliteConnection connection,
+        SqliteTransaction transaction,
+        string? accountName,
+        double amountChange)
+    {
+        if (string.IsNullOrWhiteSpace(
+                accountName))
+        {
+            return;
+        }
+
+
+        string? columnName =
+            accountName.Equals(
+                "Checking",
+                StringComparison.OrdinalIgnoreCase)
+
+                ? "CheckingBalance"
+
+                : accountName.Equals(
+                    "Cash",
+                    StringComparison.OrdinalIgnoreCase)
+
+                    ? "CashBalance"
+
+                    : null;
+
+
+        // For now PocketAI only allows
+        // expenses from Checking or Cash.
+        if (columnName == null)
+        {
+            return;
+        }
+
+
+        string updateAccount = $@"
+            UPDATE AccountBalance
+
+            SET {columnName} =
+                {columnName} + @AmountChange
+
+            WHERE Id = 1;
         ";
 
-        using SqliteCommand command = new SqliteCommand(updateExpense, connection);
-        command.Parameters.AddWithValue("@Name", expense.Name);
-        command.Parameters.AddWithValue("@Amount", expense.Amount);
-        command.Parameters.AddWithValue("@Category", expense.Category);
-        command.Parameters.AddWithValue("@Date", expense.Date.ToString("yyyy-MM-dd"));
-        command.Parameters.AddWithValue("@Id", expense.Id);
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                updateAccount,
+                connection,
+                transaction);
+
+
+        command.Parameters.AddWithValue(
+            "@AmountChange",
+            amountChange);
+
 
         command.ExecuteNonQuery();
     }
-
     //Saves or updates the user's income in the database.
     public void SaveIncome(Income income)
     {
