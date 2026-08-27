@@ -1,603 +1,911 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace PocketAI.App.Pages;
 
 public partial class HomePage : ContentPage
 {
-    private readonly DataBaseManager dataBaseManager;
-    private readonly AnalyticsService analyticsService;
+    // ==========================================
+    // DATABASE
+    // ==========================================
+
+    private readonly DataBaseManager
+        dataBaseManager;
+
+
+    // ==========================================
+    // CENTRAL FINANCIAL ENGINE
+    // ==========================================
+
+    private readonly FinancialSnapshotProvider
+        financialSnapshotProvider;
+
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public HomePage()
     {
         InitializeComponent();
 
-        // Stores PocketAI's database in the app's data folder
-        string databasePath = Path.Combine(
-            FileSystem.AppDataDirectory,
-            "pocketai.db");
 
-        // Connects PocketAI to its SQLite database
-        dataBaseManager = new DataBaseManager(databasePath);
+        string databasePath =
+            Path.Combine(
+                FileSystem.AppDataDirectory,
+                "pocketai.db");
 
-        // Handles PocketAI's financial calculations
-        analyticsService = new AnalyticsService();
 
-        // Makes sure all database tables exist
+        dataBaseManager =
+            new DataBaseManager(
+                databasePath);
+
+
         dataBaseManager.CreateTables();
+
+
+        // Home no longer calculates its own
+        // Safe to Spend or Financial Health.
+        //
+        // It gets one trusted snapshot from
+        // the centralized financial engine.
+        financialSnapshotProvider =
+            new FinancialSnapshotProvider(
+                dataBaseManager);
     }
 
+
+
+    // ==========================================
+    // PAGE APPEARS
+    // ==========================================
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        // Reloads Home every time the user returns to it
+
         LoadFinancialData();
     }
 
 
+
+    // ==========================================
+    // LOAD HOME
+    // ==========================================
+
     private void LoadFinancialData()
     {
-        // ==========================================
-        // LOAD DATABASE INFORMATION
-        // ==========================================
+        // ======================================
+        // CENTRAL FINANCIAL SNAPSHOT
+        // ======================================
+        //
+        // THIS is now the source of truth for:
+        //
+        // - current spendable cash
+        // - total balance
+        // - expected income
+        // - spending
+        // - upcoming obligations
+        // - required savings
+        // - safety buffer
+        // - Safe to Spend
+        // - daily Safe to Spend
+        // - weekly Safe to Spend
+        // - projections
+        // - data confidence
+        // - financial health
+        //
+        // Home does NOT recalculate these.
+        // ======================================
+
+        FinancialSnapshot snapshot =
+            financialSnapshotProvider
+                .GetSnapshot();
+
+
+
+        // ======================================
+        // LOAD PRESENTATION DATA
+        // ======================================
+        //
+        // These records are still needed to
+        // display individual goals, budgets,
+        // bills, and insights.
+        //
+        // They are NOT used to create a second
+        // version of Safe to Spend.
+        // ======================================
 
         List<Expense> expenses =
-            dataBaseManager.GetAllExpenses();
+            dataBaseManager
+                .GetAllExpenses();
 
-        Income? income =
-            dataBaseManager.GetIncome();
 
         AccountBalance? accountBalance =
-            dataBaseManager.GetAccountBalance();
+            dataBaseManager
+                .GetAccountBalance();
 
-        // This is the PRIMARY savings goal.
-        // Home uses this one for the savings card.
+
         SavingsGoal? savingsGoal =
-            dataBaseManager.GetSavingsGoal();
+            dataBaseManager
+                .GetSavingsGoal();
 
-
-        // This loads EVERY savings goal.
-        // Safe to Spend will use all of these.
-        List<SavingsGoal> savingsGoals =
-            dataBaseManager.GetSavingsGoals();
 
         List<BudgetLimit> budgetLimits =
-            dataBaseManager.GetBudgetLimits();
-
-        List<RecurringExpenses> recurringExpenses =
-            dataBaseManager.GetRecuringExpenses();
+            dataBaseManager
+                .GetBudgetLimits();
 
 
-        // ==========================================
-        // BUILD FINANCIAL SUMMARY
-        // ==========================================
-
-        FinancialSummary summary =
-            analyticsService.BuildFinancialSummary(
-                expenses,
-                income,
-                accountBalance,
-                savingsGoal,
-                budgetLimits,
-                recurringExpenses);
+        List<RecurringExpenses>
+            recurringExpenses =
+                dataBaseManager
+                    .GetRecuringExpenses();
 
 
-        // ==========================================
-        // DATE INFORMATION
-        // ==========================================
 
-        DateTime today = DateTime.Today;
+        DateTime today =
+            DateTime.Today;
+
+
+
+        List<Expense> currentMonthExpenses =
+            expenses
+                .Where(
+                    expense =>
+                        expense.Date.Year ==
+                        today.Year
+                        &&
+                        expense.Date.Month ==
+                        today.Month)
+                .ToList();
+
+
+
+        // ======================================
+        // UPDATE PAGE
+        // ======================================
+
+        UpdateGreeting();
+
+
+        UpdateSafeToSpend(
+            snapshot);
+
+
+        UpdateFinancialHealth(
+            snapshot);
+
+
+        UpdateMoneyCards(
+            snapshot);
+
+
+        UpdateSavingsGoal(
+            savingsGoal,
+            today);
+
+
+        UpdateBudgetSnapshot(
+            budgetLimits,
+            currentMonthExpenses);
+
+
+        UpdateUpcomingBills(
+            recurringExpenses,
+            today);
+
+
+        UpdatePocketAiInsight(
+            snapshot,
+            accountBalance,
+            savingsGoal,
+            currentMonthExpenses,
+            today);
+    }
+
+
+
+    // ==========================================
+    // GREETING
+    // ==========================================
+
+    private void UpdateGreeting()
+    {
+        int hour =
+            DateTime.Now.Hour;
+
+
+
+        if (hour < 12)
+        {
+            GreetingLabel.Text =
+                "Good morning";
+        }
+        else if (hour < 17)
+        {
+            GreetingLabel.Text =
+                "Good afternoon";
+        }
+        else
+        {
+            GreetingLabel.Text =
+                "Good evening";
+        }
+    }
+
+
+
+    // ==========================================
+    // SAFE TO SPEND
+    // ==========================================
+
+    private void UpdateSafeToSpend(
+        FinancialSnapshot snapshot)
+    {
+
+        // ======================================
+        // CONFIDENCE-AWARE TITLE
+        // ======================================
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            SafeToSpendTitleLabel.Text =
+                "ESTIMATED SAFE TO SPEND";
+        }
+        else
+        {
+            SafeToSpendTitleLabel.Text =
+                "SAFE TO SPEND";
+        }
+        // ======================================
+        // TOTAL SAFE TO SPEND
+        // ======================================
+
+        SafeToSpendTotalLabel.Text =
+            snapshot
+                .SafeToSpendTotal
+                .ToString("C");
+
+
+
+        // ======================================
+        // TODAY
+        // ======================================
+
+        DailySafeToSpendLabel.Text =
+            snapshot
+                .SafeToSpendToday
+                .ToString("C");
+
+
+        // ======================================
+        // WEEKLY LABEL
+        // ======================================
+        //
+        // If fewer than seven days remain in the
+        // month, show the actual end date instead
+        // of misleadingly saying "This Week".
+        // ======================================
+
+        DateTime today =
+            DateTime.Today;
+
 
         int daysInMonth =
             DateTime.DaysInMonth(
                 today.Year,
                 today.Month);
 
-        int daysPassed =
-            today.Day;
 
         int daysLeftInMonth =
-            daysInMonth - today.Day + 1;
+            daysInMonth -
+            today.Day +
+            1;
 
 
-        // ==========================================
-        // SAVINGS NEEDED THIS MONTH
-        // ==========================================
-
-        double savingsNeededThisMonth = 0;
-
-        // Go through every savings goal
-        foreach (SavingsGoal goal in savingsGoals)
+        if (daysLeftInMonth < 7)
         {
-            // How much money is still needed
-            // to complete this specific goal
-            double amountRemaining =
-                Math.Max(
-                    goal.TargetAmount -
-                    goal.CurrentAmount,
-                    0);
+            DateTime endOfMonth =
+                new DateTime(
+                    today.Year,
+                    today.Month,
+                    daysInMonth);
 
 
-            // How many days remain until
-            // this specific goal's deadline
-            double daysUntilDeadline =
-                (goal.DeadLine.Date -
-                DateTime.Today).TotalDays;
+            WeeklySafeToSpendTitleLabel.Text =
+                $"THROUGH {endOfMonth:MMM d}"
+                    .ToUpper();
+        }
+        else
+        {
+            WeeklySafeToSpendTitleLabel.Text =
+                "THIS WEEK";
+}
+        // ======================================
+        // THIS WEEK
+        // ======================================
+
+        WeeklySafeToSpendLabel.Text =
+            snapshot
+                .SafeToSpendThisWeek
+                .ToString("C");
 
 
-            // If the goal is already complete,
-            // it should not reduce Safe to Spend
-            if (amountRemaining <= 0)
+
+        // ======================================
+        // OBLIGATION SHORTFALL
+        // ======================================
+
+        if (snapshot.ObligationShortfall > 0)
+        {
+            SafeToSpendStatusLabel.Text =
+                $"⚠ Current obligations exceed spendable cash by " +
+                $"{snapshot.ObligationShortfall:C}.";
+
+
+            SafeToSpendStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // NO DISCRETIONARY ROOM
+        // ======================================
+
+        if (snapshot.SafeToSpendTotal <= 0)
+        {
+            SafeToSpendStatusLabel.Text =
+                "No discretionary spending room right now.";
+
+
+            SafeToSpendStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "WarningColor");
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // ON TRACK
+        // ======================================
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            SafeToSpendStatusLabel.Text =
+                "✓ No known shortfall based on current data";
+        }
+        else
+        {
+            SafeToSpendStatusLabel.Text =
+                "✓ You're currently on track";
+}
+
+
+        SafeToSpendStatusLabel
+            .SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
+    }
+
+
+
+    // ==========================================
+    // FINANCIAL HEALTH
+    // ==========================================
+
+    private void UpdateFinancialHealth(
+        FinancialSnapshot snapshot)
+    {
+        // ======================================
+        // NOT ENOUGH DATA
+        // ======================================
+
+        if (!snapshot.HasEnoughDataForHealthScore ||
+            !snapshot.FinancialHealthScore.HasValue)
+        {
+            FinancialHealthScoreLabel.Text =
+                "Not enough data";
+
+
+            FinancialHealthScoreLabel.FontSize =
+                25;
+
+
+            FinancialHealthStatusLabel.Text =
+                $"{snapshot.DataConfidence} confidence";
+
+
+            FinancialHealthReasonLabel.Text =
+                snapshot.DataConfidenceReason;
+
+
+
+            if (snapshot.DataConfidence.Equals(
+                    "Low",
+                    StringComparison.OrdinalIgnoreCase))
             {
-                continue;
+                FinancialHealthStatusLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "WarningColor");
+            }
+            else
+            {
+                FinancialHealthStatusLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "ThemePrimary");
             }
 
 
-            // Calculate how much this one goal
-            // needs during the current month
-            double goalSavingsNeededThisMonth =
-                analyticsService.GetSavingsNeededThisMonth(
-                    amountRemaining,
-                    daysUntilDeadline,
-                    daysLeftInMonth);
-
-
-            // Add this goal's requirement to
-            // the total savings commitment
-            savingsNeededThisMonth +=
-                goalSavingsNeededThisMonth;
+            return;
         }
 
 
-        // ==========================================
-        // SAFE TO SPEND
-        // ==========================================
 
-        double safeToSpend =
-            analyticsService.GetSafeToSpend(
-                summary.MoneyLeft,
-                savingsNeededThisMonth);
+        // ======================================
+        // SCORE AVAILABLE
+        // ======================================
 
-        double dailySafeToSpend =
-            analyticsService.GetDailySafeToSpend(
-                safeToSpend,
-                daysLeftInMonth);
-
-        double weeksLeft =
-            daysLeftInMonth / 7.0;
-
-        double weeklySafeToSpend =
-            analyticsService.GetWeeklySafeToSpend(
-                safeToSpend,
-                weeksLeft);
+        int score =
+            snapshot
+                .FinancialHealthScore
+                .Value;
 
 
-        // ==========================================
-        // CASH FLOW FORECAST
-        // ==========================================
 
-        double averageDailySpending =
-            analyticsService.GetAverageDailySpending(
-                summary.CurrentMonthSpent,
-                daysPassed);
+        FinancialHealthScoreLabel.FontSize =
+            38;
 
-        double projectedAdditionalSpending =
-            analyticsService.GetProjectedAdditionalSpending(
-                averageDailySpending,
-                daysLeftInMonth);
-
-        double projectedEndOfMonthMoney =
-            analyticsService.GetProjectedEndOfMonthMoney(
-                summary.MoneyLeft,
-                projectedAdditionalSpending);
-
-
-        // ==========================================
-        // FINANCIAL HEALTH
-        // ==========================================
-
-        int financialHealthScore =
-            analyticsService.GetFinancialHealthScore(
-                summary,
-                projectedEndOfMonthMoney,
-                safeToSpend);
-
-        string financialHealthStatus =
-            analyticsService.GetFinancialHealthStatus(
-                financialHealthScore);
-
-
-        // ==========================================
-        // UPDATE SAFE TO SPEND CARD
-        // ==========================================
-
-        DailySafeToSpendLabel.Text =
-            dailySafeToSpend.ToString("C");
-
-        WeeklySafeToSpendLabel.Text =
-            $"{weeklySafeToSpend:C} safe this week";
-
-        if (safeToSpend >= 0)
-        {
-            SafeToSpendStatusLabel.Text =
-                "✓ You're on track";
-
-            SafeToSpendStatusLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "SuccessColor");
-        }
-        else
-        {
-            SafeToSpendStatusLabel.Text =
-                $"⚠ {Math.Abs(safeToSpend):C} short";
-
-            SafeToSpendStatusLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "DangerColor");
-        }
-
-
-        // ==========================================
-        // UPDATE FINANCIAL HEALTH CARD
-        // ==========================================
 
         FinancialHealthScoreLabel.Text =
-            $"{financialHealthScore} / 100";
+            $"{score} / 100";
+
 
         FinancialHealthStatusLabel.Text =
-            financialHealthStatus;
+            $"{GetFinancialHealthStatus(score)} • " +
+            $"{snapshot.DataConfidence} confidence";
 
 
-        // ==========================================
-        // UPDATE YOUR MONEY CARDS
-        // ==========================================
+        FinancialHealthReasonLabel.Text =
+            snapshot.DataConfidenceReason;
 
-        TotalBalanceLabel.Text =
-            summary.TotalAccountBalance.ToString("C");
 
-        MonthlyIncomeLabel.Text =
-            summary.MonthlyIncome.ToString("C");
 
-        MonthlySpentLabel.Text =
-            summary.CurrentMonthSpent.ToString("C");
+        // ======================================
+        // SCORE COLOR
+        // ======================================
 
-        MoneyLeftLabel.Text =
-            summary.MoneyLeft.ToString("C");
-
-            // ==========================================
-            // UPDATE SAVINGS GOAL CARD
-            // ==========================================
-
-    if (savingsGoal != null)
-    {
-        SavingsGoalNameLabel.Text =
-            summary.SavingsGoalName;
-
-        SavingsProgressAmountLabel.Text =
-            $"{summary.CurrentSavedAmount:C} / {summary.SavingsTargetAmount:C}";
-
-        SavingsProgressPercentLabel.Text =
-            $"{summary.SavingsProgressPercentage:F0}%";
-
-        // ProgressBar uses 0.0 - 1.0 instead of 0 - 100
-        SavingsProgressBar.Progress =
-            summary.SavingsProgressPercentage / 100.0;
-
-        SavingsRemainingLabel.Text =
-            $"{summary.SavingsAmountRemaining:C} remaining";
-
-        WeeklySavingsNeededLabel.Text =
-            $"{summary.WeeklySavingsNeeded:C}/week needed";
-
-        if (summary.SavingsAmountRemaining <= 0)
+        if (score >= 70)
         {
-            SavingsStatusLabel.Text =
-                "✓ Goal complete";
-
-            SavingsStatusLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "SuccessColor");
+            FinancialHealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
         }
-        else if (summary.DaysLeft <= 0)
+        else if (score >= 50)
         {
-            SavingsStatusLabel.Text =
-                "⚠ Target date reached";
-
-            SavingsStatusLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "DangerColor");
+            FinancialHealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "WarningColor");
         }
         else
         {
-            SavingsStatusLabel.Text =
-                $"{summary.DaysLeft} days remaining";
-
-            SavingsStatusLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "SuccessColor");
+            FinancialHealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
         }
     }
-        else
+
+
+
+    // ==========================================
+    // FINANCIAL HEALTH STATUS TEXT
+    // ==========================================
+
+    private string GetFinancialHealthStatus(
+        int score)
+    {
+        if (score >= 85)
         {
-        SavingsGoalNameLabel.Text =
-            "No active goal";
-
-        SavingsProgressAmountLabel.Text =
-            "$0.00 / $0.00";
-
-        SavingsProgressPercentLabel.Text =
-            "0%";
-
-        SavingsProgressBar.Progress = 0;
-
-        SavingsRemainingLabel.Text =
-            "$0.00 remaining";
-
-        WeeklySavingsNeededLabel.Text =
-            "$0.00/week needed";
-
-        SavingsStatusLabel.Text =
-            "No savings goal";
-
-        SavingsStatusLabel.SetDynamicResource(
-        Label.TextColorProperty,
-        "TextSecondary");
+            return
+                "Strong financial position";
         }
 
-        // ==========================================
-        // UPDATE BUDGET SNAPSHOT
-        // ==========================================
 
-        // Remove old budget rows before rebuilding them.
-        BudgetSnapshotContainer.Children.Clear();
-
-
-        if (budgetLimits.Count > 0)
+        if (score >= 70)
         {
-            BudgetEmptyLabel.IsVisible =
-                false;
+            return
+                "Generally healthy";
+        }
 
 
-            // ======================================
-            // CURRENT MONTH EXPENSES
-            // ======================================
-
-            List<Expense> currentMonthExpenses =
-                expenses
-                    .Where(expense =>
-                        expense.Date.Year ==
-                        today.Year &&
-
-                        expense.Date.Month ==
-                        today.Month)
-                    .ToList();
+        if (score >= 50)
+        {
+            return
+                "Needs attention";
+        }
 
 
-            // ======================================
-            // DISPLAY TOP 3 BUDGETS
-            // ======================================
-
-            foreach (BudgetLimit budget
-                    in budgetLimits.Take(3))
-            {
-                double spent =
-                    analyticsService.GetCategoryTotal(
-                        currentMonthExpenses,
-                        budget.Category);
+        return
+            "High financial pressure";
+    }
 
 
-                double remaining =
-                    budget.LimitAmount -
-                    spent;
+
+    // ==========================================
+    // YOUR MONEY
+    // ==========================================
+
+    private void UpdateMoneyCards(
+        FinancialSnapshot snapshot)
+    {
+        // ======================================
+        // TOTAL ACCOUNT VALUE
+        // ======================================
+
+        TotalBalanceLabel.Text =
+            snapshot
+                .TotalAccountBalance
+                .ToString("C");
 
 
-                double progress =
-                    0;
+
+        // ======================================
+        // CURRENT SPENDABLE CASH
+        // ======================================
+        //
+        // Checking + Cash
+        //
+        // Savings remains protected.
+        // ======================================
+
+        SpendableCashLabel.Text =
+            snapshot
+                .CurrentSpendableCash
+                .ToString("C");
 
 
-                if (budget.LimitAmount > 0)
-                {
-                    progress =
-                        spent /
-                        budget.LimitAmount;
-                }
+
+        // ======================================
+        // EXPECTED INCOME
+        // ======================================
+        //
+        // Planning information only.
+        //
+        // This does NOT mean this money
+        // currently exists in the account.
+        // ======================================
+
+        MonthlyIncomeLabel.Text =
+            snapshot
+                .ExpectedMonthlyIncome
+                .ToString("C");
 
 
-                double displayedProgress =
-                    Math.Clamp(
-                        progress,
-                        0,
-                        1);
+
+        // ======================================
+        // MONTHLY SPENDING
+        // ======================================
+
+        MonthlySpentLabel.Text =
+            snapshot
+                .CurrentMonthSpent
+                .ToString("C");
+    }
 
 
-                // ==================================
-                // TOP ROW
-                // ==================================
 
-                Grid topRow =
-                    new Grid
-                    {
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition(
-                                GridLength.Star),
+    // ==========================================
+    // HOME SAVINGS GOAL
+    // ==========================================
 
-                            new ColumnDefinition(
-                                GridLength.Auto)
-                        }
-                    };
+    private void UpdateSavingsGoal(
+        SavingsGoal? savingsGoal,
+        DateTime today)
+    {
+        // ======================================
+        // NO GOAL
+        // ======================================
 
-
-                // ==================================
-                // CATEGORY NAME
-                // ==================================
-
-                Label categoryLabel =
-                    new Label
-                    {
-                        Text =
-                            budget.Category,
-
-                        FontSize =
-                            14,
-
-                        FontAttributes =
-                            FontAttributes.Bold
-                    };
+        if (savingsGoal == null)
+        {
+            SavingsGoalNameLabel.Text =
+                "No active goal";
 
 
-                categoryLabel.SetDynamicResource(
-                    Label.TextColorProperty,
-                    "TextPrimary");
+            SavingsProgressAmountLabel.Text =
+                "$0.00 / $0.00";
 
 
-                // ==================================
-                // SPENT / LIMIT
-                // ==================================
-
-                Label amountLabel =
-                    new Label
-                    {
-                        Text =
-                            $"{spent:C} / " +
-                            $"{budget.LimitAmount:C}",
-
-                        FontSize =
-                            13
-                    };
+            SavingsProgressPercentLabel.Text =
+                "0%";
 
 
-                amountLabel.SetDynamicResource(
+            SavingsProgressBar.Progress =
+                0;
+
+
+            SavingsRemainingLabel.Text =
+                "$0.00 remaining";
+
+
+            WeeklySavingsNeededLabel.Text =
+                "$0.00/week needed";
+
+
+            SavingsStatusLabel.Text =
+                "No savings goal";
+
+
+            SavingsStatusLabel
+                .SetDynamicResource(
                     Label.TextColorProperty,
                     "TextSecondary");
 
 
-                Grid.SetColumn(
-                    categoryLabel,
-                    0);
-
-
-                Grid.SetColumn(
-                    amountLabel,
-                    1);
-
-
-                topRow.Children.Add(
-                    categoryLabel);
-
-
-                topRow.Children.Add(
-                    amountLabel);
-
-
-
-                // ==================================
-                // BUDGET PROGRESS BAR
-                // ==================================
-
-                ProgressBar progressBar =
-                    new ProgressBar
-                    {
-                        Progress =
-                            displayedProgress,
-
-                        HeightRequest =
-                            8
-                    };
-
-
-                // Over-budget stays red because
-                // this is a financial warning.
-                if (remaining < 0)
-                {
-                    progressBar.SetDynamicResource(
-                        ProgressBar.ProgressColorProperty,
-                        "DangerColor");
-                }
-                else
-                {
-                    // Normal progress follows the
-                    // user's selected app theme.
-                    progressBar.SetDynamicResource(
-                        ProgressBar.ProgressColorProperty,
-                        "ThemePrimary");
-                }
-
-
-                progressBar.SetDynamicResource(
-                    ProgressBar.BackgroundColorProperty,
-                    "BorderColor");
-
-
-
-                // ==================================
-                // REMAINING / OVER-BUDGET MESSAGE
-                // ==================================
-
-                Label remainingLabel =
-                    new Label
-                    {
-                        FontSize =
-                            12
-                    };
-
-
-                if (remaining >= 0)
-                {
-                    remainingLabel.Text =
-                        $"{remaining:C} left";
-
-
-                    remainingLabel.SetDynamicResource(
-                        Label.TextColorProperty,
-                        "TextSecondary");
-                }
-                else
-                {
-                    remainingLabel.Text =
-                        $"{Math.Abs(remaining):C} OVER BUDGET";
-
-
-                    remainingLabel.SetDynamicResource(
-                        Label.TextColorProperty,
-                        "DangerColor");
-
-
-                    remainingLabel.FontAttributes =
-                        FontAttributes.Bold;
-                }
-
-
-
-                // ==================================
-                // COMPLETE BUDGET ROW
-                // ==================================
-
-                VerticalStackLayout budgetRow =
-                    new VerticalStackLayout
-                    {
-                        Spacing =
-                            6
-                    };
-
-
-                budgetRow.Children.Add(
-                    topRow);
-
-
-                budgetRow.Children.Add(
-                    progressBar);
-
-
-                budgetRow.Children.Add(
-                    remainingLabel);
-
-
-                BudgetSnapshotContainer.Children.Add(
-                    budgetRow);
-            }
+            return;
         }
-        else
+
+
+
+        // ======================================
+        // AMOUNTS
+        // ======================================
+
+        double remaining =
+            Math.Max(
+                savingsGoal.TargetAmount
+                -
+                savingsGoal.CurrentAmount,
+                0);
+
+
+
+        double progressPercentage =
+            0;
+
+
+
+        if (savingsGoal.TargetAmount > 0)
+        {
+            progressPercentage =
+                Math.Clamp(
+                    savingsGoal.CurrentAmount
+                    /
+                    savingsGoal.TargetAmount
+                    *
+                    100,
+                    0,
+                    100);
+        }
+
+
+
+        double daysUntilDeadline =
+            (
+                savingsGoal.DeadLine.Date
+                -
+                today.Date
+            )
+            .TotalDays;
+
+
+
+        double weeklyNeeded =
+            CalculateWeeklySavingsNeeded(
+                savingsGoal,
+                today);
+
+
+
+        // ======================================
+        // DISPLAY
+        // ======================================
+
+        SavingsGoalNameLabel.Text =
+            savingsGoal.Name;
+
+
+        SavingsProgressAmountLabel.Text =
+            $"{savingsGoal.CurrentAmount:C} / " +
+            $"{savingsGoal.TargetAmount:C}";
+
+
+        SavingsProgressPercentLabel.Text =
+            $"{progressPercentage:F0}%";
+
+
+        SavingsProgressBar.Progress =
+            progressPercentage
+            /
+            100.0;
+
+
+        SavingsRemainingLabel.Text =
+            $"{remaining:C} remaining";
+
+
+
+        // ======================================
+        // COMPLETED
+        // ======================================
+
+        if (remaining <= 0)
+        {
+            WeeklySavingsNeededLabel.Text =
+                "Goal fully funded";
+
+
+            SavingsStatusLabel.Text =
+                "✓ Goal complete";
+
+
+            SavingsStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // DEADLINE REACHED
+        // ======================================
+
+        if (daysUntilDeadline <= 0)
+        {
+            WeeklySavingsNeededLabel.Text =
+                "Update your target date";
+
+
+            SavingsStatusLabel.Text =
+                "⚠ Target date reached";
+
+
+            SavingsStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // ACTIVE GOAL
+        // ======================================
+
+        WeeklySavingsNeededLabel.Text =
+            $"{weeklyNeeded:C}/week needed";
+
+
+        int displayDays =
+            Math.Max(
+                (int)Math.Ceiling(
+                    daysUntilDeadline),
+                0);
+
+
+        SavingsStatusLabel.Text =
+            $"{displayDays} days remaining";
+
+
+        SavingsStatusLabel
+            .SetDynamicResource(
+                Label.TextColorProperty,
+                "SuccessColor");
+    }
+
+
+
+    // ==========================================
+    // WEEKLY SAVINGS REQUIREMENT
+    // ==========================================
+
+    private double CalculateWeeklySavingsNeeded(
+        SavingsGoal goal,
+        DateTime today)
+    {
+        double remaining =
+            Math.Max(
+                goal.TargetAmount
+                -
+                goal.CurrentAmount,
+                0);
+
+
+
+        if (remaining <= 0)
+        {
+            return 0;
+        }
+
+
+
+        double daysUntilDeadline =
+            (
+                goal.DeadLine.Date
+                -
+                today.Date
+            )
+            .TotalDays;
+
+
+
+        if (daysUntilDeadline <= 0)
+        {
+            return 0;
+        }
+
+
+
+        double weeksLeft =
+            daysUntilDeadline
+            /
+            7.0;
+
+
+
+        if (weeksLeft <= 0)
+        {
+            return 0;
+        }
+
+
+
+        return
+            remaining
+            /
+            weeksLeft;
+    }
+
+
+
+    // ==========================================
+    // BUDGET SNAPSHOT
+    // ==========================================
+
+    private void UpdateBudgetSnapshot(
+        List<BudgetLimit> budgetLimits,
+        List<Expense> currentMonthExpenses)
+    {
+        BudgetSnapshotContainer
+            .Children
+            .Clear();
+
+
+
+        // ======================================
+        // NO BUDGETS
+        // ======================================
+
+        if (budgetLimits.Count == 0)
         {
             BudgetEmptyLabel.IsVisible =
                 true;
@@ -605,99 +913,358 @@ public partial class HomePage : ContentPage
 
             BudgetEmptyLabel.Text =
                 "No budget information yet.";
+
+
+            return;
         }
 
+
+
+        BudgetEmptyLabel.IsVisible =
+            false;
+
+
+
+        // ======================================
+        // TOP THREE BUDGETS
+        // ======================================
+
+        foreach (BudgetLimit budget
+                 in budgetLimits.Take(3))
+        {
+            double spent =
+                currentMonthExpenses
+                    .Where(
+                        expense =>
+                            expense.Category.Equals(
+                                budget.Category,
+                                StringComparison.OrdinalIgnoreCase))
+                    .Sum(
+                        expense =>
+                            Math.Max(
+                                expense.Amount,
+                                0));
+
+
+
+            double remaining =
+                budget.LimitAmount
+                -
+                spent;
+
+
+
+            double progress =
+                0;
+
+
+
+            if (budget.LimitAmount > 0)
+            {
+                progress =
+                    spent
+                    /
+                    budget.LimitAmount;
+            }
+
+
+
+            double displayedProgress =
+                Math.Clamp(
+                    progress,
+                    0,
+                    1);
+
+
+
+            // ==================================
+            // TOP ROW
+            // ==================================
+
+            Grid topRow =
+                new Grid
+                {
+                    ColumnDefinitions =
+                    {
+                        new ColumnDefinition(
+                            GridLength.Star),
+
+                        new ColumnDefinition(
+                            GridLength.Auto)
+                    }
+                };
+
+
+
+            Label categoryLabel =
+                new Label
+                {
+                    Text =
+                        budget.Category,
+
+                    FontSize =
+                        14,
+
+                    FontAttributes =
+                        FontAttributes.Bold
+                };
+
+
+            categoryLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextPrimary");
+
+
+
+            Label amountLabel =
+                new Label
+                {
+                    Text =
+                        $"{spent:C} / " +
+                        $"{budget.LimitAmount:C}",
+
+                    FontSize =
+                        13
+                };
+
+
+            amountLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextSecondary");
+
+
+
+            Grid.SetColumn(
+                categoryLabel,
+                0);
+
+
+            Grid.SetColumn(
+                amountLabel,
+                1);
+
+
+
+            topRow.Children.Add(
+                categoryLabel);
+
+
+            topRow.Children.Add(
+                amountLabel);
+
+
+
+            // ==================================
+            // PROGRESS BAR
+            // ==================================
+
+            ProgressBar progressBar =
+                new ProgressBar
+                {
+                    Progress =
+                        displayedProgress,
+
+                    HeightRequest =
+                        8
+                };
+
+
+
+            if (remaining < 0)
+            {
+                progressBar
+                    .SetDynamicResource(
+                        ProgressBar
+                            .ProgressColorProperty,
+                        "DangerColor");
+            }
+            else
+            {
+                progressBar
+                    .SetDynamicResource(
+                        ProgressBar
+                            .ProgressColorProperty,
+                        "ThemePrimary");
+            }
+
+
+
+            progressBar
+                .SetDynamicResource(
+                    ProgressBar
+                        .BackgroundColorProperty,
+                    "BorderColor");
+
+
+
+            // ==================================
+            // REMAINING MESSAGE
+            // ==================================
+
+            Label remainingLabel =
+                new Label
+                {
+                    FontSize =
+                        12
+                };
+
+
+
+            if (remaining >= 0)
+            {
+                remainingLabel.Text =
+                    $"{remaining:C} left";
+
+
+                remainingLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "TextSecondary");
+            }
+            else
+            {
+                remainingLabel.Text =
+                    $"{Math.Abs(remaining):C} OVER BUDGET";
+
+
+                remainingLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "DangerColor");
+
+
+                remainingLabel.FontAttributes =
+                    FontAttributes.Bold;
+            }
+
+
+
+            VerticalStackLayout budgetRow =
+                new VerticalStackLayout
+                {
+                    Spacing =
+                        6
+                };
+
+
+
+            budgetRow.Children.Add(
+                topRow);
+
+
+            budgetRow.Children.Add(
+                progressBar);
+
+
+            budgetRow.Children.Add(
+                remainingLabel);
+
+
+
+            BudgetSnapshotContainer
+                .Children
+                .Add(
+                    budgetRow);
+        }
+    }
+
+
+
     // ==========================================
-    // UPDATE UPCOMING BILLS
+    // UPCOMING BILLS
     // ==========================================
 
-    // Clears previously generated bill rows.
-    UpcomingBillsContainer.Children.Clear();
-
-
-    // ==========================================
-    // GET ACTIVE UPCOMING BILLS
-    // ==========================================
-
-    List<RecurringExpenses> activeBills =
-        recurringExpenses
-            .Where(bill =>
-                bill.IsActive)
-            .OrderBy(bill =>
-                analyticsService.GetDaysUntilDue(
-                    bill.DueDay))
-            .Take(3)
-            .ToList();
-
-
-    if (activeBills.Count > 0)
+    private void UpdateUpcomingBills(
+        List<RecurringExpenses> recurringExpenses,
+        DateTime today)
     {
+        UpcomingBillsContainer
+            .Children
+            .Clear();
+
+
+
+        // ======================================
+        // FIND NEXT DUE DATE FOR EACH BILL
+        // ======================================
+
+        var activeBills =
+            recurringExpenses
+                .Where(
+                    bill =>
+                        bill.IsActive)
+                .Select(
+                    bill =>
+                        new
+                        {
+                            Bill =
+                                bill,
+
+                            DueDate =
+                                GetNextDueDate(
+                                    bill.DueDay,
+                                    today)
+                        })
+                .OrderBy(
+                    item =>
+                        item.DueDate)
+                .Take(3)
+                .ToList();
+
+
+
+        // ======================================
+        // NO BILLS
+        // ======================================
+
+        if (activeBills.Count == 0)
+        {
+            BillsEmptyLabel.IsVisible =
+                true;
+
+
+            BillsEmptyLabel.Text =
+                "No upcoming bills.";
+
+
+            return;
+        }
+
+
+
         BillsEmptyLabel.IsVisible =
             false;
 
 
-        foreach (RecurringExpenses bill
-                in activeBills)
+
+        // ======================================
+        // DISPLAY BILLS
+        // ======================================
+
+        foreach (var item
+                 in activeBills)
         {
+            RecurringExpenses bill =
+                item.Bill;
+
+
+            DateTime dueDate =
+                item.DueDate;
+
+
             int daysUntilDue =
-                analyticsService.GetDaysUntilDue(
-                    bill.DueDay);
+                Math.Max(
+                    (
+                        dueDate.Date
+                        -
+                        today.Date
+                    )
+                    .Days,
+                    0);
 
 
-            // ==================================
-            // CALCULATE UPCOMING DUE DATE
-            // ==================================
-
-            DateTime dueDate;
-
-
-            int thisMonthDueDay =
-                Math.Min(
-                    bill.DueDay,
-                    DateTime.DaysInMonth(
-                        today.Year,
-                        today.Month));
-
-
-            DateTime thisMonthDueDate =
-                new DateTime(
-                    today.Year,
-                    today.Month,
-                    thisMonthDueDay);
-
-
-            if (thisMonthDueDate.Date >=
-                today.Date)
-            {
-                dueDate =
-                    thisMonthDueDate;
-            }
-            else
-            {
-                DateTime nextMonth =
-                    today.AddMonths(1);
-
-
-                int nextMonthDueDay =
-                    Math.Min(
-                        bill.DueDay,
-                        DateTime.DaysInMonth(
-                            nextMonth.Year,
-                            nextMonth.Month));
-
-
-                dueDate =
-                    new DateTime(
-                        nextMonth.Year,
-                        nextMonth.Month,
-                        nextMonthDueDay);
-            }
-
-
-
-            // ==================================
-            // BILL ROW
-            // ==================================
 
             Grid billRow =
                 new Grid
@@ -717,16 +1284,13 @@ public partial class HomePage : ContentPage
 
 
 
-            // ==================================
-            // BILL INFORMATION
-            // ==================================
-
             VerticalStackLayout billInfo =
                 new VerticalStackLayout
                 {
                     Spacing =
                         3
                 };
+
 
 
             Label nameLabel =
@@ -743,9 +1307,10 @@ public partial class HomePage : ContentPage
                 };
 
 
-            nameLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "TextPrimary");
+            nameLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextPrimary");
 
 
 
@@ -760,9 +1325,25 @@ public partial class HomePage : ContentPage
                 };
 
 
-            categoryLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "TextSecondary");
+            categoryLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextSecondary");
+
+
+
+            string dueDescription =
+                daysUntilDue switch
+                {
+                    0 =>
+                        "Due today",
+
+                    1 =>
+                        "Due tomorrow",
+
+                    _ =>
+                        $"Due in {daysUntilDue} days"
+                };
 
 
 
@@ -771,24 +1352,17 @@ public partial class HomePage : ContentPage
                 {
                     Text =
                         $"Due {dueDate:MMM d} • " +
-                        (
-                            daysUntilDue == 0
-                                ? "Due today"
-
-                                : daysUntilDue == 1
-                                    ? "Due tomorrow"
-
-                                    : $"Due in {daysUntilDue} days"
-                        ),
+                        dueDescription,
 
                     FontSize =
                         12
                 };
 
 
-            dueLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "TextSecondary");
+            dueLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextSecondary");
 
 
 
@@ -804,10 +1378,6 @@ public partial class HomePage : ContentPage
                 dueLabel);
 
 
-
-            // ==================================
-            // BILL AMOUNT
-            // ==================================
 
             Label amountLabel =
                 new Label
@@ -826,9 +1396,10 @@ public partial class HomePage : ContentPage
                 };
 
 
-            amountLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "TextPrimary");
+            amountLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextPrimary");
 
 
 
@@ -842,6 +1413,7 @@ public partial class HomePage : ContentPage
                 1);
 
 
+
             billRow.Children.Add(
                 billInfo);
 
@@ -850,161 +1422,363 @@ public partial class HomePage : ContentPage
                 amountLabel);
 
 
-            UpcomingBillsContainer.Children.Add(
-                billRow);
+
+            UpcomingBillsContainer
+                .Children
+                .Add(
+                    billRow);
         }
     }
-    else
+
+
+
+    // ==========================================
+    // NEXT BILL DUE DATE
+    // ==========================================
+
+    private DateTime GetNextDueDate(
+        int dueDay,
+        DateTime today)
     {
-        BillsEmptyLabel.IsVisible =
-            true;
+        int thisMonthDays =
+            DateTime.DaysInMonth(
+                today.Year,
+                today.Month);
 
 
-        BillsEmptyLabel.Text =
-            "No upcoming bills.";
+
+        int safeDueDay =
+            Math.Clamp(
+                dueDay,
+                1,
+                thisMonthDays);
+
+
+
+        DateTime thisMonthDueDate =
+            new DateTime(
+                today.Year,
+                today.Month,
+                safeDueDay);
+
+
+
+        if (thisMonthDueDate.Date >=
+            today.Date)
+        {
+            return
+                thisMonthDueDate;
+        }
+
+
+
+        DateTime nextMonth =
+            today.AddMonths(1);
+
+
+
+        int nextMonthDays =
+            DateTime.DaysInMonth(
+                nextMonth.Year,
+                nextMonth.Month);
+
+
+
+        int nextMonthDueDay =
+            Math.Clamp(
+                dueDay,
+                1,
+                nextMonthDays);
+
+
+
+        return
+            new DateTime(
+                nextMonth.Year,
+                nextMonth.Month,
+                nextMonthDueDay);
     }
 
-        // ==========================================
-        // UPDATE POCKETAI INSIGHT
-        // ==========================================
 
-        if (income == null &&
-            expenses.Count == 0 &&
-            accountBalance == null)
+
+    // ==========================================
+    // POCKETAI INSIGHT
+    // ==========================================
+
+    private void UpdatePocketAiInsight(
+        FinancialSnapshot snapshot,
+        AccountBalance? accountBalance,
+        SavingsGoal? savingsGoal,
+        List<Expense> currentMonthExpenses,
+        DateTime today)
+    {
+        // ======================================
+        // NO ACCOUNT INFORMATION
+        // ======================================
+
+        if (accountBalance == null)
         {
             PocketAIInsightLabel.Text =
-                "Complete your financial setup so PocketAI can start analyzing your money.";
+                "Add your current account balances so PocketAI can calculate how much money is actually available now.";
+
+
+            return;
         }
-        else if (safeToSpend < 0)
+
+
+
+        // ======================================
+        // OBLIGATION SHORTFALL
+        // ======================================
+
+        if (snapshot.ObligationShortfall > 0)
         {
             PocketAIInsightLabel.Text =
-                $"Your current plan is {Math.Abs(safeToSpend):C} short. " +
-                "Consider reducing spending or adjusting your savings plan.";
+                $"Your current spendable cash is " +
+                $"{snapshot.ObligationShortfall:C} short of your protected upcoming obligations. " +
+                "Review bills, spending, or savings deadlines before making extra purchases.";
+
+
+            return;
         }
-        else if (summary.OverBudgetCount > 0)
+
+
+
+        // ======================================
+        // LOW DATA CONFIDENCE
+        // ======================================
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            if (snapshot.RequiredSavingsThisMonth > 0)
+            {
+                PocketAIInsightLabel.Text =
+                    $"{snapshot.RequiredSavingsThisMonth:C} is currently protected for your savings goals, " +
+                    $"leaving an estimated {snapshot.SafeToSpendTotal:C} Safe to Spend based on the financial information entered so far.";
+            }
+            else
+            {
+                PocketAIInsightLabel.Text =
+                    $"You currently have an estimated {snapshot.SafeToSpendTotal:C} Safe to Spend based on the financial information entered so far.";
+            }
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // OVER BUDGET
+        // ======================================
+
+        if (snapshot.OverBudgetCount > 0)
         {
             string categoryText =
-                summary.OverBudgetCount == 1
+                snapshot.OverBudgetCount == 1
                     ? "category is"
                     : "categories are";
 
+
             PocketAIInsightLabel.Text =
-                $"{summary.OverBudgetCount} budget {categoryText} currently over budget. " +
-                "Review those categories before making extra purchases.";
+                $"{snapshot.OverBudgetCount} budget {categoryText} currently over budget. " +
+                "Review those limits before adding discretionary spending.";
+
+
+            return;
         }
-        else if (savingsGoal != null &&
-                summary.SavingsAmountRemaining > 0)
+
+
+
+        // ======================================
+        // ACTIVE SAVINGS GOAL
+        // ======================================
+
+        if (savingsGoal != null &&
+            savingsGoal.CurrentAmount <
+            savingsGoal.TargetAmount)
+        {
+            double weeklyNeeded =
+                CalculateWeeklySavingsNeeded(
+                    savingsGoal,
+                    today);
+
+
+
+            if (weeklyNeeded > 0)
+            {
+                PocketAIInsightLabel.Text =
+                    $"You're working toward {savingsGoal.Name}. " +
+                    $"About {weeklyNeeded:C} per week keeps that goal on its current schedule. " +
+                    $"Your Safe to Spend already protects required savings.";
+
+
+                return;
+            }
+        }
+
+
+
+        // ======================================
+        // BIGGEST SPENDING CATEGORY
+        // ======================================
+
+        var biggestCategory =
+            currentMonthExpenses
+                .Where(
+                    expense =>
+                        !string.IsNullOrWhiteSpace(
+                            expense.Category))
+                .GroupBy(
+                    expense =>
+                        expense.Category)
+                .Select(
+                    group =>
+                        new
+                        {
+                            Category =
+                                group.Key,
+
+                            Amount =
+                                group.Sum(
+                                    expense =>
+                                        Math.Max(
+                                            expense.Amount,
+                                            0))
+                        })
+                .OrderByDescending(
+                    item =>
+                        item.Amount)
+                .FirstOrDefault();
+
+
+
+        if (biggestCategory != null &&
+            biggestCategory.Amount > 0)
         {
             PocketAIInsightLabel.Text =
-                $"You're working toward {summary.SavingsGoalName}. " +
-                $"Saving about {summary.WeeklySavingsNeeded:C} per week " +
-                "will help keep your goal on track.";
+                $"{biggestCategory.Category} is your largest spending category this month at " +
+                $"{biggestCategory.Amount:C}. " +
+                $"You currently have {snapshot.SafeToSpendTotal:C} total Safe to Spend.";
+
+
+            return;
         }
-        else if (!string.IsNullOrWhiteSpace(
-                    summary.BiggestSpendingCategory) &&
-                summary.BiggestCategoryAmount > 0)
+
+
+
+        // ======================================
+        // HEALTHY SAFE TO SPEND
+        // ======================================
+
+        if (snapshot.SafeToSpendTotal > 0)
         {
             PocketAIInsightLabel.Text =
-                $"{summary.BiggestSpendingCategory} is your largest spending category " +
-                $"this month at {summary.BiggestCategoryAmount:C}.";
-        }
-        else if (safeToSpend > 0)
-        {
-            PocketAIInsightLabel.Text =
-                $"You're currently on track with approximately " +
-                $"{dailySafeToSpend:C} available to safely spend today.";
-        }
-        else
-        {
-            PocketAIInsightLabel.Text =
-                "Add more financial activity so PocketAI can give you a useful recommendation.";
-        }
-        }
-
-        // ==========================================
-        // HOME PAGE NAVIGATION
-        // ==========================================
+                $"You currently have {snapshot.SafeToSpendTotal:C} total Safe to Spend, " +
+                $"including about {snapshot.SafeToSpendToday:C} for today.";
 
 
-        // ==========================================
-        // ADD EXPENSE
-        // ==========================================
-
-        private async void AddExpenseClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//Transactions");
+            return;
         }
 
 
 
-        // ==========================================
-        // FINANCIAL HEALTH / ANALYTICS
-        // ==========================================
+        // ======================================
+        // FALLBACK
+        // ======================================
 
-        private async void ViewAnalyticsClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//Analytics");
-        }
+        PocketAIInsightLabel.Text =
+            "Keep adding real financial activity so PocketAI can make its guidance more precise.";
+    }
 
 
 
-        // ==========================================
-        // POCKETAI
-        // ==========================================
-
-        private async void AskPocketAIClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//PocketAI");
-        }
+    // ==========================================
+    // HOME PAGE NAVIGATION
+    // ==========================================
 
 
+    // ==========================================
+    // ADD EXPENSE
+    // ==========================================
 
-        // ==========================================
-        // SAVINGS
-        // ==========================================
-
-        private async void ViewSavingsClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//Savings");
-        }
+    private async void AddExpenseClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//Transactions");
+    }
 
 
 
-        // ==========================================
-        // BUDGET
-        // ==========================================
+    // ==========================================
+    // FINANCIAL HEALTH / ANALYTICS
+    // ==========================================
 
-        private async void ViewBudgetClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//Budget");
-        }
+    private async void ViewAnalyticsClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//Analytics");
+    }
 
 
 
-        // ==========================================
-        // BILLS
-        // ==========================================
+    // ==========================================
+    // POCKETAI
+    // ==========================================
 
-        private async void ViewBillsClicked(
-            object? sender,
-            EventArgs e)
-        {
-            await Shell.Current.GoToAsync(
-                "//Bills");
-        }
+    private async void AskPocketAIClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//PocketAI");
+    }
+
+
+
+    // ==========================================
+    // SAVINGS
+    // ==========================================
+
+    private async void ViewSavingsClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//Savings");
+    }
+
+
+
+    // ==========================================
+    // BUDGET
+    // ==========================================
+
+    private async void ViewBudgetClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//Budget");
+    }
+
+
+
+    // ==========================================
+    // BILLS
+    // ==========================================
+
+    private async void ViewBillsClicked(
+        object? sender,
+        EventArgs e)
+    {
+        await Shell.Current.GoToAsync(
+            "//Bills");
+    }
 }

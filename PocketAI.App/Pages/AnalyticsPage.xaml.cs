@@ -1,44 +1,90 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
+
 using SkiaSharp;
+
 
 namespace PocketAI.App.Pages;
 
 public partial class AnalyticsPage : ContentPage
 {
-    private readonly DataBaseManager dataBaseManager;
-    private readonly AnalyticsService analyticsService;
+    // ==========================================
+    // DATABASE
+    // ==========================================
 
-    private string currentTab = "Overview";
+    private readonly DataBaseManager
+        dataBaseManager;
 
+
+    // ==========================================
+    // HISTORICAL ANALYTICS
+    // ==========================================
+    //
+    // AnalyticsService remains useful for:
+    //
+    // - spending history
+    // - category analysis
+    // - week comparisons
+    // - month comparisons
+    // - trend calculations
+    //
+    // It is NO LONGER the source of truth for
+    // Safe to Spend or Financial Health.
+    // ==========================================
+
+    private readonly AnalyticsService
+        analyticsService;
+
+
+    // ==========================================
+    // CENTRAL FINANCIAL ENGINE
+    // ==========================================
+
+    private readonly FinancialSnapshotProvider
+        financialSnapshotProvider;
+
+
+    private string currentTab =
+        "Overview";
+
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public AnalyticsPage()
     {
         InitializeComponent();
 
 
-        // Stores PocketAI's database inside
-        // the MAUI application's data folder.
         string databasePath =
             Path.Combine(
                 FileSystem.AppDataDirectory,
                 "pocketai.db");
 
 
-        // Connects this page to SQLite.
         dataBaseManager =
             new DataBaseManager(
                 databasePath);
 
 
-        // Handles PocketAI's financial calculations.
+        dataBaseManager.CreateTables();
+
+
         analyticsService =
             new AnalyticsService();
 
 
-        // Makes sure all database tables exist.
-        dataBaseManager.CreateTables();
+        financialSnapshotProvider =
+            new FinancialSnapshotProvider(
+                dataBaseManager);
     }
 
 
@@ -52,80 +98,51 @@ public partial class AnalyticsPage : ContentPage
         base.OnAppearing();
 
 
-        // Reload analytics whenever the
-        // user returns to this page.
         LoadAnalytics();
 
-        ShowTab(currentTab);
+
+        ShowTab(
+            currentTab);
     }
 
 
 
     // ==========================================
-    // LOAD ALL ANALYTICS DATA
+    // LOAD ANALYTICS
     // ==========================================
 
     private void LoadAnalytics()
     {
-        // Transactions
+        // ======================================
+        // ONE CENTRAL FINANCIAL SNAPSHOT
+        // ======================================
+
+        FinancialSnapshot snapshot =
+            financialSnapshotProvider
+                .GetSnapshot();
+
+
+
+        // ======================================
+        // TRANSACTION HISTORY
+        // ======================================
+        //
+        // Raw transactions are still useful
+        // for actual analytics and charts.
+        // ======================================
+
         List<Expense> expenses =
             dataBaseManager
                 .GetAllExpenses();
 
 
-        // Monthly income
-        Income? income =
-            dataBaseManager
-                .GetIncome();
 
+        // ======================================
+        // LOAD SECTIONS
+        // ======================================
 
-        // Checking, savings, and cash balances
-        AccountBalance? accountBalance =
-            dataBaseManager
-                .GetAccountBalance();
-
-
-        // Primary savings goal
-        SavingsGoal? primarySavingsGoal =
-            dataBaseManager
-                .GetSavingsGoal();
-
-
-        // Every savings goal
-        List<SavingsGoal> savingsGoals =
-            dataBaseManager
-                .GetSavingsGoals();
-
-
-        // Budget category limits
-        List<BudgetLimit> budgets =
-            dataBaseManager
-                .GetBudgetLimits();
-
-
-        // Recurring bills
-        List<RecurringExpenses> recurringExpenses =
-            dataBaseManager
-                .GetRecuringExpenses();
-
-
-        // Builds PocketAI's main financial summary.
-        FinancialSummary summary =
-            analyticsService
-                .BuildFinancialSummary(
-                    expenses,
-                    income,
-                    accountBalance,
-                    primarySavingsGoal,
-                    budgets,
-                    recurringExpenses);
-
-
-        // Load every Analytics section.
         LoadOverview(
-            expenses,
-            savingsGoals,
-            summary);
+            snapshot);
 
 
         LoadSpending(
@@ -137,11 +154,13 @@ public partial class AnalyticsPage : ContentPage
 
 
         LoadCashFlow(
-            summary);
+            snapshot);
 
 
         LoadTrends(
             expenses);
+
+
 
         ApplyChartTheme();
     }
@@ -149,13 +168,268 @@ public partial class AnalyticsPage : ContentPage
 
 
     // ==========================================
-    // OVERVIEW TAB
+    // OVERVIEW
     // ==========================================
 
     private void LoadOverview(
-        List<Expense> expenses,
-        List<SavingsGoal> savingsGoals,
-        FinancialSummary summary)
+        FinancialSnapshot snapshot)
+    {
+        // ======================================
+        // CURRENT SPENDABLE CASH
+        // ======================================
+
+        OverviewSpendableCashLabel.Text =
+            snapshot
+                .CurrentSpendableCash
+                .ToString("C");
+
+
+
+        // ======================================
+        // EXPECTED MONTHLY INCOME
+        // ======================================
+
+        OverviewIncomeLabel.Text =
+            snapshot
+                .ExpectedMonthlyIncome
+                .ToString("C");
+
+
+
+        // ======================================
+        // SPENT THIS MONTH
+        // ======================================
+
+        OverviewSpentLabel.Text =
+            snapshot
+                .CurrentMonthSpent
+                .ToString("C");
+
+
+
+        // ======================================
+        // UPCOMING BILLS
+        // ======================================
+
+        OverviewUpcomingBillsLabel.Text =
+            snapshot
+                .UpcomingBills
+                .ToString("C");
+
+
+
+        // ======================================
+        // FINANCIAL HEALTH
+        // ======================================
+
+        UpdateFinancialHealth(
+            snapshot);
+
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            AnalyticsSafeToSpendTitleLabel.Text =
+                "ESTIMATED SAFE TO SPEND";
+        }
+        else
+        {
+            AnalyticsSafeToSpendTitleLabel.Text =
+                "SAFE TO SPEND";
+        }
+        // ======================================
+        // SAFE TO SPEND
+        // ======================================
+
+        SafeToSpendLabel.Text =
+            snapshot
+                .SafeToSpendTotal
+                .ToString("C");
+
+
+        DailySafeLabel.Text =
+            snapshot
+                .SafeToSpendToday
+                .ToString("C");
+
+
+        WeeklySafeLabel.Text =
+            snapshot
+                .SafeToSpendThisWeek
+                .ToString("C");
+
+
+        UpdateWeeklySafeTitle();
+
+
+
+        // ======================================
+        // POCKETAI SUMMARY
+        // ======================================
+
+        UpdateOverviewInsight(
+            snapshot);
+    }
+
+
+
+    // ==========================================
+    // FINANCIAL HEALTH
+    // ==========================================
+
+    private void UpdateFinancialHealth(
+        FinancialSnapshot snapshot)
+    {
+        if (!snapshot.HasEnoughDataForHealthScore ||
+            !snapshot.FinancialHealthScore.HasValue)
+        {
+            HealthScoreLabel.Text =
+                "Not enough data";
+
+
+            HealthScoreLabel.FontSize =
+                24;
+
+
+            HealthStatusLabel.Text =
+                $"{snapshot.DataConfidence} confidence";
+
+
+            HealthReasonLabel.Text =
+                snapshot.DataConfidenceReason;
+
+
+            HealthProgressBar.Progress =
+                0;
+
+
+            HealthProgressBar.IsVisible =
+                false;
+
+
+
+            if (snapshot.DataConfidence.Equals(
+                    "Low",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                HealthStatusLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "WarningColor");
+            }
+            else
+            {
+                HealthStatusLabel
+                    .SetDynamicResource(
+                        Label.TextColorProperty,
+                        "ThemePrimary");
+            }
+
+
+            return;
+        }
+
+
+
+        int score =
+            snapshot
+                .FinancialHealthScore
+                .Value;
+
+
+
+        HealthScoreLabel.FontSize =
+            32;
+
+
+        HealthScoreLabel.Text =
+            $"{score} / 100";
+
+
+        HealthStatusLabel.Text =
+            $"{GetFinancialHealthStatus(score)} • " +
+            $"{snapshot.DataConfidence} confidence";
+
+
+        HealthReasonLabel.Text =
+            snapshot.DataConfidenceReason;
+
+
+        HealthProgressBar.IsVisible =
+            true;
+
+
+        HealthProgressBar.Progress =
+            score /
+            100.0;
+
+
+
+        if (score >= 70)
+        {
+            HealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
+        }
+        else if (score >= 50)
+        {
+            HealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "WarningColor");
+        }
+        else
+        {
+            HealthStatusLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+        }
+    }
+
+
+
+    // ==========================================
+    // HEALTH STATUS
+    // ==========================================
+
+    private string GetFinancialHealthStatus(
+        int score)
+    {
+        if (score >= 85)
+        {
+            return
+                "Strong financial position";
+        }
+
+
+        if (score >= 70)
+        {
+            return
+                "Generally healthy";
+        }
+
+
+        if (score >= 50)
+        {
+            return
+                "Needs attention";
+        }
+
+
+        return
+            "High financial pressure";
+    }
+
+
+
+    // ==========================================
+    // WEEKLY SAFE TO SPEND TITLE
+    // ==========================================
+
+    private void UpdateWeeklySafeTitle()
     {
         DateTime today =
             DateTime.Today;
@@ -167,224 +441,143 @@ public partial class AnalyticsPage : ContentPage
                 today.Month);
 
 
-        int daysLeftInMonth =
+        int daysLeft =
             daysInMonth -
             today.Day +
             1;
 
 
-        int daysPassed =
-            today.Day;
 
-
-
-        // ======================================
-        // SAVINGS NEEDED THIS MONTH
-        // ACROSS ALL SAVINGS GOALS
-        // ======================================
-
-        double savingsNeededThisMonth =
-            0;
-
-
-        foreach (SavingsGoal goal
-                 in savingsGoals)
+        if (daysLeft < 7)
         {
-            double remaining =
-                Math.Max(
-                    goal.TargetAmount -
-                    goal.CurrentAmount,
-                    0);
+            DateTime endOfMonth =
+                new DateTime(
+                    today.Year,
+                    today.Month,
+                    daysInMonth);
 
 
-            double daysUntilDeadline =
-                (goal.DeadLine.Date -
-                 today.Date).TotalDays;
+            WeeklySafeTitleLabel.Text =
+                $"THROUGH {endOfMonth:MMM d}"
+                    .ToUpper();
+        }
+        else
+        {
+            WeeklySafeTitleLabel.Text =
+                "THIS WEEK";
+        }
+    }
 
 
-            // Completed goals should not
-            // reduce Safe to Spend.
-            if (remaining <= 0)
+
+    // ==========================================
+    // OVERVIEW INSIGHT
+    // ==========================================
+
+    private void UpdateOverviewInsight(
+        FinancialSnapshot snapshot)
+    {
+        // ======================================
+        // OBLIGATION SHORTFALL
+        // ======================================
+
+        if (snapshot.ObligationShortfall > 0)
+        {
+            OverviewInsightLabel.Text =
+                $"Your current spendable cash is " +
+                $"{snapshot.ObligationShortfall:C} short of your protected obligations. " +
+                "Review upcoming bills, savings deadlines, or spending before making additional purchases.";
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // LOW DATA CONFIDENCE
+        // ======================================
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            if (snapshot.RequiredSavingsThisMonth > 0)
             {
-                continue;
+                OverviewInsightLabel.Text =
+                    $"{snapshot.RequiredSavingsThisMonth:C} is already protected for required savings. " +
+                    $"Based on the information entered so far, your estimated Safe to Spend is {snapshot.SafeToSpendTotal:C}.";
+            }
+            else
+            {
+                OverviewInsightLabel.Text =
+                    $"Based on the information entered so far, your estimated Safe to Spend is {snapshot.SafeToSpendTotal:C}.";
             }
 
 
-            double goalSavingsNeeded =
-                analyticsService
-                    .GetSavingsNeededThisMonth(
-                        remaining,
-                        daysUntilDeadline,
-                        daysLeftInMonth);
-
-
-            savingsNeededThisMonth +=
-                goalSavingsNeeded;
+            return;
         }
 
 
-
         // ======================================
-        // SAFE TO SPEND
-        // ======================================
-
-        double safeToSpend =
-            analyticsService
-                .GetSafeToSpend(
-                    summary.MoneyLeft,
-                    savingsNeededThisMonth);
-
-
-        double dailySafe =
-            analyticsService
-                .GetDailySafeToSpend(
-                    safeToSpend,
-                    daysLeftInMonth);
-
-
-        double weeksLeft =
-            daysLeftInMonth /
-            7.0;
-
-
-        double weeklySafe =
-            analyticsService
-                .GetWeeklySafeToSpend(
-                    safeToSpend,
-                    weeksLeft);
-
-
-
-        // ======================================
-        // END OF MONTH PROJECTION
+        // OVER BUDGET
         // ======================================
 
-        double averageDaily =
-            analyticsService
-                .GetAverageDailySpending(
-                    summary.CurrentMonthSpent,
-                    daysPassed);
-
-
-        double projectedAdditional =
-            analyticsService
-                .GetProjectedAdditionalSpending(
-                    averageDaily,
-                    daysLeftInMonth);
-
-
-        double projectedMoney =
-            analyticsService
-                .GetProjectedEndOfMonthMoney(
-                    summary.MoneyLeft,
-                    projectedAdditional);
-
-
-
-        // ======================================
-        // FINANCIAL HEALTH
-        // ======================================
-
-        int healthScore =
-            analyticsService
-                .GetFinancialHealthScore(
-                    summary,
-                    projectedMoney,
-                    safeToSpend);
-
-
-        string healthStatus =
-            analyticsService
-                .GetFinancialHealthStatus(
-                    healthScore);
-
-
-
-        // ======================================
-        // UPDATE OVERVIEW LABELS
-        // ======================================
-
-        OverviewIncomeLabel.Text =
-            summary.MonthlyIncome
-                .ToString("C");
-
-
-        OverviewSpentLabel.Text =
-            summary.CurrentMonthSpent
-                .ToString("C");
-
-
-        OverviewRecurringLabel.Text =
-            summary.MonthlyRecurringExpenses
-                .ToString("C");
-
-
-        OverviewMoneyLeftLabel.Text =
-            summary.MoneyLeft
-                .ToString("C");
-
-
-        HealthScoreLabel.Text =
-            $"{healthScore} / 100";
-
-
-        HealthStatusLabel.Text =
-            healthStatus;
-
-
-        HealthProgressBar.Progress =
-            healthScore /
-            100.0;
-
-
-        SafeToSpendLabel.Text =
-            safeToSpend
-                .ToString("C");
-
-
-        DailySafeLabel.Text =
-            $"{dailySafe:C} per day";
-
-
-        WeeklySafeLabel.Text =
-            $"{weeklySafe:C} per week";
-
-
-
-        // ======================================
-        // POCKETAI SUMMARY
-        // ======================================
-
-        if (summary.MonthlyIncome <= 0 &&
-            expenses.Count == 0)
-        {
-            OverviewInsightLabel.Text =
-                "Add income and transactions so PocketAI can begin analyzing your finances.";
-        }
-
-        else if (safeToSpend < 0)
-        {
-            OverviewInsightLabel.Text =
-                $"Your current financial plan is {Math.Abs(safeToSpend):C} short after accounting for spending, bills, and savings goals.";
-        }
-
-        else if (summary.OverBudgetCount > 0)
+        if (snapshot.OverBudgetCount > 0)
         {
             string categoryText =
-                summary.OverBudgetCount == 1
+                snapshot.OverBudgetCount == 1
                     ? "category is"
                     : "categories are";
 
 
             OverviewInsightLabel.Text =
-                $"{summary.OverBudgetCount} budget {categoryText} currently over the limit. Review those categories before increasing discretionary spending.";
+                $"{snapshot.OverBudgetCount} budget {categoryText} currently over its limit. " +
+                $"You still have {snapshot.SafeToSpendTotal:C} total Safe to Spend, " +
+                "but reviewing those categories should come before extra discretionary spending.";
+
+
+            return;
         }
 
-        else
+
+
+        // ======================================
+        // OPTIONAL EXTRA SAVINGS
+        // ======================================
+
+        if (snapshot.PocketAiRecommendedExtraSavings > 0)
         {
             OverviewInsightLabel.Text =
-                $"You currently have about {safeToSpend:C} available after your planned savings commitments.";
+                $"You currently have {snapshot.SafeToSpendTotal:C} total Safe to Spend. " +
+                $"Based on your current data, PocketAI could optionally recommend up to " +
+                $"{snapshot.PocketAiRecommendedExtraSavings:C} extra toward savings. " +
+                "That optional amount does not reduce Safe to Spend unless you choose to accept it.";
+
+
+            return;
         }
+
+
+
+        // ======================================
+        // NORMAL STATE
+        // ======================================
+
+        if (snapshot.SafeToSpendTotal > 0)
+        {
+            OverviewInsightLabel.Text =
+                $"You currently have {snapshot.SafeToSpendTotal:C} total Safe to Spend from " +
+                $"{snapshot.CurrentSpendableCash:C} of current spendable cash.";
+
+
+            return;
+        }
+
+
+
+        OverviewInsightLabel.Text =
+            "Your current spendable cash is already committed to protected obligations and your safety buffer.";
     }
 
 
@@ -396,18 +589,17 @@ public partial class AnalyticsPage : ContentPage
     private void LoadSpending(
         List<Expense> expenses)
     {
-        // Current month's transactions
         List<Expense> currentMonth =
             analyticsService
                 .GetCurrentMonthExpense(
                     expenses);
 
 
-        // Previous month's transactions
         List<Expense> lastMonth =
             analyticsService
                 .GetLastMonthExpense(
                     expenses);
+
 
 
         double currentSpent =
@@ -423,11 +615,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-
-        // ======================================
-        // MONTH COMPARISON
-        // ======================================
-
         CurrentMonthSpentLabel.Text =
             currentSpent
                 .ToString("C");
@@ -438,11 +625,12 @@ public partial class AnalyticsPage : ContentPage
                 .ToString("C");
 
 
+
         UpdateSpendingComparison(
-        SpendingChangeLabel,
-        currentSpent,
-        lastSpent,
-        "last month");
+            SpendingChangeLabel,
+            currentSpent,
+            lastSpent,
+            "last month");
 
 
 
@@ -454,7 +642,12 @@ public partial class AnalyticsPage : ContentPage
             currentMonth
                 .GroupBy(
                     expense =>
-                        expense.Category)
+                        string.IsNullOrWhiteSpace(
+                            expense.Category)
+
+                            ? "Uncategorized"
+
+                            : expense.Category)
                 .Select(
                     group =>
                         new CategorySpendingItem
@@ -462,10 +655,13 @@ public partial class AnalyticsPage : ContentPage
                             Category =
                                 group.Key,
 
+
                             Amount =
                                 group.Sum(
                                     expense =>
-                                        expense.Amount)
+                                        Math.Max(
+                                            expense.Amount,
+                                            0))
                         })
                 .OrderByDescending(
                     item =>
@@ -474,18 +670,13 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // TOTAL CATEGORY SPENDING
-        // ======================================
-
         double total =
             categories.Sum(
                 item =>
                     item.Amount);
 
 
-        // Shows the total in the
-        // center of the donut.
+
         CategoryDonutTotalLabel.Text =
             total.ToString("C");
 
@@ -495,8 +686,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // Gives every category the monthly
-        // total so percentages can be calculated.
         foreach (CategorySpendingItem item
                  in categories)
         {
@@ -507,11 +696,12 @@ public partial class AnalyticsPage : ContentPage
 
 
         // ======================================
-        // CATEGORY DONUT GRAPH
+        // DONUT CHART
         // ======================================
 
         List<ISeries> categorySeries =
             new List<ISeries>();
+
 
 
         foreach (CategorySpendingItem category
@@ -531,20 +721,17 @@ public partial class AnalyticsPage : ContentPage
                         },
 
 
-                    // Creates the hole in
-                    // the center of the pie.
                     InnerRadius =
                         70,
 
 
-                    // Formats the hover tooltip
-                    // as actual money.
                     ToolTipLabelFormatter =
                         point =>
                             point.Model
                                 .ToString("C2")
                 });
         }
+
 
 
         CategoryDonutChart.Series =
@@ -555,10 +742,6 @@ public partial class AnalyticsPage : ContentPage
             categories.Count > 0;
 
 
-
-        // ======================================
-        // CATEGORY BREAKDOWN LIST
-        // ======================================
 
         BindableLayout.SetItemsSource(
             CategorySpendingContainer,
@@ -572,7 +755,7 @@ public partial class AnalyticsPage : ContentPage
 
 
     // ==========================================
-    // THIS WEEK VS LAST WEEK
+    // WEEK COMPARISON
     // ==========================================
 
     private void LoadWeeklySpendingChart(
@@ -591,7 +774,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // Monday through Sunday.
         DayOfWeek[] days =
         {
             DayOfWeek.Monday,
@@ -604,6 +786,7 @@ public partial class AnalyticsPage : ContentPage
         };
 
 
+
         double[] thisWeekValues =
             new double[7];
 
@@ -612,10 +795,6 @@ public partial class AnalyticsPage : ContentPage
             new double[7];
 
 
-
-        // ======================================
-        // CALCULATE EACH DAY
-        // ======================================
 
         for (int i = 0;
              i < days.Length;
@@ -633,7 +812,9 @@ public partial class AnalyticsPage : ContentPage
                             day)
                     .Sum(
                         expense =>
-                            expense.Amount);
+                            Math.Max(
+                                expense.Amount,
+                                0));
 
 
             lastWeekValues[i] =
@@ -644,14 +825,12 @@ public partial class AnalyticsPage : ContentPage
                             day)
                     .Sum(
                         expense =>
-                            expense.Amount);
+                            Math.Max(
+                                expense.Amount,
+                                0));
         }
 
 
-
-        // ======================================
-        // WEEK TOTALS
-        // ======================================
 
         double thisWeekTotal =
             thisWeekValues.Sum();
@@ -659,6 +838,7 @@ public partial class AnalyticsPage : ContentPage
 
         double lastWeekTotal =
             lastWeekValues.Sum();
+
 
 
         ThisWeekTotalLabel.Text =
@@ -672,12 +852,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // WEEKLY CHANGE
-        // ======================================
-
-        // Displays the weekly comparison
-        // without showing confusing giant percentages.
         UpdateSpendingComparison(
             WeeklyChangeLabel,
             thisWeekTotal,
@@ -685,10 +859,6 @@ public partial class AnalyticsPage : ContentPage
             "last week");
 
 
-
-        // ======================================
-        // WEEKLY BAR GRAPH
-        // ======================================
 
         WeekComparisonChart.Series =
             new ISeries[]
@@ -703,7 +873,6 @@ public partial class AnalyticsPage : ContentPage
                         thisWeekValues,
 
 
-                    // Currency tooltip
                     YToolTipLabelFormatter =
                         point =>
                             point.Model
@@ -721,7 +890,6 @@ public partial class AnalyticsPage : ContentPage
                         lastWeekValues,
 
 
-                    // Currency tooltip
                     YToolTipLabelFormatter =
                         point =>
                             point.Model
@@ -730,10 +898,6 @@ public partial class AnalyticsPage : ContentPage
             };
 
 
-
-        // ======================================
-        // X AXIS
-        // ======================================
 
         WeekComparisonChart.XAxes =
             new Axis[]
@@ -756,10 +920,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // Y AXIS
-        // ======================================
-
         WeekComparisonChart.YAxes =
             new Axis[]
             {
@@ -780,31 +940,19 @@ public partial class AnalyticsPage : ContentPage
 
 
     // ==========================================
-    // CASH FLOW TAB
+    // CASH FLOW / CURRENT CASH PROTECTION
     // ==========================================
 
     private void LoadCashFlow(
-        FinancialSummary summary)
+        FinancialSnapshot snapshot)
     {
-        double income =
-            summary.MonthlyIncome;
-
-
-        double spending =
-            summary.CurrentMonthSpent;
-
-
-        double bills =
-            summary.MonthlyRecurringExpenses;
-
-
-        double remaining =
-            summary.MoneyLeft;
-
-
-
         // ======================================
-        // CASH FLOW GRAPH
+        // CURRENT MONEY PROTECTION CHART
+        // ======================================
+        //
+        // This chart uses CURRENT money only.
+        //
+        // Expected income is NOT added here.
         // ======================================
 
         CashFlowChart.Series =
@@ -819,20 +967,27 @@ public partial class AnalyticsPage : ContentPage
                     Values =
                         new double[]
                         {
-                            income,
-                            spending,
-                            bills,
-                            remaining
+                            snapshot.CurrentSpendableCash,
+
+                            -snapshot.UpcomingBills,
+
+                            -snapshot.RequiredSavingsThisMonth,
+
+                            -snapshot.AcceptedExtraSavings,
+
+                            -snapshot.SafetyBuffer,
+
+                            snapshot.SafeToSpendTotal
                         },
 
 
-                    // Currency tooltip
                     YToolTipLabelFormatter =
                         point =>
                             point.Model
                                 .ToString("C2")
                 }
             };
+
 
 
         CashFlowChart.XAxes =
@@ -843,13 +998,16 @@ public partial class AnalyticsPage : ContentPage
                     Labels =
                         new[]
                         {
-                            "Income",
-                            "Spending",
+                            "Spendable",
                             "Bills",
-                            "Remaining"
+                            "Required Savings",
+                            "Accepted Extra",
+                            "Buffer",
+                            "Safe to Spend"
                         }
                 }
             };
+
 
 
         CashFlowChart.YAxes =
@@ -867,129 +1025,109 @@ public partial class AnalyticsPage : ContentPage
 
 
         // ======================================
-        // CASH FLOW LABELS
+        // CURRENT CASH PROTECTION LABELS
         // ======================================
 
-        CashFlowIncomeLabel.Text =
-            income.ToString("C");
-
-
-        CashFlowSpendingLabel.Text =
-            $"-{spending:C}";
+        CashFlowSpendableLabel.Text =
+            snapshot
+                .CurrentSpendableCash
+                .ToString("C");
 
 
         CashFlowBillsLabel.Text =
-            $"-{bills:C}";
+            $"-{snapshot.UpcomingBills:C}";
 
 
-        CashFlowRemainingLabel.Text =
-            remaining.ToString("C");
+        CashFlowRequiredSavingsLabel.Text =
+            $"-{snapshot.RequiredSavingsThisMonth:C}";
 
 
-
-        // ======================================
-        // INCOME USAGE
-        // ======================================
-
-        double committed =
-            spending +
-            bills;
+        CashFlowAcceptedSavingsLabel.Text =
+            $"-{snapshot.AcceptedExtraSavings:C}";
 
 
-        double usagePercent =
-            0;
+        CashFlowBufferLabel.Text =
+            $"-{snapshot.SafetyBuffer:C}";
 
 
-        if (income > 0)
-        {
-            usagePercent =
-                committed /
-                income;
-        }
-
-
-        IncomeUsedProgressBar.Progress =
-            Math.Clamp(
-                usagePercent,
-                0,
-                1);
-
-
-        IncomeUsedLabel.Text =
-            $"{usagePercent * 100:F0}% of monthly income committed";
-
-
-
-        // ======================================
-        // END OF MONTH PROJECTION
-        // ======================================
-
-        DateTime today =
-            DateTime.Today;
-
-
-        int daysInMonth =
-            DateTime.DaysInMonth(
-                today.Year,
-                today.Month);
-
-
-        int daysLeft =
-            daysInMonth -
-            today.Day +
-            1;
-
-
-        double averageDaily =
-            analyticsService
-                .GetAverageDailySpending(
-                    spending,
-                    today.Day);
-
-
-        double projectedAdditional =
-            analyticsService
-                .GetProjectedAdditionalSpending(
-                    averageDaily,
-                    daysLeft);
-
-
-        double projectedMoney =
-            analyticsService
-                .GetProjectedEndOfMonthMoney(
-                    remaining,
-                    projectedAdditional);
-
-
-        ProjectedMoneyLabel.Text =
-            projectedMoney
+        CashFlowSafeLabel.Text =
+            snapshot
+                .SafeToSpendTotal
                 .ToString("C");
 
 
 
-        if (spending <= 0)
+        // ======================================
+        // MONTHLY PLANNING
+        // ======================================
+
+        PlanIncomeLabel.Text =
+            snapshot
+                .ExpectedMonthlyIncome
+                .ToString("C");
+
+
+        PlanSpentLabel.Text =
+            snapshot
+                .CurrentMonthSpent
+                .ToString("C");
+
+
+        PlanRemainingLabel.Text =
+            snapshot
+                .MonthlyPlanRemaining
+                .ToString("C");
+
+
+
+        // ======================================
+        // CURRENT-CASH MONTH-END PROJECTION
+        // ======================================
+
+        ProjectedMoneyLabel.Text =
+            snapshot
+                .ProjectedMonthEndSpendableCash
+                .ToString("C");
+
+
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
         {
             ProjectionMessageLabel.Text =
-                "There isn't enough spending data yet to create a useful projection.";
+                $"This projection starts with your current spendable cash and known obligations. " +
+                $"Expected monthly income is not counted until it is actually received. " +
+                $"{snapshot.DataConfidenceReason}";
+
+
+            return;
         }
 
-        else if (projectedMoney < 0)
+
+
+        if (snapshot.ProjectedMonthEndSpendableCash < 0)
         {
             ProjectionMessageLabel.Text =
-                $"At your current spending pace, you may finish the month about {Math.Abs(projectedMoney):C} short.";
+                $"Based on current spendable cash, known obligations, and your recorded spending pace, " +
+                $"you may finish the month about " +
+                $"{Math.Abs(snapshot.ProjectedMonthEndSpendableCash):C} short. " +
+                "Expected future income is not included.";
         }
-
         else
         {
             ProjectionMessageLabel.Text =
-                $"At your current spending pace, you may finish the month with about {projectedMoney:C} remaining.";
+                $"Based on current spendable cash, known obligations, and your recorded spending pace, " +
+                $"you may finish the month with about " +
+                $"{snapshot.ProjectedMonthEndSpendableCash:C} of spendable cash. " +
+                "Expected future income is not included.";
         }
     }
 
 
 
     // ==========================================
-    // SIX-MONTH SPENDING TREND
+    // SIX-MONTH TREND
     // ==========================================
 
     private void LoadTrends(
@@ -1002,6 +1140,7 @@ public partial class AnalyticsPage : ContentPage
                 1);
 
 
+
         string[] monthLabels =
             new string[6];
 
@@ -1010,10 +1149,6 @@ public partial class AnalyticsPage : ContentPage
             new double[6];
 
 
-
-        // ======================================
-        // BUILD SIX MONTHS
-        // ======================================
 
         for (int i = 0;
              i < 6;
@@ -1041,14 +1176,12 @@ public partial class AnalyticsPage : ContentPage
                             month.Month)
                     .Sum(
                         expense =>
-                            expense.Amount);
+                            Math.Max(
+                                expense.Amount,
+                                0));
         }
 
 
-
-        // ======================================
-        // SIX-MONTH LINE GRAPH
-        // ======================================
 
         SixMonthTrendChart.Series =
             new ISeries[]
@@ -1063,25 +1196,18 @@ public partial class AnalyticsPage : ContentPage
                         monthlyValues,
 
 
-                    // Makes each month's
-                    // point visible.
                     GeometrySize =
                         10,
 
 
-                    // Gives the graph a
-                    // slight curve.
                     LineSmoothness =
                         0.4,
 
 
-                    // Prevents the graph from
-                    // filling underneath the line.
                     Fill =
                         null,
 
 
-                    // Currency tooltip
                     YToolTipLabelFormatter =
                         point =>
                             point.Model
@@ -1090,10 +1216,6 @@ public partial class AnalyticsPage : ContentPage
             };
 
 
-
-        // ======================================
-        // X AXIS
-        // ======================================
 
         SixMonthTrendChart.XAxes =
             new Axis[]
@@ -1106,10 +1228,6 @@ public partial class AnalyticsPage : ContentPage
             };
 
 
-
-        // ======================================
-        // Y AXIS
-        // ======================================
 
         SixMonthTrendChart.YAxes =
             new Axis[]
@@ -1129,13 +1247,10 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // SIX MONTH AVERAGE
-        // ======================================
-
         double average =
             monthlyValues
                 .Average();
+
 
 
         SixMonthAverageLabel.Text =
@@ -1143,10 +1258,6 @@ public partial class AnalyticsPage : ContentPage
                 .ToString("C");
 
 
-
-        // ======================================
-        // CURRENT VS PREVIOUS MONTH
-        // ======================================
 
         double previousMonth =
             monthlyValues[4];
@@ -1156,6 +1267,7 @@ public partial class AnalyticsPage : ContentPage
             monthlyValues[5];
 
 
+
         if (previousMonth <= 0 &&
             currentMonthAmount <= 0)
         {
@@ -1163,13 +1275,19 @@ public partial class AnalyticsPage : ContentPage
                 "Not enough data";
 
 
-            TrendDirectionLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "TextSecondary");
+            TrendDirectionLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "TextSecondary");
+
+
+            return;
         }
 
-        else if (currentMonthAmount >
-                 previousMonth)
+
+
+        if (currentMonthAmount >
+            previousMonth)
         {
             double difference =
                 currentMonthAmount -
@@ -1180,13 +1298,19 @@ public partial class AnalyticsPage : ContentPage
                 $"↑ {difference:C} more";
 
 
-            TrendDirectionLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "DangerColor");
+            TrendDirectionLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+
+
+            return;
         }
 
-        else if (currentMonthAmount <
-                 previousMonth)
+
+
+        if (currentMonthAmount <
+            previousMonth)
         {
             double difference =
                 previousMonth -
@@ -1197,25 +1321,31 @@ public partial class AnalyticsPage : ContentPage
                 $"↓ {difference:C} less";
 
 
-            TrendDirectionLabel.SetDynamicResource(
+            TrendDirectionLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
+
+
+            return;
+        }
+
+
+
+        TrendDirectionLabel.Text =
+            "→ Spending steady";
+
+
+        TrendDirectionLabel
+            .SetDynamicResource(
                 Label.TextColorProperty,
-                "SuccessColor");
-        }
-
-        else
-        {
-            TrendDirectionLabel.Text =
-                "→ Spending steady";
-
-
-            TrendDirectionLabel.TextColor =
-                Color.FromArgb(
-                    "#6B7280");
-        }
+                "TextSecondary");
     }
 
+
+
     // ==========================================
-    // SPENDING COMPARISON DISPLAY
+    // SPENDING COMPARISON
     // ==========================================
 
     private void UpdateSpendingComparison(
@@ -1224,10 +1354,6 @@ public partial class AnalyticsPage : ContentPage
         double previousAmount,
         string comparisonPeriod)
     {
-        // ======================================
-        // NO SPENDING IN EITHER PERIOD
-        // ======================================
-
         if (currentAmount <= 0 &&
             previousAmount <= 0)
         {
@@ -1245,10 +1371,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // NO PREVIOUS DATA
-        // ======================================
-
         if (previousAmount <= 0)
         {
             label.Text =
@@ -1265,15 +1387,12 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // CALCULATE CHANGE
-        // ======================================
-
         double percentageChange =
             analyticsService
                 .GetSpendingPercentageChange(
                     currentAmount,
                     previousAmount);
+
 
 
         double dollarDifference =
@@ -1282,16 +1401,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // VERY LARGE INCREASE
-        // ======================================
-
-        // Giant percentages such as +1050%
-        // are mathematically correct but not
-        // very useful to the user.
-        //
-        // Instead, show the dollar increase
-        // and how many times larger it is.
         if (percentageChange >= 200)
         {
             double multiplier =
@@ -1300,7 +1409,8 @@ public partial class AnalyticsPage : ContentPage
 
 
             label.Text =
-                $"Up {dollarDifference:C}\n{multiplier:0.0}× {comparisonPeriod}";
+                $"Up {dollarDifference:C}\n" +
+                $"{multiplier:0.0}× {comparisonPeriod}";
 
 
             label.SetDynamicResource(
@@ -1312,15 +1422,12 @@ public partial class AnalyticsPage : ContentPage
         }
 
 
-
-        // ======================================
-        // NORMAL INCREASE
-        // ======================================
 
         if (percentageChange > 0)
         {
             label.Text =
-                $"+{percentageChange:0.0}%\nvs {comparisonPeriod}";
+                $"+{percentageChange:0.0}%\n" +
+                $"vs {comparisonPeriod}";
 
 
             label.SetDynamicResource(
@@ -1333,14 +1440,11 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // DECREASE
-        // ======================================
-
         if (percentageChange < 0)
         {
             label.Text =
-                $"{percentageChange:0.0}%\nvs {comparisonPeriod}";
+                $"{percentageChange:0.0}%\n" +
+                $"vs {comparisonPeriod}";
 
 
             label.SetDynamicResource(
@@ -1353,10 +1457,6 @@ public partial class AnalyticsPage : ContentPage
 
 
 
-        // ======================================
-        // SAME AMOUNT
-        // ======================================
-
         label.Text =
             $"0%\nvs {comparisonPeriod}";
 
@@ -1366,8 +1466,10 @@ public partial class AnalyticsPage : ContentPage
             "TextSecondary");
     }
 
+
+
     // ==========================================
-    // TAB BUTTONS
+    // TABS
     // ==========================================
 
     private void OverviewTabClicked(
@@ -1408,14 +1510,15 @@ public partial class AnalyticsPage : ContentPage
 
 
     // ==========================================
-    // SHOW SELECTED TAB
+    // SHOW TAB
     // ==========================================
 
     private void ShowTab(
         string tab)
     {
-        //Remeber the selected tab
-        currentTab = tab;
+        currentTab =
+            tab;
+
 
         OverviewSection.IsVisible =
             tab ==
@@ -1464,7 +1567,7 @@ public partial class AnalyticsPage : ContentPage
 
 
     // ==========================================
-    // TAB BUTTON STYLE
+    // TAB STYLE
     // ==========================================
 
     private void SetTabButtonStyle(
@@ -1473,8 +1576,6 @@ public partial class AnalyticsPage : ContentPage
     {
         if (selected)
         {
-            // Use the user's actual current
-            // accent color.
             button.BackgroundColor =
                 GetThemeColor(
                     "ThemePrimary",
@@ -1485,22 +1586,27 @@ public partial class AnalyticsPage : ContentPage
                 GetThemeColor(
                     "TextOnPrimary",
                     "#FFFFFF");
-        }
-        else
-        {
-            button.BackgroundColor =
-                Colors.Transparent;
 
 
-            button.TextColor =
-                GetThemeColor(
-                    "TextSecondary",
-                    "#6B7280");
+            return;
         }
+
+
+
+        button.BackgroundColor =
+            Colors.Transparent;
+
+
+        button.TextColor =
+            GetThemeColor(
+                "TextSecondary",
+                "#6B7280");
     }
 
+
+
     // ==========================================
-    // GET CURRENT THEME COLOR
+    // THEME COLOR
     // ==========================================
 
     private static Color GetThemeColor(
@@ -1519,232 +1625,222 @@ public partial class AnalyticsPage : ContentPage
             fallbackColor);
     }
 
+
+
     // ==========================================
-// APPLY LIVECHARTS THEME
-// ==========================================
+    // APPLY LIVECHARTS THEME
+    // ==========================================
 
-private void ApplyChartTheme()
-{
-    // ======================================
-    // GET CURRENT APP COLORS
-    // ======================================
-
-    Color accentColor =
-        GetThemeColor(
-            "ThemePrimary",
-            "#7C3AED");
-
-
-    Color primaryTextColor =
-        GetThemeColor(
-            "TextPrimary",
-            "#111827");
-
-
-    Color secondaryTextColor =
-        GetThemeColor(
-            "TextSecondary",
-            "#6B7280");
-
-
-    Color mutedColor =
-        GetThemeColor(
-            "TextMuted",
-            "#9CA3AF");
-
-
-    Color borderColor =
-        GetThemeColor(
-            "BorderColor",
-            "#E5E7EB");
-
-
-    Color surfaceColor =
-        GetThemeColor(
-            "SurfaceBackground",
-            "#F9FAFB");
-
-
-
-    // Convert MAUI colors into colors
-    // that SkiaSharp / LiveCharts can use.
-
-    SKColor accent =
-        ToSKColor(
-            accentColor);
-
-
-    SKColor primaryText =
-        ToSKColor(
-            primaryTextColor);
-
-
-    SKColor secondaryText =
-        ToSKColor(
-            secondaryTextColor);
-
-
-    SKColor muted =
-        ToSKColor(
-            mutedColor);
-
-
-    SKColor border =
-        ToSKColor(
-            borderColor);
-
-
-    SKColor surface =
-        ToSKColor(
-            surfaceColor);
-
-
-
-    // ======================================
-    // WEEK COMPARISON CHART
-    // ======================================
-
-    StyleCartesianChart(
-        WeekComparisonChart,
-        secondaryText,
-        border,
-        surface);
-
-
-    List<ColumnSeries<double>>
-        weekSeries =
-            WeekComparisonChart
-                .Series
-                .OfType<ColumnSeries<double>>()
-                .ToList();
-
-
-    // Current week follows the
-    // user's chosen accent color.
-    if (weekSeries.Count >= 1)
+    private void ApplyChartTheme()
     {
-        weekSeries[0].Fill =
-            new SolidColorPaint(
-                accent);
-    }
+        Color accentColor =
+            GetThemeColor(
+                "ThemePrimary",
+                "#7C3AED");
 
 
-    // Last week stays neutral so the
-    // current week is visually stronger.
-    if (weekSeries.Count >= 2)
-    {
-        weekSeries[1].Fill =
-            new SolidColorPaint(
-                muted);
-    }
+        Color primaryTextColor =
+            GetThemeColor(
+                "TextPrimary",
+                "#111827");
 
 
-
-    // ======================================
-    // CASH FLOW CHART
-    // ======================================
-
-    StyleCartesianChart(
-        CashFlowChart,
-        secondaryText,
-        border,
-        surface);
+        Color secondaryTextColor =
+            GetThemeColor(
+                "TextSecondary",
+                "#6B7280");
 
 
-    ColumnSeries<double>?
-        cashFlowSeries =
-            CashFlowChart
-                .Series
-                .OfType<ColumnSeries<double>>()
-                .FirstOrDefault();
+        Color mutedColor =
+            GetThemeColor(
+                "TextMuted",
+                "#9CA3AF");
 
 
-    if (cashFlowSeries != null)
-    {
-        cashFlowSeries.Fill =
-            new SolidColorPaint(
-                accent);
-    }
+        Color borderColor =
+            GetThemeColor(
+                "BorderColor",
+                "#E5E7EB");
+
+
+        Color surfaceColor =
+            GetThemeColor(
+                "SurfaceBackground",
+                "#F9FAFB");
 
 
 
-    // ======================================
-    // SIX-MONTH TREND CHART
-    // ======================================
-
-    StyleCartesianChart(
-        SixMonthTrendChart,
-        secondaryText,
-        border,
-        surface);
+        SKColor accent =
+            ToSKColor(
+                accentColor);
 
 
-    LineSeries<double>?
-        trendSeries =
-            SixMonthTrendChart
-                .Series
-                .OfType<LineSeries<double>>()
-                .FirstOrDefault();
+        SKColor primaryText =
+            ToSKColor(
+                primaryTextColor);
 
 
-    if (trendSeries != null)
-    {
-        // Main line.
-        trendSeries.Stroke =
-            new SolidColorPaint(
-                accent,
-                3);
+        SKColor secondaryText =
+            ToSKColor(
+                secondaryTextColor);
 
 
-        // Point outline.
-        trendSeries.GeometryStroke =
-            new SolidColorPaint(
-                accent,
-                2);
+        SKColor muted =
+            ToSKColor(
+                mutedColor);
 
 
-        // Point center.
-        trendSeries.GeometryFill =
-            new SolidColorPaint(
-                accent);
+        SKColor border =
+            ToSKColor(
+                borderColor);
 
 
-        // Do not fill the area underneath.
-        trendSeries.Fill =
-            null;
-    }
+        SKColor surface =
+            ToSKColor(
+                surfaceColor);
 
 
 
-    // ======================================
-    // CATEGORY DONUT CHART
-    // ======================================
+        // ======================================
+        // WEEK CHART
+        // ======================================
 
-    // We deliberately keep the individual
-    // donut slices different colors.
-    //
-    // If every category used the accent color,
-    // users could not tell the categories apart.
-
-    CategoryDonutChart.LegendTextPaint =
-        new SolidColorPaint(
-            secondaryText);
-
-
-    CategoryDonutChart.TooltipTextPaint =
-        new SolidColorPaint(
-            primaryText);
-
-
-    CategoryDonutChart.TooltipBackgroundPaint =
-        new SolidColorPaint(
+        StyleCartesianChart(
+            WeekComparisonChart,
+            secondaryText,
+            border,
             surface);
-}
+
+
+
+        List<ColumnSeries<double>>
+            weekSeries =
+                WeekComparisonChart
+                    .Series
+                    .OfType<
+                        ColumnSeries<double>>()
+                    .ToList();
+
+
+
+        if (weekSeries.Count >= 1)
+        {
+            weekSeries[0].Fill =
+                new SolidColorPaint(
+                    accent);
+        }
+
+
+        if (weekSeries.Count >= 2)
+        {
+            weekSeries[1].Fill =
+                new SolidColorPaint(
+                    muted);
+        }
+
+
+
+        // ======================================
+        // CASH FLOW CHART
+        // ======================================
+
+        StyleCartesianChart(
+            CashFlowChart,
+            secondaryText,
+            border,
+            surface);
+
+
+
+        ColumnSeries<double>?
+            cashFlowSeries =
+                CashFlowChart
+                    .Series
+                    .OfType<
+                        ColumnSeries<double>>()
+                    .FirstOrDefault();
+
+
+
+        if (cashFlowSeries != null)
+        {
+            cashFlowSeries.Fill =
+                new SolidColorPaint(
+                    accent);
+        }
+
+
+
+        // ======================================
+        // TREND CHART
+        // ======================================
+
+        StyleCartesianChart(
+            SixMonthTrendChart,
+            secondaryText,
+            border,
+            surface);
+
+
+
+        LineSeries<double>?
+            trendSeries =
+                SixMonthTrendChart
+                    .Series
+                    .OfType<
+                        LineSeries<double>>()
+                    .FirstOrDefault();
+
+
+
+        if (trendSeries != null)
+        {
+            trendSeries.Stroke =
+                new SolidColorPaint(
+                    accent,
+                    3);
+
+
+            trendSeries.GeometryStroke =
+                new SolidColorPaint(
+                    accent,
+                    2);
+
+
+            trendSeries.GeometryFill =
+                new SolidColorPaint(
+                    accent);
+
+
+            trendSeries.Fill =
+                null;
+        }
+
+
+
+        // ======================================
+        // DONUT
+        // ======================================
+
+        CategoryDonutChart.LegendTextPaint =
+            new SolidColorPaint(
+                secondaryText);
+
+
+        CategoryDonutChart.TooltipTextPaint =
+            new SolidColorPaint(
+                primaryText);
+
+
+        CategoryDonutChart.TooltipBackgroundPaint =
+            new SolidColorPaint(
+                surface);
+    }
 
 
 
     // ==========================================
-    // STYLE A CARTESIAN CHART
+    // STYLE CARTESIAN CHART
     // ==========================================
 
     private static void StyleCartesianChart(
@@ -1754,12 +1850,8 @@ private void ApplyChartTheme()
         SKColor separatorColor,
         SKColor surfaceColor)
     {
-        // ======================================
-        // X AXES
-        // ======================================
-
         foreach (Axis axis
-                in chart.XAxes)
+                 in chart.XAxes)
         {
             axis.LabelsPaint =
                 new SolidColorPaint(
@@ -1777,12 +1869,8 @@ private void ApplyChartTheme()
 
 
 
-        // ======================================
-        // Y AXES
-        // ======================================
-
         foreach (Axis axis
-                in chart.YAxes)
+                 in chart.YAxes)
         {
             axis.LabelsPaint =
                 new SolidColorPaint(
@@ -1799,20 +1887,11 @@ private void ApplyChartTheme()
         }
 
 
-
-        // ======================================
-        // LEGEND
-        // ======================================
 
         chart.LegendTextPaint =
             new SolidColorPaint(
                 textColor);
 
-
-
-        // ======================================
-        // TOOLTIP
-        // ======================================
 
         chart.TooltipTextPaint =
             new SolidColorPaint(
@@ -1827,7 +1906,7 @@ private void ApplyChartTheme()
 
 
     // ==========================================
-    // CONVERT MAUI COLOR TO SKIA COLOR
+    // MAUI COLOR → SKIA COLOR
     // ==========================================
 
     private static SKColor ToSKColor(
@@ -1857,12 +1936,15 @@ private void ApplyChartTheme()
                 255);
 
 
+
         return new SKColor(
             red,
             green,
             blue,
             alpha);
     }
+
+
 
     // ==========================================
     // CATEGORY DISPLAY MODEL
@@ -1892,14 +1974,12 @@ private void ApplyChartTheme()
 
 
 
-        // Dollar amount shown beside category.
         public string AmountText =>
             Amount.ToString(
                 "C");
 
 
 
-        // Percentage shown under category.
         public string PercentText
         {
             get
@@ -1924,8 +2004,6 @@ private void ApplyChartTheme()
 
 
 
-        // ProgressBar requires a number
-        // between 0 and 1.
         public double Progress
         {
             get

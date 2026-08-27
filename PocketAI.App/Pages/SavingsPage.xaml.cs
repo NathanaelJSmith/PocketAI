@@ -8,12 +8,33 @@ namespace PocketAI.App.Pages;
 public partial class SavingsPage : ContentPage
 {
     // ==========================================
-    // SERVICES
+    // DATABASE
     // ==========================================
 
-    private readonly DataBaseManager dataBaseManager;
+    private readonly DataBaseManager
+        dataBaseManager;
 
-    private readonly AnalyticsService analyticsService;
+
+    // ==========================================
+    // CENTRAL FINANCIAL ENGINE
+    // ==========================================
+
+    private readonly FinancialSnapshotProvider
+        financialSnapshotProvider;
+
+
+    // ==========================================
+    // SAVINGS ALLOCATION ENGINE
+    // ==========================================
+    //
+    // This service does NOT decide how much
+    // money the user can afford to save.
+    //
+    // Its job is only:
+    //
+    // "Given $X of OPTIONAL extra savings,
+    // how should it be divided among goals?"
+    // ==========================================
 
     private readonly SavingsAllocationService
         savingsAllocationService;
@@ -33,54 +54,51 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // POCKETAI SAVINGS RECOMMENDATION
+    // CURRENT FINANCIAL SNAPSHOT
     // ==========================================
 
-    // Amount currently being divided
-    // between the user's savings goals.
-    private double availableForSavings;
+    private FinancialSnapshot?
+        currentSnapshot;
 
 
-    // PocketAI's recommended amount to
-    // keep available instead of allocating.
-    private double recommendedSavingsBuffer;
 
-
-    // PocketAI's projected amount remaining
-    // at the end of the current month.
-    private double projectedEndOfMonthMoney;
-
-
-    // Decimal form.
+    // ==========================================
+    // OPTIONAL EXTRA SAVINGS
+    // ==========================================
     //
-    // Example:
-    // 0.30 = 30%
-    private double
-        recommendedSavingsBufferPercentage;
+    // Required savings are calculated by the
+    // central FinancialCalculationService.
+    //
+    // This value is ONLY optional extra savings
+    // beyond that required amount.
+    // ==========================================
+
+    private double pocketAiEstimatedExtraSavings;
 
 
-    // Explanation shown to the user.
-    private string savingsBufferReason =
-        "";
-
-
-    // PocketAI's calculated savings amount
-    // before a user manually adjusts it.
-    private double pocketAiEstimatedSavings;
+    // Amount currently being PREVIEWED for
+    // optional extra savings allocation.
+    private double extraSavingsForAllocation;
 
 
     // null:
-    // use PocketAI's estimate.
+    // use PocketAI's recommendation.
     //
     // number:
-    // use the amount manually selected
-    // by the user.
+    // preview a user-selected extra amount.
+    //
+    // IMPORTANT:
+    // This is NOT accepted yet and therefore
+    // does NOT reduce Safe to Spend.
     private double?
-        userSavingsAmountOverride;
+        userExtraSavingsPreviewOverride;
 
 
-    // Current recommendation across all
-    // active savings goals.
+
+    // ==========================================
+    // CURRENT ALLOCATION PLAN
+    // ==========================================
+
     private SavingsAllocationPlan?
         currentAllocationPlan;
 
@@ -106,15 +124,16 @@ public partial class SavingsPage : ContentPage
                 databasePath);
 
 
-        analyticsService =
-            new AnalyticsService();
+        dataBaseManager.CreateTables();
+
+
+        financialSnapshotProvider =
+            new FinancialSnapshotProvider(
+                dataBaseManager);
 
 
         savingsAllocationService =
             new SavingsAllocationService();
-
-
-        dataBaseManager.CreateTables();
     }
 
 
@@ -134,391 +153,13 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CALCULATE SAVINGS RECOMMENDATION
-    // ==========================================
-
-    private void CalculateSavingsRecommendation()
-    {
-        // ======================================
-        // LOAD CURRENT FINANCIAL DATA
-        // ======================================
-
-        List<Expense> expenses =
-            dataBaseManager
-                .GetAllExpenses();
-
-
-        Income? income =
-            dataBaseManager
-                .GetIncome();
-
-
-        AccountBalance? accountBalance =
-            dataBaseManager
-                .GetAccountBalance();
-
-
-        SavingsGoal? primarySavingsGoal =
-            dataBaseManager
-                .GetSavingsGoal();
-
-
-        List<BudgetLimit> budgetLimits =
-            dataBaseManager
-                .GetBudgetLimits();
-
-
-        List<RecurringExpenses> recurringExpenses =
-            dataBaseManager
-                .GetRecuringExpenses();
-
-
-
-        // ======================================
-        // BUILD FINANCIAL SUMMARY
-        // ======================================
-
-        FinancialSummary summary =
-            analyticsService
-                .BuildFinancialSummary(
-                    expenses,
-                    income,
-                    accountBalance,
-                    primarySavingsGoal,
-                    budgetLimits,
-                    recurringExpenses);
-
-
-
-        // ======================================
-        // DAYS LEFT IN CURRENT MONTH
-        // ======================================
-
-        DateTime today =
-            DateTime.Today;
-
-
-        int daysInMonth =
-            DateTime.DaysInMonth(
-                today.Year,
-                today.Month);
-
-
-        int daysLeftInMonth =
-            Math.Max(
-                daysInMonth -
-                today.Day,
-                0);
-
-
-
-        // ======================================
-        // CURRENT DAILY SPENDING RATE
-        // ======================================
-
-        double averageDailySpending =
-            analyticsService
-                .GetAverageDailySpending(
-                    summary.CurrentMonthSpent,
-                    today.Day);
-
-
-
-        // ======================================
-        // PROJECT REST-OF-MONTH SPENDING
-        // ======================================
-
-        double projectedAdditionalSpending =
-            analyticsService
-                .GetProjectedAdditionalSpending(
-                    averageDailySpending,
-                    daysLeftInMonth);
-
-
-
-        // ======================================
-        // PROJECT END-OF-MONTH MONEY
-        // ======================================
-
-        projectedEndOfMonthMoney =
-            analyticsService
-                .GetProjectedEndOfMonthMoney(
-                    summary.MoneyLeft,
-                    projectedAdditionalSpending);
-
-
-
-        // ======================================
-        // DYNAMIC BUFFER PERCENTAGE
-        // ======================================
-
-        recommendedSavingsBufferPercentage =
-            savingsAllocationService
-                .CalculateRecommendedBufferPercentage(
-                    projectedEndOfMonthMoney,
-                    summary.MonthlyIncome,
-                    summary.MonthlyRecurringExpenses,
-                    summary.OverBudgetCount);
-
-
-
-        // ======================================
-        // RECOMMENDED BUFFER
-        // ======================================
-
-        recommendedSavingsBuffer =
-            savingsAllocationService
-                .CalculateRecommendedBuffer(
-                    projectedEndOfMonthMoney,
-                    summary.MonthlyIncome,
-                    summary.MonthlyRecurringExpenses,
-                    summary.OverBudgetCount);
-
-
-
-        // ======================================
-        // POCKETAI'S AVAILABLE SAVINGS ESTIMATE
-        // ======================================
-
-        pocketAiEstimatedSavings =
-            savingsAllocationService
-                .CalculateAvailableForSavings(
-                    projectedEndOfMonthMoney,
-                    summary.MonthlyIncome,
-                    summary.MonthlyRecurringExpenses,
-                    summary.OverBudgetCount);
-
-
-
-        // ======================================
-        // AMOUNT ACTUALLY USED
-        // ======================================
-        //
-        // PocketAI recommends an amount,
-        // but the user remains in control.
-        // ======================================
-
-        availableForSavings =
-            userSavingsAmountOverride
-            ??
-            pocketAiEstimatedSavings;
-
-
-
-        // ======================================
-        // BUFFER EXPLANATION
-        // ======================================
-
-        savingsBufferReason =
-            BuildSavingsBufferReason(
-                summary);
-
-
-
-        // ======================================
-        // DIVIDE AVAILABLE SAVINGS
-        // ======================================
-
-        currentAllocationPlan =
-            savingsAllocationService
-                .CalculateRecommendedAllocation(
-                    savingsGoals,
-                    availableForSavings);
-    }
-
-
-
-    // ==========================================
-    // BUILD SAVINGS BUFFER EXPLANATION
-    // ==========================================
-
-    private string BuildSavingsBufferReason(
-        FinancialSummary summary)
-    {
-        // ======================================
-        // NO POSITIVE SURPLUS
-        // ======================================
-
-        if (projectedEndOfMonthMoney <= 0)
-        {
-            return
-                "PocketAI is not recommending additional savings because your projected month-end money is too limited.";
-        }
-
-
-
-        int bufferPercent =
-            (int)Math.Round(
-                recommendedSavingsBufferPercentage
-                *
-                100);
-
-
-
-        // ======================================
-        // MONTHLY INCOME NOT SET
-        // ======================================
-
-        if (summary.MonthlyIncome <= 0)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) as a buffer because reliable monthly income has not been set yet.";
-        }
-
-
-
-        // ======================================
-        // FINANCIAL PRESSURE RATIOS
-        // ======================================
-
-        double recurringRatio =
-            summary.MonthlyRecurringExpenses
-            /
-            summary.MonthlyIncome;
-
-
-        double surplusRatio =
-            projectedEndOfMonthMoney
-            /
-            summary.MonthlyIncome;
-
-
-
-        // ======================================
-        // HIGH FINANCIAL PRESSURE
-        // ======================================
-
-        if (summary.OverBudgetCount >= 2 &&
-            recurringRatio >= 0.35)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available because several budgets are over their limits and recurring bills are using a significant part of your income.";
-        }
-
-
-
-        // ======================================
-        // MULTIPLE BUDGETS OVER LIMIT
-        // ======================================
-
-        if (summary.OverBudgetCount >= 2)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) as extra protection because multiple budget categories are currently over their limits.";
-        }
-
-
-
-        // ======================================
-        // ONE BUDGET OVER LIMIT
-        // ======================================
-
-        if (summary.OverBudgetCount == 1)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available because one of your budget categories is currently over its limit.";
-        }
-
-
-
-        // ======================================
-        // VERY HIGH RECURRING BILL PRESSURE
-        // ======================================
-
-        if (recurringRatio >= 0.50)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available because recurring bills are using a large portion of your monthly income.";
-        }
-
-
-
-        // ======================================
-        // MODERATE RECURRING BILL PRESSURE
-        // ======================================
-
-        if (recurringRatio >= 0.35)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available because a significant portion of your income is already committed to recurring bills.";
-        }
-
-
-
-        // ======================================
-        // VERY TIGHT MONTH
-        // ======================================
-
-        if (surplusRatio <= 0.10)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available because your projected month-end surplus is tight.";
-        }
-
-
-
-        // ======================================
-        // TIGHT MONTH
-        // ======================================
-
-        if (surplusRatio <= 0.20)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) as a larger safety cushion because this month has limited extra cash.";
-        }
-
-
-
-        // ======================================
-        // BALANCED MONTH
-        // ======================================
-
-        if (surplusRatio <= 0.35)
-        {
-            return
-                $"PocketAI is keeping " +
-                $"{recommendedSavingsBuffer:C} " +
-                $"({bufferPercent}%) available as a balanced financial buffer.";
-        }
-
-
-
-        // ======================================
-        // STRONG MONTH
-        // ======================================
-
-        return
-            $"PocketAI is keeping " +
-            $"{recommendedSavingsBuffer:C} " +
-            $"({bufferPercent}%) available as a safety buffer while putting more of your strong projected surplus toward savings.";
-    }
-
-
-
-    // ==========================================
-    // LOAD SAVINGS GOALS
+    // LOAD SAVINGS PAGE
     // ==========================================
 
     private void LoadSavingsGoals()
     {
         // ======================================
-        // LOAD GOALS FROM DATABASE
+        // LOAD GOALS
         // ======================================
 
         savingsGoals =
@@ -527,71 +168,78 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // SET UP PRIORITY DROPDOWN
-        // ======================================
-
         SetupPriorityOptions();
 
 
 
         // ======================================
-        // CALCULATE POCKETAI PLAN
+        // GET CENTRAL FINANCIAL SNAPSHOT
+        // ======================================
+        //
+        // Savings no longer calculates its own:
+        //
+        // - Money Left
+        // - month-end surplus
+        // - savings buffer
+        // - available money
+        //
+        // Home, Analytics, and Savings now use
+        // the same financial definitions.
         // ======================================
 
-        CalculateSavingsRecommendation();
-
-
-
-        // ======================================
-        // AVAILABLE FOR SAVINGS DISPLAY
-        // ======================================
-
-        AvailableForSavingsLabel.Text =
-            availableForSavings
-                .ToString("C");
-
-
-
-        // ======================================
-        // BUFFER / CUSTOM AMOUNT EXPLANATION
-        // ======================================
-
-        if (userSavingsAmountOverride.HasValue)
-        {
-            if (availableForSavings >
-                pocketAiEstimatedSavings)
-            {
-                SavingsBufferLabel.Text =
-                    $"You chose {availableForSavings:C} for savings. " +
-                    $"PocketAI's estimate is {pocketAiEstimatedSavings:C}, " +
-                    $"so your custom amount uses more of the buffer PocketAI recommended keeping available.";
-            }
-            else if (availableForSavings <
-                     pocketAiEstimatedSavings)
-            {
-                SavingsBufferLabel.Text =
-                    $"You chose {availableForSavings:C} for savings. " +
-                    $"PocketAI estimates you could save about {pocketAiEstimatedSavings:C}, " +
-                    $"so your plan keeps additional money available.";
-            }
-            else
-            {
-                SavingsBufferLabel.Text =
-                    $"Your custom amount matches PocketAI's current estimate of {pocketAiEstimatedSavings:C}.";
-            }
-        }
-        else
-        {
-            SavingsBufferLabel.Text =
-                savingsBufferReason;
-        }
+        currentSnapshot =
+            financialSnapshotProvider
+                .GetSnapshot();
 
 
 
         // ======================================
-        // BUILD GOAL DISPLAY ITEMS
+        // OPTIONAL EXTRA SAVINGS
         // ======================================
+
+        pocketAiEstimatedExtraSavings =
+            currentSnapshot
+                .PocketAiRecommendedExtraSavings;
+
+
+
+        extraSavingsForAllocation =
+            userExtraSavingsPreviewOverride
+            ??
+            pocketAiEstimatedExtraSavings;
+
+
+
+        // ======================================
+        // DIVIDE OPTIONAL EXTRA AMONG GOALS
+        // ======================================
+
+        currentAllocationPlan =
+            savingsAllocationService
+                .CalculateRecommendedAllocation(
+                    savingsGoals,
+                    extraSavingsForAllocation);
+
+
+
+        // ======================================
+        // TOP SAVINGS PLAN
+        // ======================================
+
+        UpdateSavingsPlanSummary(
+            currentSnapshot);
+
+
+
+        // ======================================
+        // GOAL DISPLAY ITEMS
+        // ======================================
+
+        string recommendationUnavailableReason =
+            BuildRecommendationUnavailableReason(
+                currentSnapshot);
+
+
 
         List<SavingsGoalDisplayItem>
             displayItems =
@@ -605,8 +253,7 @@ public partial class SavingsPage : ContentPage
                                         .Allocations
                                         .FirstOrDefault(
                                             item =>
-                                                item.GoalId
-                                                ==
+                                                item.GoalId ==
                                                 goal.Id);
 
 
@@ -614,7 +261,10 @@ public partial class SavingsPage : ContentPage
                                 new SavingsGoalDisplayItem(
                                     goal,
                                     allocation,
-                                    availableForSavings);
+                                    extraSavingsForAllocation,
+                                    userExtraSavingsPreviewOverride
+                                        .HasValue,
+                                    recommendationUnavailableReason);
                         })
                     .ToList();
 
@@ -640,7 +290,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // TOTAL SAVED
+        // SUMMARY CARDS
         // ======================================
 
         double totalSaved =
@@ -649,21 +299,11 @@ public partial class SavingsPage : ContentPage
                     goal.CurrentAmount);
 
 
-
-        // ======================================
-        // TOTAL TARGET
-        // ======================================
-
         double totalTarget =
             savingsGoals.Sum(
                 goal =>
                     goal.TargetAmount);
 
-
-
-        // ======================================
-        // TOTAL REMAINING
-        // ======================================
 
         double totalRemaining =
             savingsGoals.Sum(
@@ -675,24 +315,6 @@ public partial class SavingsPage : ContentPage
                         0));
 
 
-
-        TotalSavedLabel.Text =
-            totalSaved.ToString("C");
-
-
-        TotalTargetLabel.Text =
-            totalTarget.ToString("C");
-
-
-        TotalRemainingLabel.Text =
-            totalRemaining.ToString("C");
-
-
-
-        // ======================================
-        // ACTIVE GOAL COUNT
-        // ======================================
-
         int activeGoalCount =
             savingsGoals.Count(
                 goal =>
@@ -701,9 +323,214 @@ public partial class SavingsPage : ContentPage
                     goal.TargetAmount);
 
 
+
+        TotalSavedLabel.Text =
+            totalSaved
+                .ToString("C");
+
+
+        TotalTargetLabel.Text =
+            totalTarget
+                .ToString("C");
+
+
+        TotalRemainingLabel.Text =
+            totalRemaining
+                .ToString("C");
+
+
         GoalCountLabel.Text =
             activeGoalCount
                 .ToString();
+    }
+
+
+
+    // ==========================================
+    // UPDATE SAVINGS PLAN SUMMARY
+    // ==========================================
+
+    private void UpdateSavingsPlanSummary(
+        FinancialSnapshot snapshot)
+    {
+        DateTime today =
+            DateTime.Today;
+
+
+        int daysInMonth =
+            DateTime.DaysInMonth(
+                today.Year,
+                today.Month);
+
+
+        DateTime endOfMonth =
+            new DateTime(
+                today.Year,
+                today.Month,
+                daysInMonth);
+
+
+
+        RequiredSavingsPeriodLabel.Text =
+            $"REQUIRED THROUGH {endOfMonth:MMM d}"
+                .ToUpper();
+
+
+
+        RequiredSavingsThisMonthLabel.Text =
+            snapshot
+                .RequiredSavingsThisMonth
+                .ToString("C");
+
+
+
+        OptionalExtraSavingsLabel.Text =
+            extraSavingsForAllocation
+                .ToString("C");
+
+
+
+        SavingsSafeToSpendLabel.Text =
+            snapshot
+                .SafeToSpendTotal
+                .ToString("C");
+
+
+
+        // ======================================
+        // CUSTOM PREVIEW
+        // ======================================
+
+        if (userExtraSavingsPreviewOverride
+            .HasValue)
+        {
+            OptionalExtraModeLabel.Text =
+                "Custom preview";
+
+
+            if (extraSavingsForAllocation >
+                pocketAiEstimatedExtraSavings)
+            {
+                SavingsPlanExplanationLabel.Text =
+                    $"You're previewing {extraSavingsForAllocation:C} of optional extra savings. " +
+                    $"PocketAI currently recommends {pocketAiEstimatedExtraSavings:C}. " +
+                    "This is only a preview and does not reduce Safe to Spend.";
+            }
+            else if (extraSavingsForAllocation <
+                     pocketAiEstimatedExtraSavings)
+            {
+                SavingsPlanExplanationLabel.Text =
+                    $"You're previewing {extraSavingsForAllocation:C} of optional extra savings. " +
+                    $"PocketAI currently recommends {pocketAiEstimatedExtraSavings:C}. " +
+                    "This preview keeps more discretionary money available.";
+            }
+            else
+            {
+                SavingsPlanExplanationLabel.Text =
+                    $"Your preview matches PocketAI's optional recommendation of " +
+                    $"{pocketAiEstimatedExtraSavings:C}. " +
+                    "It has not been accepted or removed from Safe to Spend.";
+            }
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // POCKETAI MODE
+        // ======================================
+
+        OptionalExtraModeLabel.Text =
+            "PocketAI estimate";
+
+
+
+        if (snapshot.ObligationShortfall > 0)
+        {
+            SavingsPlanExplanationLabel.Text =
+                $"PocketAI is already protecting {snapshot.RequiredSavingsThisMonth:C} " +
+                $"of required savings, but your current spendable cash is " +
+                $"{snapshot.ObligationShortfall:C} short of protected obligations. " +
+                "No optional extra savings should be added right now.";
+
+
+            return;
+        }
+
+
+
+        if (pocketAiEstimatedExtraSavings <= 0)
+        {
+            if (snapshot.DataConfidence.Equals(
+                    "Low",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                SavingsPlanExplanationLabel.Text =
+                    $"{snapshot.RequiredSavingsThisMonth:C} is already protected to keep your goals on schedule. " +
+                    "PocketAI is not recommending extra savings yet because it needs more financial history. " +
+                    snapshot.DataConfidenceReason;
+
+
+                return;
+            }
+
+
+
+            SavingsPlanExplanationLabel.Text =
+                $"{snapshot.RequiredSavingsThisMonth:C} is already protected for required savings. " +
+                "PocketAI is not recommending additional optional savings right now.";
+
+
+            return;
+        }
+
+
+
+        SavingsPlanExplanationLabel.Text =
+            $"{snapshot.RequiredSavingsThisMonth:C} is already protected as required savings. " +
+            $"PocketAI optionally recommends another {pocketAiEstimatedExtraSavings:C}. " +
+            "Optional extra savings do not reduce Safe to Spend until you choose to accept them.";
+    }
+
+
+
+    // ==========================================
+    // RECOMMENDATION UNAVAILABLE REASON
+    // ==========================================
+
+    private string BuildRecommendationUnavailableReason(
+        FinancialSnapshot snapshot)
+    {
+        if (snapshot.ObligationShortfall > 0)
+        {
+            return
+                "PocketAI is not recommending optional extra savings because current protected obligations exceed spendable cash.";
+        }
+
+
+
+        if (snapshot.DataConfidence.Equals(
+                "Low",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return
+                "PocketAI needs more financial history before recommending optional extra savings. Required savings are already protected separately.";
+        }
+
+
+
+        if (snapshot.SafeToSpendTotal <= 0)
+        {
+            return
+                "There is currently no Safe to Spend available for optional extra savings.";
+        }
+
+
+
+        return
+            "PocketAI is not recommending additional optional savings right now.";
     }
 
 
@@ -727,12 +554,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // Always provide at least five
-        // priority levels.
-        //
-        // If the user has more goals or
-        // already uses higher priorities,
-        // automatically provide more.
         int numberOfPriorityOptions =
             Math.Max(
                 5,
@@ -772,7 +593,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW ADD GOAL MODAL
+    // SHOW ADD GOAL
     // ==========================================
 
     private void ShowAddGoalClicked(
@@ -800,10 +621,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // CLEAR FORM
-        // ======================================
-
         GoalNameEntry.Text =
             "";
 
@@ -821,18 +638,6 @@ public partial class SavingsPage : ContentPage
                 .AddMonths(6);
 
 
-
-        // ======================================
-        // DEFAULT PRIORITY
-        // ======================================
-        //
-        // A new goal begins after the
-        // currently lowest-ranked tier.
-        //
-        // The user can freely choose another
-        // Priority, including one already used
-        // by another goal.
-        // ======================================
 
         int nextPriority =
             savingsGoals
@@ -855,10 +660,6 @@ public partial class SavingsPage : ContentPage
                 0);
 
 
-
-        // ======================================
-        // DEFAULT ESSENTIAL STATUS
-        // ======================================
 
         GoalEssentialSwitch.IsToggled =
             false;
@@ -884,7 +685,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW EDIT GOAL MODAL
+    // SHOW EDIT GOAL
     // ==========================================
 
     private void ShowEditGoalClicked(
@@ -926,10 +727,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // CURRENT VALUES
-        // ======================================
-
         GoalNameEntry.Text =
             selectedGoal.Name;
 
@@ -949,10 +746,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // CURRENT PRIORITY
-        // ======================================
-
         int currentPriority =
             Math.Max(
                 selectedGoal.PriorityRank,
@@ -963,10 +756,6 @@ public partial class SavingsPage : ContentPage
             currentPriority - 1;
 
 
-
-        // ======================================
-        // CURRENT ESSENTIAL STATUS
-        // ======================================
 
         GoalEssentialSwitch.IsToggled =
             selectedGoal.IsEssential;
@@ -1021,10 +810,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // NAME
-        // ======================================
-
         if (string.IsNullOrWhiteSpace(
                 name))
         {
@@ -1038,10 +823,6 @@ public partial class SavingsPage : ContentPage
         }
 
 
-
-        // ======================================
-        // TARGET
-        // ======================================
 
         if (!double.TryParse(
                 targetText,
@@ -1060,10 +841,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // CURRENT SAVINGS
-        // ======================================
-
         if (!double.TryParse(
                 currentText,
                 out double currentAmount)
@@ -1080,10 +857,6 @@ public partial class SavingsPage : ContentPage
         }
 
 
-
-        // ======================================
-        // DEADLINE
-        // ======================================
 
         DateTime deadline =
             GoalDeadlinePicker.Date
@@ -1107,10 +880,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // PRIORITY
-        // ======================================
-
         if (GoalPriorityPicker.SelectedIndex < 0)
         {
             await DisplayAlertAsync(
@@ -1131,17 +900,13 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // ESSENTIAL
-        // ======================================
-
         bool isEssential =
             GoalEssentialSwitch.IsToggled;
 
 
 
         // ======================================
-        // ADD NEW GOAL
+        // NEW GOAL
         // ======================================
 
         if (selectedGoal == null)
@@ -1163,21 +928,20 @@ public partial class SavingsPage : ContentPage
                 isEssential;
 
 
-            // null means PocketAI currently
-            // controls the recommended split.
             newGoal.CustomAllocationPercentage =
                 null;
 
 
 
-            dataBaseManager.AddSavingsGoal(
-                newGoal);
+            dataBaseManager
+                .AddSavingsGoal(
+                    newGoal);
         }
 
 
 
         // ======================================
-        // UPDATE EXISTING GOAL
+        // EDIT GOAL
         // ======================================
 
         else
@@ -1189,26 +953,17 @@ public partial class SavingsPage : ContentPage
                     targetAmount,
                     currentAmount,
                     deadline,
-
-                    // Controls which goal
-                    // appears on Home.
                     selectedGoal.IsPrimary,
-
-                    // Financial importance.
                     priorityRank,
-
-                    // Essential protection.
                     isEssential,
-
-                    // Preserve a future custom
-                    // allocation percentage.
                     selectedGoal
                         .CustomAllocationPercentage);
 
 
 
-            dataBaseManager.UpdateSavingsGoal(
-                updatedGoal);
+            dataBaseManager
+                .UpdateSavingsGoal(
+                    updatedGoal);
         }
 
 
@@ -1222,7 +977,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW ADD SAVINGS MODAL
+    // SHOW ADD SAVINGS
     // ==========================================
 
     private void ShowAddSavingsClicked(
@@ -1245,6 +1000,7 @@ public partial class SavingsPage : ContentPage
 
         selectedGoal =
             item.Goal;
+
 
 
         AddSavingsGoalNameLabel.Text =
@@ -1275,7 +1031,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // ADD SAVINGS TO GOAL
+    // ADD SAVINGS
     // ==========================================
 
     private async void AddSavingsClicked(
@@ -1314,6 +1070,41 @@ public partial class SavingsPage : ContentPage
 
 
 
+        double remaining =
+            Math.Max(
+                selectedGoal.TargetAmount
+                -
+                selectedGoal.CurrentAmount,
+                0);
+
+
+
+        if (remaining <= 0)
+        {
+            await DisplayAlertAsync(
+                "Goal Complete",
+                "This savings goal is already fully funded.",
+                "OK");
+
+
+            return;
+        }
+
+
+
+        if (amount > remaining)
+        {
+            await DisplayAlertAsync(
+                "Amount Too Large",
+                $"This goal only needs {remaining:C} to reach its target.",
+                "OK");
+
+
+            return;
+        }
+
+
+
         double newCurrentAmount =
             selectedGoal.CurrentAmount
             +
@@ -1321,8 +1112,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // Preserve all Priority Savings
-        // information while updating progress.
         SavingsGoal updatedGoal =
             new SavingsGoal(
                 selectedGoal.Id,
@@ -1338,8 +1127,9 @@ public partial class SavingsPage : ContentPage
 
 
 
-        dataBaseManager.UpdateSavingsGoal(
-            updatedGoal);
+        dataBaseManager
+            .UpdateSavingsGoal(
+                updatedGoal);
 
 
 
@@ -1352,7 +1142,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SHOW GOAL ON HOME
+    // SHOW ON HOME
     // ==========================================
 
     private void MakePrimaryClicked(
@@ -1373,11 +1163,6 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // Internal property remains IsPrimary
-        // for backwards compatibility.
-        //
-        // In the UI this is called
-        // "Shown on Home".
         dataBaseManager
             .SetPrimarySavingsGoal(
                 item.Goal.Id);
@@ -1435,17 +1220,15 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // ADJUST AVAILABLE SAVINGS
+    // ADJUST OPTIONAL EXTRA PREVIEW
     // ==========================================
 
     private void AdjustSavingsAmountClicked(
         object? sender,
         EventArgs e)
     {
-        // Start with the amount currently
-        // being used by the recommendation.
         AdjustSavingsAmountEntry.Text =
-            availableForSavings
+            extraSavingsForAllocation
                 .ToString("0.00");
 
 
@@ -1469,7 +1252,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // SAVE ADJUSTED SAVINGS AMOUNT
+    // SAVE OPTIONAL EXTRA PREVIEW
     // ==========================================
 
     private async void SaveAdjustedSavingsAmountClicked(
@@ -1492,7 +1275,7 @@ public partial class SavingsPage : ContentPage
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
-                "Enter a valid savings amount.",
+                "Enter a valid optional extra savings amount.",
                 "OK");
 
 
@@ -1501,11 +1284,34 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // Respect the user's choice.
-        //
-        // This affects the recommendation only.
-        // No money is transferred.
-        userSavingsAmountOverride =
+        FinancialSnapshot snapshot =
+            currentSnapshot
+            ??
+            financialSnapshotProvider
+                .GetSnapshot();
+
+
+
+        // ======================================
+        // DO NOT PREVIEW MORE THAN SAFE TO SPEND
+        // ======================================
+
+        if (amount >
+            snapshot.SafeToSpendTotal)
+        {
+            await DisplayAlertAsync(
+                "Amount Exceeds Safe to Spend",
+                $"Your current total Safe to Spend is {snapshot.SafeToSpendTotal:C}. " +
+                "Choose an optional extra amount at or below that value.",
+                "OK");
+
+
+            return;
+        }
+
+
+
+        userExtraSavingsPreviewOverride =
             amount;
 
 
@@ -1525,16 +1331,14 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // USE POCKETAI ESTIMATE
+    // RESET TO POCKETAI EXTRA ESTIMATE
     // ==========================================
 
     private void UsePocketAiSavingsEstimateClicked(
         object? sender,
         EventArgs e)
     {
-        // null means return to PocketAI's
-        // calculated amount.
-        userSavingsAmountOverride =
+        userExtraSavingsPreviewOverride =
             null;
 
 
@@ -1554,7 +1358,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CANCEL / CLOSE MODALS
+    // CANCEL MODAL
     // ==========================================
 
     private void CancelSavingsModalClicked(
@@ -1580,7 +1384,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // CLOSE ALL SAVINGS MODALS
+    // CLOSE ALL MODALS
     // ==========================================
 
     private void CloseSavingsModals()
@@ -1608,7 +1412,7 @@ public partial class SavingsPage : ContentPage
 
 
     // ==========================================
-    // GET THEME COLOR
+    // THEME COLOR
     // ==========================================
 
     private static Color GetThemeColor(
@@ -1636,10 +1440,6 @@ public partial class SavingsPage : ContentPage
 
     public class SavingsGoalDisplayItem
     {
-        // ======================================
-        // REAL SAVINGS GOAL
-        // ======================================
-
         public SavingsGoal Goal
         {
             get;
@@ -1647,31 +1447,30 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // Recommendation for this specific goal.
         private readonly SavingsAllocationItem?
             allocation;
 
 
-
-        // Total amount currently available
-        // to divide between goals.
         private readonly double
-            availableForSavings;
+            optionalExtraSavings;
+
+
+        private readonly bool
+            isCustomPreview;
+
+
+        private readonly string
+            recommendationUnavailableReason;
 
 
 
         // ======================================
-        // BASIC INFORMATION
+        // BASIC INFO
         // ======================================
 
         public string Name =>
             Goal.Name;
 
-
-
-        // ======================================
-        // SHOWN ON HOME
-        // ======================================
 
         public bool IsPrimary =>
             Goal.IsPrimary;
@@ -1690,22 +1489,10 @@ public partial class SavingsPage : ContentPage
             Goal.PriorityRank;
 
 
-        public string PriorityText
-        {
-            get
-            {
-                if (Goal.PriorityRank <= 0)
-                {
-                    return
-                        "UNRANKED";
-                }
-
-
-                return
-                    $"PRIORITY {Goal.PriorityRank}";
-            }
-        }
-
+        public string PriorityText =>
+            Goal.PriorityRank > 0
+                ? $"PRIORITY {Goal.PriorityRank}"
+                : "UNRANKED";
 
 
         public Color PriorityColor =>
@@ -1716,7 +1503,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // ESSENTIAL / OPTIONAL
+        // ESSENTIAL
         // ======================================
 
         public bool IsEssential =>
@@ -1729,28 +1516,21 @@ public partial class SavingsPage : ContentPage
                 : "OPTIONAL";
 
 
-        public Color EssentialColor
-        {
-            get
-            {
-                if (Goal.IsEssential)
-                {
-                    return GetThemeColor(
-                        "WarningColor",
-                        "#B45309");
-                }
+        public Color EssentialColor =>
+            Goal.IsEssential
 
+                ? GetThemeColor(
+                    "WarningColor",
+                    "#B45309")
 
-                return GetThemeColor(
+                : GetThemeColor(
                     "TextSecondary",
                     "#6B7280");
-            }
-        }
 
 
 
         // ======================================
-        // REMAINING
+        // REMAINING / COMPLETE
         // ======================================
 
         public double Remaining =>
@@ -1761,18 +1541,13 @@ public partial class SavingsPage : ContentPage
                 0);
 
 
-
-        // ======================================
-        // COMPLETED
-        // ======================================
-
         public bool IsCompleted =>
             Remaining <= 0;
 
 
 
         // ======================================
-        // PERCENT COMPLETE
+        // PROGRESS
         // ======================================
 
         public double Percent
@@ -1787,11 +1562,9 @@ public partial class SavingsPage : ContentPage
 
 
                 return Math.Clamp(
-                    (
-                        Goal.CurrentAmount
-                        /
-                        Goal.TargetAmount
-                    )
+                    Goal.CurrentAmount
+                    /
+                    Goal.TargetAmount
                     *
                     100,
                     0,
@@ -1800,16 +1573,14 @@ public partial class SavingsPage : ContentPage
         }
 
 
-
         public double Progress =>
-            Percent
-            /
+            Percent /
             100.0;
 
 
 
         // ======================================
-        // DAYS LEFT
+        // DEADLINE
         // ======================================
 
         public double DaysLeft =>
@@ -1823,7 +1594,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // WEEKLY AMOUNT NEEDED
+        // WEEKLY REQUIREMENT
         // ======================================
 
         public double WeeklyNeeded
@@ -1839,8 +1610,7 @@ public partial class SavingsPage : ContentPage
 
 
                 double weeksLeft =
-                    DaysLeft
-                    /
+                    DaysLeft /
                     7.0;
 
 
@@ -1853,8 +1623,7 @@ public partial class SavingsPage : ContentPage
 
 
                 return
-                    Remaining
-                    /
+                    Remaining /
                     weeksLeft;
             }
         }
@@ -1878,7 +1647,8 @@ public partial class SavingsPage : ContentPage
 
 
         public string RemainingText =>
-            Remaining.ToString("C");
+            Remaining
+                .ToString("C");
 
 
 
@@ -1893,7 +1663,6 @@ public partial class SavingsPage : ContentPage
                 }
 
 
-
                 if (DaysLeft <= 0)
                 {
                     return
@@ -1902,16 +1671,11 @@ public partial class SavingsPage : ContentPage
 
 
 
-                int days =
-                    Math.Max(
+                return
+                    $"{Math.Max(
                         (int)Math.Ceiling(
                             DaysLeft),
-                        0);
-
-
-
-                return
-                    $"{days} days";
+                        0)} days";
             }
         }
 
@@ -1944,7 +1708,7 @@ public partial class SavingsPage : ContentPage
 
 
         // ======================================
-        // POCKETAI RECOMMENDED AMOUNT
+        // OPTIONAL EXTRA RECOMMENDATION
         // ======================================
 
         public double RecommendedAmount =>
@@ -1954,11 +1718,6 @@ public partial class SavingsPage : ContentPage
             0;
 
 
-
-        // ======================================
-        // POCKETAI RECOMMENDED PERCENTAGE
-        // ======================================
-
         public double RecommendedPercentage =>
             allocation?
                 .RecommendedPercentage
@@ -1967,9 +1726,12 @@ public partial class SavingsPage : ContentPage
 
 
 
-        // ======================================
-        // RECOMMENDED AMOUNT TEXT
-        // ======================================
+        public string RecommendationHeaderText =>
+            isCustomPreview
+                ? "OPTIONAL EXTRA PREVIEW"
+                : "POCKETAI OPTIONAL EXTRA";
+
+
 
         public string RecommendedAmountText
         {
@@ -1983,24 +1745,20 @@ public partial class SavingsPage : ContentPage
 
 
 
-                if (availableForSavings <= 0)
+                if (optionalExtraSavings <= 0)
                 {
                     return
-                        "$0.00 this month";
+                        "$0.00 extra this month";
                 }
 
 
 
                 return
-                    $"{RecommendedAmount:C} this month";
+                    $"{RecommendedAmount:C} extra this month";
             }
         }
 
 
-
-        // ======================================
-        // RECOMMENDED PERCENTAGE TEXT
-        // ======================================
 
         public string RecommendedPercentageText
         {
@@ -2014,24 +1772,20 @@ public partial class SavingsPage : ContentPage
 
 
 
-                if (availableForSavings <= 0)
+                if (optionalExtraSavings <= 0)
                 {
                     return
-                        "0% of available savings";
+                        "0% of optional extra";
                 }
 
 
 
                 return
-                    $"{RecommendedPercentage:F0}% of available savings";
+                    $"{RecommendedPercentage:F0}% of optional extra";
             }
         }
 
 
-
-        // ======================================
-        // WHY POCKETAI RECOMMENDED IT
-        // ======================================
 
         public string RecommendationReason
         {
@@ -2040,15 +1794,23 @@ public partial class SavingsPage : ContentPage
                 if (IsCompleted)
                 {
                     return
-                        "This goal is already fully funded, so PocketAI does not allocate additional savings to it.";
+                        "This goal is already fully funded.";
                 }
 
 
 
-                if (availableForSavings <= 0)
+                if (optionalExtraSavings <= 0)
                 {
                     return
-                        "PocketAI is not recommending a contribution right now because your projected month-end finances are too limited.";
+                        recommendationUnavailableReason;
+                }
+
+
+
+                if (isCustomPreview)
+                {
+                    return
+                        "This is a preview only. PocketAI is dividing the optional extra amount you chose using the goal's Priority and Essential status. It has not reduced Safe to Spend.";
                 }
 
 
@@ -2057,7 +1819,7 @@ public partial class SavingsPage : ContentPage
                     Goal.IsEssential)
                 {
                     return
-                        "This goal receives extra weight because it is Priority 1 and marked Essential.";
+                        "This optional extra receives additional weight because the goal is Priority 1 and Essential.";
                 }
 
 
@@ -2066,7 +1828,7 @@ public partial class SavingsPage : ContentPage
                     Goal.PriorityRank > 0)
                 {
                     return
-                        $"This goal is Priority {Goal.PriorityRank} and Essential, so PocketAI gives it extra protection.";
+                        $"This optional extra receives additional protection because the goal is Priority {Goal.PriorityRank} and Essential.";
                 }
 
 
@@ -2074,7 +1836,7 @@ public partial class SavingsPage : ContentPage
                 if (Goal.PriorityRank == 1)
                 {
                     return
-                        "This goal receives a larger share because it is Priority 1.";
+                        "This goal receives a larger share of optional extra savings because it is Priority 1.";
                 }
 
 
@@ -2082,13 +1844,13 @@ public partial class SavingsPage : ContentPage
                 if (Goal.PriorityRank > 0)
                 {
                     return
-                        $"This recommendation reflects its Priority {Goal.PriorityRank} level.";
+                        $"This optional recommendation reflects the goal's Priority {Goal.PriorityRank} level.";
                 }
 
 
 
                 return
-                    "This goal is currently unranked, so PocketAI treats it as a lower-priority goal.";
+                    "This goal is unranked, so PocketAI treats it as a lower-priority destination for optional extra savings.";
             }
         }
 
@@ -2105,36 +1867,23 @@ public partial class SavingsPage : ContentPage
                 if (IsCompleted)
                 {
                     return
-                        "✓ Goal completed";
+                        "✓ GOAL COMPLETED";
                 }
-
 
 
                 if (DaysLeft <= 0)
                 {
                     return
-                        $"⚠ Target date passed • {Remaining:C} remaining";
+                        "⚠ PAST DUE";
                 }
 
 
-
-                // Keep this short.
-                //
-                // Needed / Week already shows
-                // the deadline requirement.
-                //
-                // PocketAI Recommendation shows
-                // what finances support.
                 return
-                    "Goal in progress";
+                    "GOAL IN PROGRESS";
             }
         }
 
 
-
-        // ======================================
-        // STATUS COLOR
-        // ======================================
 
         public Color StatusColor
         {
@@ -2148,14 +1897,12 @@ public partial class SavingsPage : ContentPage
                 }
 
 
-
                 if (DaysLeft <= 0)
                 {
                     return GetThemeColor(
                         "DangerColor",
                         "#B91C1C");
                 }
-
 
 
                 return GetThemeColor(
@@ -2173,7 +1920,9 @@ public partial class SavingsPage : ContentPage
         public SavingsGoalDisplayItem(
             SavingsGoal goal,
             SavingsAllocationItem? allocation,
-            double availableForSavings)
+            double optionalExtraSavings,
+            bool isCustomPreview,
+            string recommendationUnavailableReason)
         {
             Goal =
                 goal;
@@ -2183,8 +1932,16 @@ public partial class SavingsPage : ContentPage
                 allocation;
 
 
-            this.availableForSavings =
-                availableForSavings;
+            this.optionalExtraSavings =
+                optionalExtraSavings;
+
+
+            this.isCustomPreview =
+                isCustomPreview;
+
+
+            this.recommendationUnavailableReason =
+                recommendationUnavailableReason;
         }
     }
 }

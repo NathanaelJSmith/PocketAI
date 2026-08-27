@@ -56,7 +56,7 @@
                     Grid.Column="1"
                     Text="+ Add Expense"
                     BackgroundColor="{DynamicResource ThemePrimary}"
-                    TextColor="White"
+                    TextColor="{DynamicResource TextOnPrimary}"
                     FontAttributes="Bold"
                     CornerRadius="12"
                     Padding="20,12"
@@ -77,7 +77,7 @@
 
 
                 <!-- =================================
-                     SAFE TO SPEND HERO CARD
+                     SAFE TO SPEND HERO
                      ================================= -->
 
                 <Border
@@ -88,8 +88,10 @@
                     Padding="28">
 
                     <Border.StrokeShape>
+
                         <RoundRectangle
                             CornerRadius="20" />
+
                     </Border.StrokeShape>
 
 
@@ -100,53 +102,119 @@
 
                         <VerticalStackLayout
                             Grid.Column="0"
-                            Spacing="8">
+                            Spacing="10">
 
 
                             <Label
-                                Text="SAFE TO SPEND TODAY"
+                                x:Name="SafeToSpendTitleLabel"
+                                Text="SAFE TO SPEND"
                                 FontSize="12"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource ThemePrimary}" />
 
 
+                            <!-- TOTAL -->
+
                             <Label
-                                x:Name="DailySafeToSpendLabel"
+                                x:Name="SafeToSpendTotalLabel"
                                 Text="$0.00"
                                 FontSize="48"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource TextPrimary}"
-                                Margin="0,6,0,0" />
+                                Margin="0,4,0,0" />
 
 
                             <Label
-                                x:Name="WeeklySafeToSpendLabel"
-                                Text="$0.00 safe this week"
-                                FontSize="15"
+                                Text="available from your current spendable cash"
+                                FontSize="12"
                                 TextColor="{DynamicResource TextSecondary}" />
 
+
+
+                            <!-- TODAY / WEEK -->
+
+                            <Grid
+                                ColumnDefinitions="Auto,Auto"
+                                ColumnSpacing="32"
+                                Margin="0,10,0,0">
+
+
+                                <!-- TODAY -->
+
+                                <VerticalStackLayout
+                                    Grid.Column="0"
+                                    Spacing="3">
+
+                                    <Label
+                                        Text="TODAY"
+                                        FontSize="9"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextMuted}" />
+
+                                    <Label
+                                        x:Name="DailySafeToSpendLabel"
+                                        Text="$0.00"
+                                        FontSize="19"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextPrimary}" />
+
+                                </VerticalStackLayout>
+
+
+
+                                <!-- THIS WEEK -->
+
+                                <VerticalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="3">
+
+                                    <Label
+                                        x:Name="WeeklySafeToSpendTitleLabel"
+                                        Text="THIS WEEK"
+                                        FontSize="9"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextMuted}" />
+
+                                    <Label
+                                        x:Name="WeeklySafeToSpendLabel"
+                                        Text="$0.00"
+                                        FontSize="19"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextPrimary}" />
+
+                                </VerticalStackLayout>
+
+                            </Grid>
+
+
+
+                            <!-- STATUS -->
 
                             <Label
                                 x:Name="SafeToSpendStatusLabel"
                                 Text="Calculating..."
-                                FontSize="14"
+                                FontSize="13"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource SuccessColor}"
-                                Margin="0,5,0,0" />
+                                Margin="0,8,0,0" />
 
+
+
+                            <!-- EXPLANATION -->
 
                             <Label
-                                Text="This already accounts for your spending, bills, and savings plan."
-                                FontSize="12"
+                                Text="Based on checking and cash after protecting upcoming bills, required savings, accepted extra savings, and your safety buffer. Savings-account money stays protected."
+                                FontSize="11"
                                 TextColor="{DynamicResource TextMuted}"
                                 LineHeight="1.25"
-                                Margin="0,7,0,0" />
+                                LineBreakMode="WordWrap"
+                                Margin="0,5,0,0" />
 
                         </VerticalStackLayout>
 
 
 
-                        <!-- Accent icon -->
+                        <!-- ACCENT -->
 
                         <Border
                             Grid.Column="1"
@@ -157,8 +225,10 @@
                             VerticalOptions="Start">
 
                             <Border.StrokeShape>
+
                                 <RoundRectangle
                                     CornerRadius="17" />
+
                             </Border.StrokeShape>
 
 
@@ -166,7 +236,7 @@
                                 Text="$"
                                 FontSize="24"
                                 FontAttributes="Bold"
-                                TextColor="White"
+                                TextColor="{DynamicResource TextOnPrimary}"
                                 HorizontalOptions="Center"
                                 VerticalOptions="Center" />
 
@@ -190,8 +260,10 @@
                     Padding="24">
 
                     <Border.StrokeShape>
+
                         <RoundRectangle
                             CornerRadius="20" />
+
                     </Border.StrokeShape>
 
 
@@ -208,8 +280,8 @@
 
                         <Label
                             x:Name="FinancialHealthScoreLabel"
-                            Text="0 / 100"
-                            FontSize="38"
+                            Text="Not enough data"
+                            FontSize="25"
                             FontAttributes="Bold"
                             TextColor="{DynamicResource TextPrimary}"
                             Margin="0,8,0,0" />
@@ -217,10 +289,10 @@
 
                         <Label
                             x:Name="FinancialHealthStatusLabel"
-                            Text="Calculating..."
-                            FontSize="16"
+                            Text="Low confidence"
+                            FontSize="15"
                             FontAttributes="Bold"
-                            TextColor="{DynamicResource SuccessColor}" />
+                            TextColor="{DynamicResource WarningColor}" />
 
 
                         <BoxView
@@ -230,10 +302,12 @@
 
 
                         <Label
-                            Text="A quick picture of how your financial plan is doing."
-                            FontSize="12"
+                            x:Name="FinancialHealthReasonLabel"
+                            Text="PocketAI needs more financial activity before it can confidently score your financial health."
+                            FontSize="11"
                             TextColor="{DynamicResource TextMuted}"
-                            LineHeight="1.25" />
+                            LineHeight="1.25"
+                            LineBreakMode="WordWrap" />
 
 
                         <Label
@@ -244,8 +318,10 @@
                             Margin="0,7,0,0">
 
                             <Label.GestureRecognizers>
+
                                 <TapGestureRecognizer
                                     Tapped="ViewAnalyticsClicked" />
+
                             </Label.GestureRecognizers>
 
                         </Label>
@@ -269,8 +345,10 @@
                 Padding="22">
 
                 <Border.StrokeShape>
+
                     <RoundRectangle
                         CornerRadius="18" />
+
                 </Border.StrokeShape>
 
 
@@ -288,8 +366,10 @@
                         VerticalOptions="Start">
 
                         <Border.StrokeShape>
+
                             <RoundRectangle
                                 CornerRadius="13" />
+
                         </Border.StrokeShape>
 
 
@@ -333,8 +413,10 @@
                             Margin="0,4,0,0">
 
                             <Label.GestureRecognizers>
+
                                 <TapGestureRecognizer
                                     Tapped="AskPocketAIClicked" />
+
                             </Label.GestureRecognizers>
 
                         </Label>
@@ -369,7 +451,7 @@
 
                     <Label
                         Grid.Column="1"
-                        Text="Accounts overview"
+                        Text="Current money vs. monthly planning"
                         FontSize="12"
                         TextColor="{DynamicResource TextMuted}" />
 
@@ -394,8 +476,10 @@
                         Padding="18">
 
                         <Border.StrokeShape>
+
                             <RoundRectangle
                                 CornerRadius="15" />
+
                         </Border.StrokeShape>
 
 
@@ -419,8 +503,8 @@
 
 
                             <Label
-                                Text="All accounts"
-                                FontSize="11"
+                                Text="All accounts • includes savings"
+                                FontSize="10"
                                 TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
@@ -430,7 +514,7 @@
 
 
                     <!-- =================================
-                         MONTHLY INCOME
+                         SPENDABLE CASH
                          ================================= -->
 
                     <Border
@@ -441,8 +525,10 @@
                         Padding="18">
 
                         <Border.StrokeShape>
+
                             <RoundRectangle
                                 CornerRadius="15" />
+
                         </Border.StrokeShape>
 
 
@@ -451,7 +537,63 @@
 
 
                             <Label
-                                Text="MONTHLY INCOME"
+                                Text="SPENDABLE CASH"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextSecondary}" />
+
+
+                            <Label
+                                x:Name="SpendableCashLabel"
+                                Text="$0.00"
+                                FontSize="23"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+
+                            <Label
+                                Text="Checking + cash"
+                                FontSize="10"
+                                TextColor="{DynamicResource TextMuted}" />
+
+
+                            <Label
+                                Text="Savings protected"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource SuccessColor}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+
+
+                    <!-- =================================
+                         EXPECTED INCOME
+                         ================================= -->
+
+                    <Border
+                        Grid.Column="2"
+                        BackgroundColor="{DynamicResource CardBackground}"
+                        Stroke="{DynamicResource BorderColor}"
+                        StrokeThickness="1"
+                        Padding="18">
+
+                        <Border.StrokeShape>
+
+                            <RoundRectangle
+                                CornerRadius="15" />
+
+                        </Border.StrokeShape>
+
+
+                        <VerticalStackLayout
+                            Spacing="7">
+
+
+                            <Label
+                                Text="EXPECTED INCOME"
                                 FontSize="10"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource TextSecondary}" />
@@ -466,9 +608,16 @@
 
 
                             <Label
-                                Text="This month"
-                                FontSize="11"
+                                Text="Monthly planning estimate"
+                                FontSize="10"
                                 TextColor="{DynamicResource TextMuted}" />
+
+
+                            <Label
+                                Text="Not current cash"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource WarningColor}" />
 
                         </VerticalStackLayout>
 
@@ -481,15 +630,17 @@
                          ================================= -->
 
                     <Border
-                        Grid.Column="2"
+                        Grid.Column="3"
                         BackgroundColor="{DynamicResource CardBackground}"
                         Stroke="{DynamicResource BorderColor}"
                         StrokeThickness="1"
                         Padding="18">
 
                         <Border.StrokeShape>
+
                             <RoundRectangle
                                 CornerRadius="15" />
+
                         </Border.StrokeShape>
 
 
@@ -498,7 +649,7 @@
 
 
                             <Label
-                                Text="SPENT"
+                                Text="SPENT THIS MONTH"
                                 FontSize="10"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource TextSecondary}" />
@@ -513,55 +664,8 @@
 
 
                             <Label
-                                Text="This month"
-                                FontSize="11"
-                                TextColor="{DynamicResource TextMuted}" />
-
-                        </VerticalStackLayout>
-
-                    </Border>
-
-
-
-                    <!-- =================================
-                         MONEY LEFT
-                         ================================= -->
-
-                    <Border
-                        Grid.Column="3"
-                        BackgroundColor="{DynamicResource CardBackground}"
-                        Stroke="{DynamicResource BorderColor}"
-                        StrokeThickness="1"
-                        Padding="18">
-
-                        <Border.StrokeShape>
-                            <RoundRectangle
-                                CornerRadius="15" />
-                        </Border.StrokeShape>
-
-
-                        <VerticalStackLayout
-                            Spacing="7">
-
-
-                            <Label
-                                Text="MONEY LEFT"
+                                Text="Recorded transactions"
                                 FontSize="10"
-                                FontAttributes="Bold"
-                                TextColor="{DynamicResource TextSecondary}" />
-
-
-                            <Label
-                                x:Name="MoneyLeftLabel"
-                                Text="$0.00"
-                                FontSize="23"
-                                FontAttributes="Bold"
-                                TextColor="{DynamicResource TextPrimary}" />
-
-
-                            <Label
-                                Text="After spending and bills"
-                                FontSize="11"
                                 TextColor="{DynamicResource TextMuted}" />
 
                         </VerticalStackLayout>
@@ -595,8 +699,10 @@
                     Padding="22">
 
                     <Border.StrokeShape>
+
                         <RoundRectangle
                             CornerRadius="18" />
+
                     </Border.StrokeShape>
 
 
@@ -624,8 +730,10 @@
                                 TextColor="{DynamicResource ThemePrimary}">
 
                                 <Label.GestureRecognizers>
+
                                     <TapGestureRecognizer
                                         Tapped="ViewSavingsClicked" />
+
                                 </Label.GestureRecognizers>
 
                             </Label>
@@ -722,8 +830,10 @@
                     Padding="22">
 
                     <Border.StrokeShape>
+
                         <RoundRectangle
                             CornerRadius="18" />
+
                     </Border.StrokeShape>
 
 
@@ -745,6 +855,7 @@
                                     FontAttributes="Bold"
                                     TextColor="{DynamicResource TextSecondary}" />
 
+
                                 <Label
                                     Text="Keep an eye on your spending limits."
                                     FontSize="12"
@@ -762,8 +873,10 @@
                                 VerticalOptions="Center">
 
                                 <Label.GestureRecognizers>
+
                                     <TapGestureRecognizer
                                         Tapped="ViewBudgetClicked" />
+
                                 </Label.GestureRecognizers>
 
                             </Label>
@@ -785,11 +898,6 @@
                             TextColor="{DynamicResource TextSecondary}" />
 
 
-
-                        <!--
-                        Your existing HomePage code-behind
-                        dynamically creates budget rows here.
-                        -->
 
                         <VerticalStackLayout
                             x:Name="BudgetSnapshotContainer"
@@ -814,8 +922,10 @@
                 Padding="22">
 
                 <Border.StrokeShape>
+
                     <RoundRectangle
                         CornerRadius="18" />
+
                 </Border.StrokeShape>
 
 
@@ -855,8 +965,10 @@
                             VerticalOptions="Center">
 
                             <Label.GestureRecognizers>
+
                                 <TapGestureRecognizer
                                     Tapped="ViewBillsClicked" />
+
                             </Label.GestureRecognizers>
 
                         </Label>
@@ -878,11 +990,6 @@
                         TextColor="{DynamicResource TextSecondary}" />
 
 
-
-                    <!--
-                    Your existing HomePage code-behind
-                    dynamically creates upcoming bill rows here.
-                    -->
 
                     <VerticalStackLayout
                         x:Name="UpcomingBillsContainer"
