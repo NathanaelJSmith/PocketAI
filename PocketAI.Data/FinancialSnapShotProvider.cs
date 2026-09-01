@@ -65,7 +65,7 @@ public class FinancialSnapshotProvider
     // ==========================================
 
     public FinancialSnapshot GetSnapshot(
-        double acceptedExtraSavings = 0)
+        double? acceptedExtraSavingsOverride  = null)
     {
         // ======================================
         // LOAD TRANSACTIONS
@@ -127,6 +127,22 @@ public class FinancialSnapshotProvider
                     .GetRecuringExpenses();
 
 
+        // ======================================
+        // ACCEPTED EXTRA SAVINGS
+        // ======================================
+        //
+        // Normally this comes from SQLite.
+        //
+        // The optional override still lets us
+        // create/test a snapshot with a specific
+        // value when needed.
+        // ======================================
+
+        double acceptedExtraSavings =
+            acceptedExtraSavingsOverride
+            ??
+            dataBaseManager
+                .GetAcceptedExtraSavingsForMonth();
 
         // ======================================
         // BUILD ONE TRUSTED SNAPSHOT

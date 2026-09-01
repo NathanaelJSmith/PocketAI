@@ -9,7 +9,6 @@
 
     <Grid>
 
-
         <!-- ==========================================
              MAIN PAGE
              ========================================== -->
@@ -188,7 +187,7 @@
 
 
 
-                    <!-- ACTIVE -->
+                    <!-- ACTIVE GOALS -->
 
                     <Border
                         Grid.Column="3"
@@ -230,7 +229,7 @@
 
 
                 <!-- =================================
-                     CENTRAL SAVINGS PLAN
+                     SAVINGS PLAN
                      ================================= -->
 
                 <Border
@@ -264,7 +263,7 @@
                                 TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
-                                Text="PocketAI protects the minimum needed for your deadlines first. Extra savings are optional."
+                                Text="PocketAI protects required savings first. Optional extra savings only become protected after you accept them."
                                 FontSize="11"
                                 TextColor="{DynamicResource TextSecondary}" />
 
@@ -272,14 +271,16 @@
 
 
 
-                        <!-- VALUES -->
+                        <!-- =================================
+                             MAIN VALUES
+                             ================================= -->
 
                         <Grid
                             ColumnDefinitions="*,*,*"
                             ColumnSpacing="14">
 
 
-                            <!-- REQUIRED -->
+                            <!-- REQUIRED SAVINGS -->
 
                             <Border
                                 Grid.Column="0"
@@ -318,7 +319,7 @@
 
 
 
-                            <!-- OPTIONAL EXTRA -->
+                            <!-- OPTIONAL EXTRA PREVIEW -->
 
                             <Border
                                 Grid.Column="1"
@@ -334,7 +335,7 @@
                                 <VerticalStackLayout Spacing="5">
 
                                     <Label
-                                        Text="OPTIONAL EXTRA SAVINGS"
+                                        Text="OPTIONAL EXTRA PREVIEW"
                                         FontSize="9"
                                         FontAttributes="Bold"
                                         TextColor="{DynamicResource ThemePrimary}" />
@@ -386,7 +387,7 @@
                                         TextColor="{DynamicResource TextPrimary}" />
 
                                     <Label
-                                        Text="Matches Home and Analytics"
+                                        Text="Matches PocketAI's central calculation"
                                         FontSize="10"
                                         TextColor="{DynamicResource SuccessColor}" />
 
@@ -398,7 +399,97 @@
 
 
 
-                        <!-- EXPLANATION -->
+                        <!-- =================================
+                             ACCEPTED EXTRA SAVINGS
+                             ================================= -->
+
+                        <Border
+                            BackgroundColor="{DynamicResource SurfaceBackground}"
+                            Stroke="{DynamicResource BorderColor}"
+                            StrokeThickness="1"
+                            Padding="15">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10" />
+                            </Border.StrokeShape>
+
+
+                            <Grid
+                                ColumnDefinitions="*,Auto"
+                                ColumnSpacing="12">
+
+
+                                <VerticalStackLayout
+                                    Grid.Column="0"
+                                    Spacing="5">
+
+                                    <Label
+                                        Text="ACCEPTED EXTRA SAVINGS THIS MONTH"
+                                        FontSize="9"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextMuted}" />
+
+                                    <Label
+                                        x:Name="AcceptedExtraSavingsLabel"
+                                        Text="$0.00"
+                                        FontSize="21"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource TextPrimary}" />
+
+                                    <Label
+                                        Text="Accepted savings are protected in Safe to Spend. PocketAI does not move the money between accounts."
+                                        FontSize="10"
+                                        TextColor="{DynamicResource TextSecondary}" />
+
+                                </VerticalStackLayout>
+
+
+                                <HorizontalStackLayout
+                                    Grid.Column="1"
+                                    Spacing="8"
+                                    VerticalOptions="Center">
+
+
+                                    <Button
+                                        x:Name="EditAcceptedSavingsButton"
+                                        IsVisible="False"
+                                        Text="Edit"
+                                        Clicked="EditAcceptedSavingsClicked"
+                                        BackgroundColor="{DynamicResource CardBackground}"
+                                        TextColor="{DynamicResource ThemePrimary}"
+                                        BorderColor="{DynamicResource BorderColor}"
+                                        BorderWidth="1"
+                                        FontSize="10"
+                                        FontAttributes="Bold"
+                                        CornerRadius="8"
+                                        Padding="12,7" />
+
+
+                                    <Button
+                                        x:Name="RemoveAcceptedSavingsButton"
+                                        IsVisible="False"
+                                        Text="Remove"
+                                        Clicked="RemoveAcceptedSavingsClicked"
+                                        BackgroundColor="{DynamicResource CardBackground}"
+                                        TextColor="{DynamicResource DangerColor}"
+                                        BorderColor="{DynamicResource DangerColor}"
+                                        BorderWidth="1"
+                                        FontSize="10"
+                                        FontAttributes="Bold"
+                                        CornerRadius="8"
+                                        Padding="12,7" />
+
+                                </HorizontalStackLayout>
+
+                            </Grid>
+
+                        </Border>
+
+
+
+                        <!-- =================================
+                             EXPLANATION
+                             ================================= -->
 
                         <Border
                             BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
@@ -420,9 +511,12 @@
 
 
 
-                        <!-- PREVIEW CONTROLS -->
+                        <!-- =================================
+                             SAVINGS CONTROLS
+                             ================================= -->
 
-                        <HorizontalStackLayout Spacing="8">
+                        <HorizontalStackLayout
+                            Spacing="8">
 
                             <Button
                                 Text="Use PocketAI Estimate"
@@ -439,6 +533,18 @@
                             <Button
                                 Text="Adjust Preview"
                                 Clicked="AdjustSavingsAmountClicked"
+                                BackgroundColor="{DynamicResource SurfaceBackground}"
+                                TextColor="{DynamicResource ThemePrimary}"
+                                BorderColor="{DynamicResource ThemePrimary}"
+                                BorderWidth="1"
+                                FontSize="10"
+                                FontAttributes="Bold"
+                                CornerRadius="8"
+                                Padding="13,7" />
+
+                            <Button
+                                Text="Accept Extra Savings"
+                                Clicked="AcceptExtraSavingsClicked"
                                 BackgroundColor="{DynamicResource ThemePrimary}"
                                 TextColor="{DynamicResource TextOnPrimary}"
                                 FontSize="10"
@@ -450,7 +556,7 @@
 
 
                         <Label
-                            Text="Previewing optional extra savings does not transfer money or reduce Safe to Spend. Acceptance will be added as a separate step."
+                            Text="Previewing does not reduce Safe to Spend. Accepting the amount protects it for the current month."
                             FontSize="10"
                             TextColor="{DynamicResource TextMuted}" />
 
@@ -461,7 +567,7 @@
 
 
                 <!-- =================================
-                     YOUR GOALS
+                     YOUR GOALS HEADER
                      ================================= -->
 
                 <VerticalStackLayout Spacing="4">
@@ -496,6 +602,7 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="16" />
                     </Border.StrokeShape>
+
 
                     <VerticalStackLayout
                         Spacing="10"
@@ -536,7 +643,7 @@
 
 
                 <!-- =================================
-                     GOAL CARDS
+                     SAVINGS GOALS
                      ================================= -->
 
                 <VerticalStackLayout
@@ -561,16 +668,12 @@
                                 <VerticalStackLayout Spacing="16">
 
 
-                                    <!-- =================
-                                         HEADER + STATUS
-                                         ================= -->
+                                    <!-- HEADER -->
 
                                     <Grid
                                         ColumnDefinitions="*,Auto"
                                         ColumnSpacing="15">
 
-
-                                        <!-- LEFT -->
 
                                         <VerticalStackLayout
                                             Grid.Column="0"
@@ -630,7 +733,7 @@
 
 
 
-                                                <!-- SHOWN ON HOME -->
+                                                <!-- HOME -->
 
                                                 <Border
                                                     IsVisible="{Binding IsPrimary}"
@@ -656,7 +759,7 @@
 
 
 
-                                        <!-- STATUS TOP RIGHT -->
+                                        <!-- STATUS -->
 
                                         <Border
                                             Grid.Column="1"
@@ -682,13 +785,14 @@
 
 
 
-                                    <!-- =================
+                                    <!-- =================================
                                          SAVED / PROGRESS
-                                         ================= -->
+                                         ================================= -->
 
                                     <Grid
                                         ColumnDefinitions="*,Auto"
                                         ColumnSpacing="15">
+
 
                                         <VerticalStackLayout
                                             Grid.Column="0"
@@ -742,9 +846,9 @@
 
 
 
-                                    <!-- =================
-                                         DETAILS
-                                         ================= -->
+                                    <!-- =================================
+                                         GOAL DETAILS
+                                         ================================= -->
 
                                     <Grid
                                         ColumnDefinitions="*,*,*"
@@ -815,7 +919,7 @@
 
 
 
-                                        <!-- WEEKLY REQUIREMENT -->
+                                        <!-- WEEKLY -->
 
                                         <Border
                                             Grid.Column="2"
@@ -849,7 +953,7 @@
 
 
 
-                                    <!-- TARGET -->
+                                    <!-- TARGET DATE -->
 
                                     <Label
                                         Text="{Binding DeadlineText}"
@@ -858,9 +962,9 @@
 
 
 
-                                    <!-- ==============================
-                                         OPTIONAL EXTRA RECOMMENDATION
-                                         ============================== -->
+                                    <!-- =================================
+                                         OPTIONAL EXTRA ALLOCATION
+                                         ================================= -->
 
                                     <Border
                                         BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
@@ -952,13 +1056,14 @@
 
 
 
-                                    <!-- =================
+                                    <!-- =================================
                                          ACTIONS
-                                         ================= -->
+                                         ================================= -->
 
                                     <Grid
                                         ColumnDefinitions="*,*,*"
                                         ColumnSpacing="10">
+
 
                                         <Button
                                             Grid.Column="0"
@@ -1022,7 +1127,7 @@
 
 
         <!-- ==========================================
-             MODAL BACKGROUND
+             DARK MODAL BACKGROUND
              ========================================== -->
 
         <Grid
@@ -1071,6 +1176,8 @@
                     Spacing="18">
 
 
+                    <!-- HEADER -->
+
                     <Grid ColumnDefinitions="*,Auto">
 
                         <VerticalStackLayout
@@ -1106,7 +1213,7 @@
 
 
 
-                    <!-- NAME -->
+                    <!-- GOAL NAME -->
 
                     <VerticalStackLayout Spacing="6">
 
@@ -1228,6 +1335,7 @@
                             <RoundRectangle CornerRadius="10" />
                         </Border.StrokeShape>
 
+
                         <Grid
                             ColumnDefinitions="*,Auto"
                             ColumnSpacing="15">
@@ -1248,6 +1356,7 @@
                                     TextColor="{DynamicResource TextSecondary}" />
 
                             </VerticalStackLayout>
+
 
                             <Switch
                                 x:Name="GoalEssentialSwitch"
@@ -1271,6 +1380,7 @@
                         <Border.StrokeShape>
                             <RoundRectangle CornerRadius="10" />
                         </Border.StrokeShape>
+
 
                         <VerticalStackLayout Spacing="5">
 
@@ -1392,6 +1502,7 @@
 
                     </VerticalStackLayout>
 
+
                     <Button
                         Grid.Column="1"
                         Text="✕"
@@ -1402,6 +1513,7 @@
                         Padding="8" />
 
                 </Grid>
+
 
 
                 <VerticalStackLayout Spacing="6">
@@ -1423,6 +1535,7 @@
                 </VerticalStackLayout>
 
 
+
                 <Border
                     BackgroundColor="{DynamicResource SurfaceBackground}"
                     StrokeThickness="0"
@@ -1440,6 +1553,7 @@
                 </Border>
 
 
+
                 <Grid
                     ColumnDefinitions="*,*"
                     ColumnSpacing="10">
@@ -1454,6 +1568,7 @@
                         BorderWidth="1"
                         FontAttributes="Bold"
                         CornerRadius="9" />
+
 
                     <Button
                         Grid.Column="1"
@@ -1566,6 +1681,7 @@
                         <RoundRectangle CornerRadius="9" />
                     </Border.StrokeShape>
 
+
                     <VerticalStackLayout Spacing="4">
 
                         <Label
@@ -1575,7 +1691,7 @@
                             TextColor="{DynamicResource ThemePrimary}" />
 
                         <Label
-                            Text="This does not transfer money, change balances, or reduce Safe to Spend. PocketAI will add a separate acceptance step later."
+                            Text="Previewing does not transfer money, change account balances, or reduce Safe to Spend. Accept the amount separately when you are ready."
                             FontSize="10"
                             TextColor="{DynamicResource TextSecondary}" />
 
@@ -1599,6 +1715,7 @@
                         BorderWidth="1"
                         FontAttributes="Bold"
                         CornerRadius="9" />
+
 
                     <Button
                         Grid.Column="1"

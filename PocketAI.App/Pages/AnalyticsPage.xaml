@@ -141,7 +141,7 @@
                         <VerticalStackLayout Spacing="7">
 
                             <Label
-                                Text="SPENDABLE CASH"
+                                Text="CHECKING TOTAL"
                                 FontSize="10"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource ThemePrimary}" />

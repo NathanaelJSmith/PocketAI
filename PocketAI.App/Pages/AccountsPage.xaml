@@ -34,7 +34,7 @@
                     TextColor="{DynamicResource TextPrimary}" />
 
                 <Label
-                    Text="Keep your balances and monthly income up to date so PocketAI can give you better guidance."
+                    Text="Keep each balance accurate so PocketAI always knows how much money you actually have."
                     FontSize="14"
                     TextColor="{DynamicResource TextSecondary}" />
 
@@ -73,59 +73,56 @@
                         Padding="22">
 
                         <Border.StrokeShape>
-
                             <RoundRectangle
                                 CornerRadius="16" />
-
                         </Border.StrokeShape>
 
 
-                        <Grid
-                            ColumnDefinitions="*,Auto"
-                            RowDefinitions="Auto,Auto,Auto"
-                            RowSpacing="6">
+                        <VerticalStackLayout
+                            Spacing="10">
 
 
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Text="CHECKING"
-                                FontSize="10"
-                                FontAttributes="Bold"
-                                TextColor="{DynamicResource ThemePrimary}" />
-
-
-                            <Border
-                                Grid.RowSpan="2"
-                                Grid.Column="1"
-                                WidthRequest="42"
-                                HeightRequest="42"
-                                BackgroundColor="{DynamicResource ThemePrimaryLight}"
-                                StrokeThickness="0">
-
-                                <Border.StrokeShape>
-
-                                    <RoundRectangle
-                                        CornerRadius="12" />
-
-                                </Border.StrokeShape>
+                            <Grid
+                                ColumnDefinitions="*,Auto">
 
 
                                 <Label
-                                    Text="$"
-                                    FontSize="17"
+                                    Grid.Column="0"
+                                    Text="CHECKING"
+                                    FontSize="10"
                                     FontAttributes="Bold"
                                     TextColor="{DynamicResource ThemePrimary}"
-                                    HorizontalOptions="Center"
                                     VerticalOptions="Center" />
 
-                            </Border>
+
+                                <Border
+                                    Grid.Column="1"
+                                    WidthRequest="42"
+                                    HeightRequest="42"
+                                    BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                                    StrokeThickness="0">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle
+                                            CornerRadius="12" />
+                                    </Border.StrokeShape>
+
+
+                                    <Label
+                                        Text="$"
+                                        FontSize="17"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource ThemePrimary}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                </Border>
+
+                            </Grid>
 
 
                             <Label
                                 x:Name="CheckingBalanceLabel"
-                                Grid.Row="1"
-                                Grid.Column="0"
                                 Text="$0.00"
                                 FontSize="27"
                                 FontAttributes="Bold"
@@ -133,14 +130,22 @@
 
 
                             <Label
-                                Grid.Row="2"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="2"
                                 Text="Available checking balance"
                                 FontSize="11"
                                 TextColor="{DynamicResource TextMuted}" />
 
-                        </Grid>
+
+                            <Button
+                                Text="Edit Checking"
+                                Clicked="EditCheckingClicked"
+                                BackgroundColor="{DynamicResource ThemePrimary}"
+                                TextColor="{DynamicResource TextOnPrimary}"
+                                FontAttributes="Bold"
+                                CornerRadius="9"
+                                Padding="14,9"
+                                HorizontalOptions="Start" />
+
+                        </VerticalStackLayout>
 
                     </Border>
 
@@ -158,59 +163,56 @@
                         Padding="22">
 
                         <Border.StrokeShape>
-
                             <RoundRectangle
                                 CornerRadius="16" />
-
                         </Border.StrokeShape>
 
 
-                        <Grid
-                            ColumnDefinitions="*,Auto"
-                            RowDefinitions="Auto,Auto,Auto"
-                            RowSpacing="6">
+                        <VerticalStackLayout
+                            Spacing="10">
 
 
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Text="SAVINGS"
-                                FontSize="10"
-                                FontAttributes="Bold"
-                                TextColor="{DynamicResource ThemePrimary}" />
-
-
-                            <Border
-                                Grid.RowSpan="2"
-                                Grid.Column="1"
-                                WidthRequest="42"
-                                HeightRequest="42"
-                                BackgroundColor="{DynamicResource ThemePrimaryLight}"
-                                StrokeThickness="0">
-
-                                <Border.StrokeShape>
-
-                                    <RoundRectangle
-                                        CornerRadius="12" />
-
-                                </Border.StrokeShape>
+                            <Grid
+                                ColumnDefinitions="*,Auto">
 
 
                                 <Label
-                                    Text="◎"
-                                    FontSize="17"
+                                    Grid.Column="0"
+                                    Text="SAVINGS"
+                                    FontSize="10"
                                     FontAttributes="Bold"
                                     TextColor="{DynamicResource ThemePrimary}"
-                                    HorizontalOptions="Center"
                                     VerticalOptions="Center" />
 
-                            </Border>
+
+                                <Border
+                                    Grid.Column="1"
+                                    WidthRequest="42"
+                                    HeightRequest="42"
+                                    BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                                    StrokeThickness="0">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle
+                                            CornerRadius="12" />
+                                    </Border.StrokeShape>
+
+
+                                    <Label
+                                        Text="◎"
+                                        FontSize="17"
+                                        FontAttributes="Bold"
+                                        TextColor="{DynamicResource ThemePrimary}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                </Border>
+
+                            </Grid>
 
 
                             <Label
                                 x:Name="SavingsBalanceLabel"
-                                Grid.Row="1"
-                                Grid.Column="0"
                                 Text="$0.00"
                                 FontSize="27"
                                 FontAttributes="Bold"
@@ -218,14 +220,22 @@
 
 
                             <Label
-                                Grid.Row="2"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="2"
-                                Text="Money held in savings"
+                                Text="Protected savings balance"
                                 FontSize="11"
                                 TextColor="{DynamicResource TextMuted}" />
 
-                        </Grid>
+
+                            <Button
+                                Text="Edit Savings"
+                                Clicked="EditSavingsClicked"
+                                BackgroundColor="{DynamicResource ThemePrimary}"
+                                TextColor="{DynamicResource TextOnPrimary}"
+                                FontAttributes="Bold"
+                                CornerRadius="9"
+                                Padding="14,9"
+                                HorizontalOptions="Start" />
+
+                        </VerticalStackLayout>
 
                     </Border>
 
@@ -243,58 +253,55 @@
                         Padding="22">
 
                         <Border.StrokeShape>
-
                             <RoundRectangle
                                 CornerRadius="16" />
-
                         </Border.StrokeShape>
 
 
-                        <Grid
-                            ColumnDefinitions="*,Auto"
-                            RowDefinitions="Auto,Auto,Auto"
-                            RowSpacing="6">
+                        <VerticalStackLayout
+                            Spacing="10">
 
 
-                            <Label
-                                Grid.Row="0"
-                                Grid.Column="0"
-                                Text="CASH"
-                                FontSize="10"
-                                FontAttributes="Bold"
-                                TextColor="{DynamicResource ThemePrimary}" />
-
-
-                            <Border
-                                Grid.RowSpan="2"
-                                Grid.Column="1"
-                                WidthRequest="42"
-                                HeightRequest="42"
-                                BackgroundColor="{DynamicResource ThemePrimaryLight}"
-                                StrokeThickness="0">
-
-                                <Border.StrokeShape>
-
-                                    <RoundRectangle
-                                        CornerRadius="12" />
-
-                                </Border.StrokeShape>
+                            <Grid
+                                ColumnDefinitions="*,Auto">
 
 
                                 <Label
-                                    Text="▤"
-                                    FontSize="17"
+                                    Grid.Column="0"
+                                    Text="CASH"
+                                    FontSize="10"
+                                    FontAttributes="Bold"
                                     TextColor="{DynamicResource ThemePrimary}"
-                                    HorizontalOptions="Center"
                                     VerticalOptions="Center" />
 
-                            </Border>
+
+                                <Border
+                                    Grid.Column="1"
+                                    WidthRequest="42"
+                                    HeightRequest="42"
+                                    BackgroundColor="{DynamicResource ThemePrimaryLight}"
+                                    StrokeThickness="0">
+
+                                    <Border.StrokeShape>
+                                        <RoundRectangle
+                                            CornerRadius="12" />
+                                    </Border.StrokeShape>
+
+
+                                    <Label
+                                        Text="▤"
+                                        FontSize="17"
+                                        TextColor="{DynamicResource ThemePrimary}"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                </Border>
+
+                            </Grid>
 
 
                             <Label
                                 x:Name="CashBalanceLabel"
-                                Grid.Row="1"
-                                Grid.Column="0"
                                 Text="$0.00"
                                 FontSize="27"
                                 FontAttributes="Bold"
@@ -302,14 +309,22 @@
 
 
                             <Label
-                                Grid.Row="2"
-                                Grid.Column="0"
-                                Grid.ColumnSpan="2"
                                 Text="Physical cash available"
                                 FontSize="11"
                                 TextColor="{DynamicResource TextMuted}" />
 
-                        </Grid>
+
+                            <Button
+                                Text="Edit Cash"
+                                Clicked="EditCashClicked"
+                                BackgroundColor="{DynamicResource ThemePrimary}"
+                                TextColor="{DynamicResource TextOnPrimary}"
+                                FontAttributes="Bold"
+                                CornerRadius="9"
+                                Padding="14,9"
+                                HorizontalOptions="Start" />
+
+                        </VerticalStackLayout>
 
                     </Border>
 
@@ -330,19 +345,15 @@
                 Padding="26">
 
                 <Border.StrokeShape>
-
                     <RoundRectangle
                         CornerRadius="18" />
-
                 </Border.StrokeShape>
 
 
                 <Grid
-                    ColumnDefinitions="Auto,*,Auto"
+                    ColumnDefinitions="Auto,*"
                     ColumnSpacing="18">
 
-
-                    <!-- ICON -->
 
                     <Border
                         Grid.Column="0"
@@ -353,10 +364,8 @@
                         VerticalOptions="Center">
 
                         <Border.StrokeShape>
-
                             <RoundRectangle
                                 CornerRadius="15" />
-
                         </Border.StrokeShape>
 
 
@@ -371,8 +380,6 @@
                     </Border>
 
 
-
-                    <!-- TOTAL -->
 
                     <VerticalStackLayout
                         Grid.Column="1"
@@ -399,21 +406,6 @@
 
                     </VerticalStackLayout>
 
-
-
-                    <!-- UPDATE -->
-
-                    <Button
-                        Grid.Column="2"
-                        Text="Update Balances"
-                        Clicked="UpdateBalancesClicked"
-                        BackgroundColor="{DynamicResource ThemePrimary}"
-                        TextColor="{DynamicResource TextOnPrimary}"
-                        FontAttributes="Bold"
-                        CornerRadius="11"
-                        Padding="18,12"
-                        VerticalOptions="Center" />
-
                 </Grid>
 
             </Border>
@@ -431,10 +423,8 @@
                 Padding="26">
 
                 <Border.StrokeShape>
-
                     <RoundRectangle
                         CornerRadius="18" />
-
                 </Border.StrokeShape>
 
 
@@ -442,8 +432,6 @@
                     ColumnDefinitions="Auto,*,Auto"
                     ColumnSpacing="18">
 
-
-                    <!-- ICON -->
 
                     <Border
                         Grid.Column="0"
@@ -454,10 +442,8 @@
                         VerticalOptions="Center">
 
                         <Border.StrokeShape>
-
                             <RoundRectangle
                                 CornerRadius="15" />
-
                         </Border.StrokeShape>
 
 
@@ -472,8 +458,6 @@
                     </Border>
 
 
-
-                    <!-- INCOME -->
 
                     <VerticalStackLayout
                         Grid.Column="1"
@@ -494,7 +478,7 @@
                             TextColor="{DynamicResource TextPrimary}" />
 
                         <Label
-                            Text="Used by PocketAI for budgeting, savings, and Safe to Spend."
+                            Text="Planning estimate only — this is not added to your current cash."
                             FontSize="11"
                             TextColor="{DynamicResource TextMuted}" />
 
@@ -502,11 +486,9 @@
 
 
 
-                    <!-- UPDATE -->
-
                     <Button
                         Grid.Column="2"
-                        Text="Update Income"
+                        Text="Edit Income"
                         Clicked="UpdateIncomeClicked"
                         BackgroundColor="{DynamicResource ThemePrimary}"
                         TextColor="{DynamicResource TextOnPrimary}"
@@ -532,10 +514,8 @@
                 Padding="20">
 
                 <Border.StrokeShape>
-
                     <RoundRectangle
                         CornerRadius="15" />
-
                 </Border.StrokeShape>
 
 
@@ -563,7 +543,7 @@
                             TextColor="{DynamicResource TextPrimary}" />
 
                         <Label
-                            Text="Accurate balances and income help PocketAI determine what you can safely spend while protecting bills, budgets, and savings goals."
+                            Text="Checking and cash determine your current spendable money. Savings stays protected by default. Keeping these balances accurate helps PocketAI calculate Safe to Spend correctly."
                             FontSize="12"
                             LineHeight="1.3"
                             TextColor="{DynamicResource TextSecondary}" />
@@ -575,8 +555,6 @@
             </Border>
 
 
-
-            <!-- BOTTOM SPACING -->
 
             <BoxView
                 HeightRequest="15"

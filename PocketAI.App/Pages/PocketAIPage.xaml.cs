@@ -10,14 +10,17 @@ public partial class PocketAIPage : ContentPage
     // ==========================================
 
     private readonly DataBaseManager dataBaseManager;
+
     private readonly AnalyticsService analyticsService;
+
+    private readonly FinancialSnapshotProvider financialSnapshotProvider;
 
 
     // ==========================================
     // CURRENT FINANCIAL DATA
     // ==========================================
 
-    private FinancialSummary? currentSummary;
+    private FinancialSnapshot? currentSnapshot;
 
     private double currentSafeToSpend;
 
@@ -84,8 +87,8 @@ public partial class PocketAIPage : ContentPage
     private readonly List<Label> pocketAIMessageLabels =
         new List<Label>();
 
-private readonly List<Label> pocketAINameLabels =
-    new List<Label>();
+    private readonly List<Label> pocketAINameLabels =
+        new List<Label>();
 
 
 
@@ -112,6 +115,11 @@ private readonly List<Label> pocketAINameLabels =
 
         analyticsService =
             new AnalyticsService();
+
+
+        financialSnapshotProvider =
+            new FinancialSnapshotProvider(
+                dataBaseManager);
 
 
         // Make sure all database tables exist.
@@ -147,250 +155,84 @@ private readonly List<Label> pocketAINameLabels =
     private void LoadFinancialSnapshot()
     {
         // ======================================
-        // EXPENSES
+        // LOAD PRESENTATION DATA
+        // ======================================
+        //
+        // PocketAI still needs these lists for
+        // questions about:
+        //
+        // - spending categories
+        // - budgets
+        // - savings goal details
+        // - recurring bills
+        // - historical comparisons
+        //
+        // They are NOT used to independently
+        // calculate PocketAI's financial state.
         // ======================================
 
-        List<Expense> expenses =
+        currentExpenses =
             dataBaseManager
                 .GetAllExpenses();
 
 
-        currentExpenses =
-            expenses;
-
-
-
-        // ======================================
-        // INCOME
-        // ======================================
-
-        Income? income =
-            dataBaseManager
-                .GetIncome();
-
-
-
-        // ======================================
-        // ACCOUNT BALANCES
-        // ======================================
-
-        AccountBalance? accountBalance =
-            dataBaseManager
-                .GetAccountBalance();
-
-
-
-        // ======================================
-        // SAVINGS GOALS
-        // ======================================
-
-        SavingsGoal? primarySavingsGoal =
-            dataBaseManager
-                .GetSavingsGoal();
-
-
-        List<SavingsGoal> savingsGoals =
+        currentSavingsGoals =
             dataBaseManager
                 .GetSavingsGoals();
 
 
-        currentSavingsGoals =
-            savingsGoals;
-
-
-
-        // ======================================
-        // BUDGET LIMITS
-        // ======================================
-
-        List<BudgetLimit> budgetLimits =
+        currentBudgetLimits =
             dataBaseManager
                 .GetBudgetLimits();
 
 
-        currentBudgetLimits =
-            budgetLimits;
-
-
-
-        // ======================================
-        // RECURRING BILLS
-        // ======================================
-
-        List<RecurringExpenses> recurringExpenses =
+        currentRecurringExpenses =
             dataBaseManager
                 .GetRecuringExpenses();
 
 
-        currentRecurringExpenses =
-            recurringExpenses;
+
+        // ======================================
+        // CENTRAL FINANCIAL SNAPSHOT
+        // ======================================
+
+        FinancialSnapshot snapshot =
+            financialSnapshotProvider
+                .GetSnapshot();
+
+
+        currentSnapshot =
+            snapshot;
 
 
 
         // ======================================
-        // BUILD FINANCIAL SUMMARY
+        // EXISTING ASSISTANT COMPATIBILITY VALUES
         // ======================================
-
-        FinancialSummary summary =
-            analyticsService
-                .BuildFinancialSummary(
-                    expenses,
-                    income,
-                    accountBalance,
-                    primarySavingsGoal,
-                    budgetLimits,
-                    recurringExpenses);
-
-
-        currentSummary =
-            summary;
-
-
-
+        //
+        // The rest of PocketAIPage already uses
+        // these variables in many places.
+        //
+        // We keep them for now, but they simply
+        // point to the CENTRAL snapshot values.
+        //
+        // No financial formulas happen here.
         // ======================================
-        // DATE INFORMATION
-        // ======================================
-
-        DateTime today =
-            DateTime.Today;
-
-
-        int daysInMonth =
-            DateTime.DaysInMonth(
-                today.Year,
-                today.Month);
-
-
-        int daysLeftInMonth =
-            daysInMonth -
-            today.Day +
-            1;
-
-
-
-        // ======================================
-        // SAVINGS NEEDED THIS MONTH
-        // ======================================
-
-        double savingsNeededThisMonth =
-            0;
-
-
-        foreach (SavingsGoal goal
-                 in savingsGoals)
-        {
-            double amountRemaining =
-                Math.Max(
-                    goal.TargetAmount -
-                    goal.CurrentAmount,
-                    0);
-
-
-            // Completed goals no longer
-            // require additional savings.
-            if (amountRemaining <= 0)
-            {
-                continue;
-            }
-
-
-            double daysUntilDeadline =
-                (
-                    goal.DeadLine.Date -
-                    today.Date
-                ).TotalDays;
-
-
-            double goalSavingsNeeded =
-                analyticsService
-                    .GetSavingsNeededThisMonth(
-                        amountRemaining,
-                        daysUntilDeadline,
-                        daysLeftInMonth);
-
-
-            savingsNeededThisMonth +=
-                goalSavingsNeeded;
-        }
-
-
-        currentSavingsNeededThisMonth =
-            savingsNeededThisMonth;
-
-
-
-        // ======================================
-        // SAFE TO SPEND
-        // ======================================
-
-        double safeToSpend =
-            analyticsService
-                .GetSafeToSpend(
-                    summary.MoneyLeft,
-                    savingsNeededThisMonth);
-
 
         currentSafeToSpend =
-            safeToSpend;
-
-
-
-        // ======================================
-        // DAILY SAFE TO SPEND
-        // ======================================
-
-        double dailySafeToSpend =
-            analyticsService
-                .GetDailySafeToSpend(
-                    safeToSpend,
-                    daysLeftInMonth);
+            snapshot.SafeToSpendTotal;
 
 
         currentDailySafeToSpend =
-            dailySafeToSpend;
+            snapshot.SafeToSpendToday;
 
 
-
-        // ======================================
-        // END-OF-MONTH PROJECTION
-        // ======================================
-
-        double averageDailySpending =
-            analyticsService
-                .GetAverageDailySpending(
-                    summary.CurrentMonthSpent,
-                    today.Day);
-
-
-        double projectedAdditionalSpending =
-            analyticsService
-                .GetProjectedAdditionalSpending(
-                    averageDailySpending,
-                    daysLeftInMonth);
-
-
-        double projectedEndOfMonthMoney =
-            analyticsService
-                .GetProjectedEndOfMonthMoney(
-                    summary.MoneyLeft,
-                    projectedAdditionalSpending);
+        currentSavingsNeededThisMonth =
+            snapshot.RequiredSavingsThisMonth;
 
 
         currentProjectedEndOfMonthMoney =
-            projectedEndOfMonthMoney;
-
-
-
-        // ======================================
-        // FINANCIAL HEALTH
-        // ======================================
-
-        int financialHealthScore =
-            analyticsService
-                .GetFinancialHealthScore(
-                    summary,
-                    projectedEndOfMonthMoney,
-                    safeToSpend);
+            snapshot.ProjectedMonthEndSpendableCash;
 
 
 
@@ -399,35 +241,95 @@ private readonly List<Label> pocketAINameLabels =
         // ======================================
 
         SnapshotSafeToSpendLabel.Text =
-            safeToSpend
+            snapshot.SafeToSpendTotal
                 .ToString("C");
 
 
+        // IMPORTANT:
+        // This is REAL spendable money currently
+        // in Checking + Cash.
+        //
+        // We will rename the visible XAML heading
+        // from "Money Left" to "Spendable Cash"
+        // after this builds.
         SnapshotMoneyLeftLabel.Text =
-            summary.MoneyLeft
+            snapshot.CurrentSpendableCash
                 .ToString("C");
 
 
         SnapshotSpentLabel.Text =
-            summary.CurrentMonthSpent
+            snapshot.CurrentMonthSpent
                 .ToString("C");
 
 
-        SnapshotHealthLabel.Text =
-            $"{financialHealthScore} / 100";
+
+        // ======================================
+        // FINANCIAL HEALTH
+        // ======================================
+
+        if (snapshot.FinancialHealthScore.HasValue)
+        {
+            int financialHealthScore =
+                snapshot.FinancialHealthScore.Value;
+
+
+            SnapshotHealthLabel.Text =
+                $"{financialHealthScore} / 100";
+
+
+            if (financialHealthScore >= 80)
+            {
+                SnapshotHealthLabel.SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
+            }
+
+            else if (financialHealthScore >= 60)
+            {
+                SnapshotHealthLabel.SetDynamicResource(
+                    Label.TextColorProperty,
+                    "WarningColor");
+            }
+
+            else
+            {
+                SnapshotHealthLabel.SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+            }
+        }
+
+        else
+        {
+            SnapshotHealthLabel.Text =
+                "Not enough data";
+
+
+            SnapshotHealthLabel.SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
+        }
 
 
 
         // ======================================
         // SAFE TO SPEND COLOR
         // ======================================
+        //
+        // SafeToSpendTotal itself never needs to
+        // become negative anymore.
+        //
+        // A real shortage is represented separately
+        // by ObligationShortfall.
+        // ======================================
 
-        if (safeToSpend < 0)
+        if (snapshot.ObligationShortfall > 0)
         {
             SnapshotSafeToSpendLabel.SetDynamicResource(
                 Label.TextColorProperty,
                 "DangerColor");
         }
+
         else
         {
             SnapshotSafeToSpendLabel.SetDynamicResource(
@@ -438,48 +340,30 @@ private readonly List<Label> pocketAINameLabels =
 
 
         // ======================================
-        // MONEY LEFT COLOR
+        // SPENDABLE CASH COLOR
         // ======================================
 
-        if (summary.MoneyLeft < 0)
+        if (snapshot.CurrentSpendableCash <= 0)
         {
             SnapshotMoneyLeftLabel.SetDynamicResource(
                 Label.TextColorProperty,
                 "DangerColor");
         }
+
         else
         {
             SnapshotMoneyLeftLabel.SetDynamicResource(
                 Label.TextColorProperty,
                 "TextPrimary");
-        }
-
-
-        // ======================================
-        // HEALTH SCORE COLOR
-        // ======================================
-
-        if (financialHealthScore >= 80)
-        {
-            SnapshotHealthLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "SuccessColor");
-        }
-        else if (financialHealthScore >= 60)
-        {
-            SnapshotHealthLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "WarningColor");
-        }
-        else
-        {
-            SnapshotHealthLabel.SetDynamicResource(
-                Label.TextColorProperty,
-                "DangerColor");
         }
     }
 
 
+
+    // ==========================================
+    // QUICK QUESTION:
+    // CAN I AFFORD TO SPEND TODAY?
+    // ==========================================
 
     // ==========================================
     // QUICK QUESTION:
@@ -497,17 +381,14 @@ private readonly List<Label> pocketAINameLabels =
         }
 
 
-
         // ======================================
-        // NO FINANCIAL SUMMARY
+        // NO SNAPSHOT
         // ======================================
 
-        if (currentSummary == null)
+        if (currentSnapshot == null)
         {
             ShowAssistantResponse(
-                "I don't have enough financial information yet. " +
-                "Add your income, expenses, bills, and savings goals " +
-                "so I can analyze your spending.");
+                "I don't have enough financial information yet to analyze your spending.");
 
             return;
         }
@@ -515,32 +396,16 @@ private readonly List<Label> pocketAINameLabels =
 
 
         // ======================================
-        // NO INCOME
+        // KNOWN OBLIGATION SHORTFALL
         // ======================================
 
-        if (currentSummary.MonthlyIncome <= 0)
-        {
-            ShowAssistantResponse(
-                "I can't accurately tell you how much is safe to spend yet " +
-                "because you haven't entered monthly income. " +
-                "Add your income in Accounts first.");
-
-            return;
-        }
-
-
-
-        // ======================================
-        // NEGATIVE SAFE TO SPEND
-        // ======================================
-
-        if (currentSafeToSpend < 0)
+        if (currentSnapshot.ObligationShortfall > 0)
         {
             ShowAssistantResponse(
                 $"I would avoid extra spending right now. " +
-                $"Your current plan is {Math.Abs(currentSafeToSpend):C} short " +
-                $"after accounting for your spending, recurring bills, " +
-                $"and savings goals.");
+                $"Your recorded spendable cash is currently " +
+                $"{currentSnapshot.ObligationShortfall:C} short of your " +
+                $"known upcoming bills, required savings, and other accepted commitments.");
 
             return;
         }
@@ -548,18 +413,34 @@ private readonly List<Label> pocketAINameLabels =
 
 
         // ======================================
-        // NO DISCRETIONARY MONEY
+        // NO SAFE DISCRETIONARY MONEY
         // ======================================
 
-        if (currentSafeToSpend == 0)
+        if (currentSafeToSpend <= 0)
         {
             ShowAssistantResponse(
-                "I would avoid discretionary spending today. " +
-                "Your current income is already fully committed to " +
-                "spending, bills, and savings goals.");
+                $"I wouldn't recommend discretionary spending right now. " +
+                $"Your current Safe to Spend is {currentSafeToSpend:C} " +
+                $"after protecting known obligations and your safety buffer.");
 
             return;
         }
+
+
+
+        // ======================================
+        // LOW CONFIDENCE
+        // ======================================
+
+        string confidenceNote =
+            string.Equals(
+                currentSnapshot.DataConfidence,
+                "Low",
+                StringComparison.OrdinalIgnoreCase)
+
+                ? " This is an estimate based on the financial information entered so far, so keep your account balances and transactions updated."
+
+                : "";
 
 
 
@@ -568,11 +449,12 @@ private readonly List<Label> pocketAINameLabels =
         // ======================================
 
         ShowAssistantResponse(
-            $"Yes. Based on your current financial plan, about " +
-            $"{currentDailySafeToSpend:C} is safe to spend today. " +
-            $"You currently have {currentSafeToSpend:C} available " +
-            $"for the rest of the month after accounting for your " +
-            $"spending, recurring bills, and savings goals.");
+            $"Based on your current financial information, about " +
+            $"{currentDailySafeToSpend:C} is Safe to Spend today. " +
+            $"You currently have {currentSafeToSpend:C} Safe to Spend " +
+            $"for the rest of the month after protecting upcoming bills, " +
+            $"required savings, accepted extra savings, and your safety buffer." +
+            confidenceNote);
     }
 
 
@@ -974,7 +856,22 @@ private readonly List<Label> pocketAINameLabels =
         // NO SUMMARY
         // ======================================
 
-        if (currentSummary == null)
+        if (currentSnapshot == null)
+        {
+            ShowAssistantResponse(
+                "I don't have enough financial information yet " +
+                "to determine what you should focus on.");
+
+            return;
+        }
+
+
+
+        // ======================================
+        // NO FINANCIAL SNAPSHOT
+        // ======================================
+
+        if (currentSnapshot == null)
         {
             ShowAssistantResponse(
                 "I don't have enough financial information yet " +
@@ -987,15 +884,17 @@ private readonly List<Label> pocketAINameLabels =
 
         // ======================================
         // PRIORITY 1:
-        // NO INCOME
+        // KNOWN OBLIGATION SHORTFALL
         // ======================================
 
-        if (currentSummary.MonthlyIncome <= 0)
+        if (currentSnapshot.ObligationShortfall > 0)
         {
             ShowAssistantResponse(
-                "Your first priority should be entering your monthly income. " +
-                "Without income information, I can't accurately calculate " +
-                "your Safe to Spend amount, cash flow, or financial health.");
+                $"Your first priority should be covering your known obligations. " +
+                $"Your current spendable cash is " +
+                $"{currentSnapshot.ObligationShortfall:C} short of your " +
+                $"upcoming bills, required savings, and accepted commitments. " +
+                $"I would avoid unnecessary spending until that gap is covered.");
 
             return;
         }
@@ -1004,22 +903,15 @@ private readonly List<Label> pocketAINameLabels =
 
         // ======================================
         // PRIORITY 2:
-        // NEGATIVE SAFE TO SPEND
+        // MISSING EXPECTED INCOME
         // ======================================
 
-        if (currentSafeToSpend < 0)
+        if (currentSnapshot.ExpectedMonthlyIncome <= 0)
         {
-            double shortage =
-                Math.Abs(
-                    currentSafeToSpend);
-
-
             ShowAssistantResponse(
-                $"Your biggest priority right now should be reducing " +
-                $"spending or adjusting your financial plan. " +
-                $"You're currently {shortage:C} short after accounting " +
-                $"for your expenses, recurring bills, and savings goals. " +
-                $"I would avoid unnecessary spending until that gap is reduced.");
+                "Nothing shows a known cash shortfall right now, " +
+                "but I would enter your expected monthly income next. " +
+                "That will improve PocketAI's monthly planning and financial analysis.");
 
             return;
         }
@@ -3022,13 +2914,26 @@ private readonly List<Label> pocketAINameLabels =
         // CHECK FINANCIAL INFORMATION
         // ======================================
 
-        if (currentSummary == null ||
-            currentSummary.MonthlyIncome <= 0)
+        if (currentSnapshot == null)
         {
             ShowAssistantResponse(
-                "I need your monthly income and financial information " +
-                "before I can accurately judge whether that purchase " +
-                "fits your budget.");
+                "I need more financial information before I can judge whether that purchase fits your budget.");
+
+            return;
+        }
+
+
+
+        // ======================================
+        // KNOWN OBLIGATION SHORTFALL
+        // ======================================
+
+        if (currentSnapshot.ObligationShortfall > 0)
+        {
+            ShowAssistantResponse(
+                $"I wouldn't recommend the {purchaseAmount:C} purchase right now. " +
+                $"Your recorded spendable cash is already " +
+                $"{currentSnapshot.ObligationShortfall:C} short of your known obligations.");
 
             return;
         }

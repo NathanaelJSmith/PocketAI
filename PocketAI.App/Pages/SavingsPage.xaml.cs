@@ -388,6 +388,22 @@ public partial class SavingsPage : ContentPage
             extraSavingsForAllocation
                 .ToString("C");
 
+        AcceptedExtraSavingsLabel.Text =
+            snapshot
+                .AcceptedExtraSavings
+                .ToString("C");
+
+
+        bool hasAcceptedExtraSavings =
+            snapshot.AcceptedExtraSavings > 0;
+
+
+        EditAcceptedSavingsButton.IsVisible =
+            hasAcceptedExtraSavings;
+
+
+        RemoveAcceptedSavingsButton.IsVisible =
+            hasAcceptedExtraSavings;
 
 
         SavingsSafeToSpendLabel.Text =
@@ -1355,7 +1371,272 @@ public partial class SavingsPage : ContentPage
         LoadSavingsGoals();
     }
 
+    // ==========================================
+// ACCEPT OPTIONAL EXTRA SAVINGS
+// ==========================================
 
+private async void AcceptExtraSavingsClicked(
+    object? sender,
+    EventArgs e)
+{
+    FinancialSnapshot snapshot =
+        currentSnapshot
+        ??
+        financialSnapshotProvider
+            .GetSnapshot();
+
+
+    double amountToAccept =
+        extraSavingsForAllocation;
+
+
+    // ======================================
+    // NOTHING TO ACCEPT
+    // ======================================
+
+    if (amountToAccept <= 0)
+    {
+        await DisplayAlertAsync(
+            "No Extra Savings",
+            "Choose an optional extra savings amount greater than $0 first.",
+            "OK");
+
+
+        return;
+    }
+
+
+    // ======================================
+    // MAKE SURE THE USER CAN STILL AFFORD IT
+    // ======================================
+
+    if (amountToAccept >
+        snapshot.SafeToSpendTotal)
+    {
+        await DisplayAlertAsync(
+            "Amount Exceeds Safe to Spend",
+            $"You currently have {snapshot.SafeToSpendTotal:C} available as Safe to Spend. " +
+            "Choose a smaller optional savings amount.",
+            "OK");
+
+
+        return;
+    }
+
+
+    double newAcceptedTotal =
+        snapshot.AcceptedExtraSavings
+        +
+        amountToAccept;
+
+
+    double safeAfterAcceptance =
+        Math.Max(
+            snapshot.SafeToSpendTotal
+            -
+            amountToAccept,
+            0);
+
+
+    // ======================================
+    // CONFIRM
+    // ======================================
+
+    bool confirmed =
+        await DisplayAlertAsync(
+            "Accept Extra Savings",
+            $"Protect an additional {amountToAccept:C} for savings this month?\n\n" +
+            $"Accepted extra savings: {snapshot.AcceptedExtraSavings:C} → {newAcceptedTotal:C}\n" +
+            $"Safe to Spend: {snapshot.SafeToSpendTotal:C} → {safeAfterAcceptance:C}\n\n" +
+            "PocketAI will reserve this money in its calculations, but it will not move money between your accounts.",
+            "Accept",
+            "Cancel");
+
+
+    if (!confirmed)
+    {
+        return;
+    }
+
+
+    // ======================================
+    // SAVE MONTHLY COMMITMENT
+    // ======================================
+
+    dataBaseManager
+        .SaveAcceptedExtraSavingsForMonth(
+            newAcceptedTotal);
+
+
+    // The custom preview has now been accepted.
+    userExtraSavingsPreviewOverride =
+        null;
+
+
+    LoadSavingsGoals();
+}
+
+
+
+// ==========================================
+// EDIT ACCEPTED EXTRA SAVINGS
+// ==========================================
+
+private async void EditAcceptedSavingsClicked(
+    object? sender,
+    EventArgs e)
+{
+    FinancialSnapshot snapshot =
+        currentSnapshot
+        ??
+        financialSnapshotProvider
+            .GetSnapshot();
+
+
+    double currentAccepted =
+        snapshot.AcceptedExtraSavings;
+
+
+    string? input =
+        await DisplayPromptAsync(
+            title:
+                "Edit Accepted Savings",
+
+            message:
+                "Enter the total optional extra savings you want protected this month:",
+
+            accept:
+                "Save",
+
+            cancel:
+                "Cancel",
+
+            keyboard:
+                Keyboard.Numeric,
+
+            initialValue:
+                currentAccepted
+                    .ToString("0.00"));
+
+
+    if (input == null)
+    {
+        return;
+    }
+
+
+    if (!double.TryParse(
+            input,
+            out double newAccepted)
+        ||
+        newAccepted < 0)
+    {
+        await DisplayAlertAsync(
+            "Invalid Amount",
+            "Enter a valid accepted savings amount.",
+            "OK");
+
+
+        return;
+    }
+
+
+    // ======================================
+    // HOW MUCH MORE IS BEING ADDED?
+    // ======================================
+
+    double increase =
+        Math.Max(
+            newAccepted
+            -
+            currentAccepted,
+            0);
+
+
+    // Reducing the commitment is always safe.
+    //
+    // Increasing it requires enough current
+    // Safe to Spend to cover the difference.
+    if (increase >
+        snapshot.SafeToSpendTotal)
+    {
+        double maximumAccepted =
+            currentAccepted
+            +
+            snapshot.SafeToSpendTotal;
+
+
+        await DisplayAlertAsync(
+            "Amount Too High",
+            $"Based on your current Safe to Spend, the most you can protect right now is {maximumAccepted:C}.",
+            "OK");
+
+
+        return;
+    }
+
+
+    dataBaseManager
+        .SaveAcceptedExtraSavingsForMonth(
+            newAccepted);
+
+
+    userExtraSavingsPreviewOverride =
+        null;
+
+
+    LoadSavingsGoals();
+}
+
+
+
+    // ==========================================
+    // REMOVE ACCEPTED EXTRA SAVINGS
+    // ==========================================
+
+    private async void RemoveAcceptedSavingsClicked(
+        object? sender,
+        EventArgs e)
+    {
+        FinancialSnapshot snapshot =
+            currentSnapshot
+            ??
+            financialSnapshotProvider
+                .GetSnapshot();
+
+
+        if (snapshot.AcceptedExtraSavings <= 0)
+        {
+            return;
+        }
+
+
+        bool confirmed =
+            await DisplayAlertAsync(
+                "Remove Accepted Savings",
+                $"Stop protecting {snapshot.AcceptedExtraSavings:C} of optional extra savings for this month?\n\n" +
+                "Required savings will remain protected.",
+                "Remove",
+                "Cancel");
+
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+
+        dataBaseManager
+            .SaveAcceptedExtraSavingsForMonth(
+                0);
+
+
+        userExtraSavingsPreviewOverride =
+            null;
+
+
+        LoadSavingsGoals();
+    }
 
     // ==========================================
     // CANCEL MODAL

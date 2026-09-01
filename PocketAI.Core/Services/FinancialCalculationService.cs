@@ -141,7 +141,48 @@ public class FinancialCalculationService
                             expense.Amount,
                             0));
 
+        // ======================================
+        // ACCOUNT-LINKED SPENDING THIS MONTH
+        // ======================================
+        //
+        // Expenses paid from Checking or Cash
+        // already reduced the user's CURRENT
+        // account balances.
+        //
+        // We track those expenses separately so
+        // PocketAI can reconstruct the amount of
+        // spendable cash that existed before the
+        // current month's tracked spending.
+        //
+        // This keeps the safety buffer stable as
+        // the user spends money.
+        //
+        // IMPORTANT:
+        //
+        // Older transactions with no Paid From
+        // account are intentionally ignored here.
+        // They did not reduce an account balance,
+        // so adding them back would inflate cash.
+        // ======================================
 
+        double accountLinkedCurrentMonthSpent =
+            currentMonthExpenses
+                .Where(
+                    expense =>
+                        string.Equals(
+                            expense.PaidFromAccount,
+                            "Checking",
+                            StringComparison.OrdinalIgnoreCase)
+                        ||
+                        string.Equals(
+                            expense.PaidFromAccount,
+                            "Cash",
+                            StringComparison.OrdinalIgnoreCase))
+                .Sum(
+                    expense =>
+                        Math.Max(
+                            expense.Amount,
+                            0));
 
         // ======================================
         // CURRENT ACCOUNT BALANCES
@@ -310,19 +351,45 @@ public class FinancialCalculationService
         // MONTHLY PLANNING REMAINDER
         // ======================================
         //
-        // Expected income is useful for planning,
-        // but this number is NOT Safe to Spend.
+        // This answers:
         //
-        // This replaces the misleading meaning
-        // previously associated with MoneyLeft.
+        // "Based on what I expect to earn this
+        // month, how much room is left in my
+        // monthly financial plan?"
+        //
+        // IMPORTANT:
+        //
+        // Expected income is PLANNING information.
+        //
+        // It does NOT get added to current
+        // Checking or Cash and therefore does
+        // NOT directly increase Safe to Spend.
+        //
+        // We subtract:
+        //
+        // - money already spent this month
+        // - bills still expected this month
+        // - required savings
+        // - optional savings already accepted
+        //
         // ======================================
+
+        double planningAcceptedExtraSavings =
+            Math.Max(
+                acceptedExtraSavings,
+                0);
+
 
         double monthlyPlanRemaining =
             expectedMonthlyIncome
             -
             currentMonthSpent
             -
-            monthlyRecurringExpenses;
+            upcomingBills
+            -
+            requiredSavingsThisMonth
+            -
+            planningAcceptedExtraSavings;
 
 
 
@@ -366,9 +433,7 @@ public class FinancialCalculationService
         // ======================================
 
         acceptedExtraSavings =
-            Math.Max(
-                acceptedExtraSavings,
-                0);
+            planningAcceptedExtraSavings;
 
 
 
@@ -395,9 +460,7 @@ public class FinancialCalculationService
 
         double obligationShortfall =
             Math.Max(
-                knownObligations
-                -
-                currentSpendableCash,
+                -monthlyPlanRemaining,
                 0);
 
 
@@ -414,29 +477,51 @@ public class FinancialCalculationService
 
 
         // ======================================
-        // SAFETY BUFFER
+        // SAFETY BUFFER BASIS
         // ======================================
         //
-        // PocketAI becomes slightly more
-        // conservative when financial data
-        // is incomplete.
+        // The buffer should stay stable when the
+        // user accepts optional extra savings.
         //
-        // LOW confidence:
-        // 15%
+        // Accepted extra savings is a USER CHOICE.
+        // It should reduce Safe to Spend dollar
+        // for dollar.
         //
-        // MEDIUM:
-        // 12%
+        // Therefore:
         //
-        // HIGH:
-        // 10%
+        // Bills + Required Savings
+        // affect the basis used to establish the
+        // safety cushion.
         //
-        // The percentage applies only to money
-        // remaining AFTER known obligations.
+        // Accepted Extra Savings does NOT shrink
+        // that cushion.
+        // ======================================
+
+        double bufferProtectedObligations =
+            upcomingBills
+            +
+            requiredSavingsThisMonth;
+
+
+
+        double safetyBufferBasis =
+            Math.Max(
+                currentSpendableCash
+                +
+                accountLinkedCurrentMonthSpent
+                -
+                bufferProtectedObligations,
+                0);
+
+
+
+        // ======================================
+        // SAFETY BUFFER
         // ======================================
 
         double safetyBuffer =
             CalculateSafetyBuffer(
-                availableBeforeBuffer,
+                safetyBufferBasis,
                 dataConfidence);
 
 
@@ -447,9 +532,7 @@ public class FinancialCalculationService
 
         double safeToSpendTotal =
             Math.Max(
-                availableBeforeBuffer
-                -
-                safetyBuffer,
+                monthlyPlanRemaining,
                 0);
 
 
@@ -559,6 +642,10 @@ public class FinancialCalculationService
             futureDays;
 
 
+        double projectedMonthlyPlanRemaining =
+            monthlyPlanRemaining
+            -
+            projectedAdditionalSpending;
 
         // ======================================
         // PROJECTED MONTH-END SPENDABLE CASH
@@ -612,6 +699,7 @@ public class FinancialCalculationService
         double pocketAiRecommendedExtraSavings =
             CalculateRecommendedExtraSavings(
                 safeToSpendTotal,
+                projectedMonthlyPlanRemaining,
                 activeSavingsGoals.Count,
                 dataConfidence);
 
@@ -1218,10 +1306,10 @@ public class FinancialCalculationService
     // ==========================================
 
     private double CalculateSafetyBuffer(
-        double availableBeforeBuffer,
+        double safeteyBufferBasis,
         string dataConfidence)
     {
-        if (availableBeforeBuffer <= 0)
+        if (safeteyBufferBasis <= 0)
         {
             return 0;
         }
@@ -1259,7 +1347,7 @@ public class FinancialCalculationService
 
 
         return
-            availableBeforeBuffer
+            safeteyBufferBasis
             *
             percentage;
     }
@@ -1272,20 +1360,23 @@ public class FinancialCalculationService
 
     private double CalculateRecommendedExtraSavings(
         double safeToSpendTotal,
+        double projectedMonthlyPlanRemaining,
         int activeSavingsGoalCount,
         string dataConfidence)
     {
-        if (safeToSpendTotal <= 0 ||
-            activeSavingsGoalCount <= 0)
+        //Nothing Availaibe
+        if (safeToSpendTotal <= 0 || activeSavingsGoalCount <= 0)
         {
             return 0;
         }
 
+        //Monthly income plan connot support
+        if(projectedMonthlyPlanRemaining <= 0)
+        {
+            return 0;
+        }
 
-
-        // PocketAI should NOT confidently
-        // recommend extra savings when it has
-        // almost no spending history.
+        //Low Confidence
         if (dataConfidence.Equals(
                 "Low",
                 StringComparison.OrdinalIgnoreCase))
@@ -1293,33 +1384,26 @@ public class FinancialCalculationService
             return 0;
         }
 
-
-
-        double percentage;
-
-
+        //Recommended percentage
+        double percantage;
 
         if (dataConfidence.Equals(
-                "High",
-                StringComparison.OrdinalIgnoreCase))
+            "High",
+            StringComparison.OrdinalIgnoreCase))
         {
-            percentage =
-                0.30;
+            percantage = 0.30;
         }
-
-
         else
         {
-            percentage =
-                0.20;
+            percantage = 0.20;
         }
+        
+        //current cahs recommendation
+        double recommendationFromSafeCash = safeToSpendTotal * percantage;
 
+        double recommendationFromIncomePlan = projectedMonthlyPlanRemaining * percantage;
 
-
-        return
-            safeToSpendTotal
-            *
-            percentage;
+        return Math.Min(recommendationFromSafeCash, recommendationFromIncomePlan);
     }
 
 

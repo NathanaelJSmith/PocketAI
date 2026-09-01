@@ -235,7 +235,7 @@
 
 
 
-                        <!-- MONEY LEFT -->
+                        <!-- SPENDABLE CASH -->
 
                         <Border
                             Grid.Column="1"
@@ -254,7 +254,7 @@
                                 Spacing="5">
 
                                 <Label
-                                    Text="MONEY LEFT"
+                                    Text="SPENDABLE CASH"
                                     FontSize="9"
                                     FontAttributes="Bold"
                                     TextColor="{DynamicResource ThemePrimary}" />
@@ -265,6 +265,11 @@
                                     FontSize="21"
                                     FontAttributes="Bold"
                                     TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Checking + cash"
+                                    FontSize="9"
+                                    TextColor="{DynamicResource TextMuted}" />
 
                             </VerticalStackLayout>
 

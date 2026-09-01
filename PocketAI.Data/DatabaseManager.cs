@@ -98,6 +98,12 @@ public class DataBaseManager
             IsActive INTEGER NOT NULL
             );";
 
+        string createAcceptedExtraSavingsTable = @"
+        CREATE TABLE IF NOT EXISTS AcceptedExtraSavings (
+            MonthKey TEXT PRIMARY KEY,
+            Amount REAL NOT NULL
+            );";
+
         using SqliteCommand command = new SqliteCommand(createExpenseTable, connection);
         command.ExecuteNonQuery();
         EnsureExpenseColumns(connection);
@@ -123,6 +129,9 @@ public class DataBaseManager
 
         using SqliteCommand recurringExpensesCommand = new SqliteCommand(createRecurringExpensesTable, connection);
         recurringExpensesCommand.ExecuteNonQuery();
+
+        using SqliteCommand acceptedExtraSavingsCommand = new SqliteCommand(createAcceptedExtraSavingsTable, connection);
+        acceptedExtraSavingsCommand.ExecuteNonQuery();
 
     }
 
@@ -2113,5 +2122,168 @@ public class DataBaseManager
         command.ExecuteNonQuery();
     }
 
+    // ==========================================
+    // GET ACCEPTED EXTRA SAVINGS FOR MONTH
+    // ==========================================
+
+    public double GetAcceptedExtraSavingsForMonth(
+        DateTime? date = null)
+    {
+        DateTime targetDate =
+            (
+                date
+                ??
+                DateTime.Today
+            )
+            .Date;
+
+
+        string monthKey =
+            $"{targetDate.Year:D4}-{targetDate.Month:D2}";
+
+
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
+        connection.Open();
+
+
+        string query = @"
+            SELECT Amount
+            FROM AcceptedExtraSavings
+            WHERE MonthKey = @MonthKey;
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                query,
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@MonthKey",
+            monthKey);
+
+
+        object? result =
+            command.ExecuteScalar();
+
+
+        if (result == null ||
+            result == DBNull.Value)
+        {
+            return 0;
+        }
+
+
+        return Math.Max(
+            Convert.ToDouble(
+                result),
+            0);
+    }
+
+
+
+    // ==========================================
+    // SAVE ACCEPTED EXTRA SAVINGS FOR MONTH
+    // ==========================================
+
+    public void SaveAcceptedExtraSavingsForMonth(
+        double amount,
+        DateTime? date = null)
+    {
+        DateTime targetDate =
+            (
+                date
+                ??
+                DateTime.Today
+            )
+            .Date;
+
+
+        string monthKey =
+            $"{targetDate.Year:D4}-{targetDate.Month:D2}";
+
+
+        amount =
+            Math.Max(
+                amount,
+                0);
+
+
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
+        connection.Open();
+
+
+
+        // ======================================
+        // ZERO MEANS REMOVE THE COMMITMENT
+        // ======================================
+
+        if (amount <= 0)
+        {
+            using SqliteCommand deleteCommand =
+                new SqliteCommand(
+                    @"
+                    DELETE FROM AcceptedExtraSavings
+                    WHERE MonthKey = @MonthKey;
+                    ",
+                    connection);
+
+
+            deleteCommand.Parameters.AddWithValue(
+                "@MonthKey",
+                monthKey);
+
+
+            deleteCommand.ExecuteNonQuery();
+
+
+            return;
+        }
+
+
+
+        // ======================================
+        // SAVE / REPLACE CURRENT MONTH
+        // ======================================
+
+        using SqliteCommand saveCommand =
+            new SqliteCommand(
+                @"
+                INSERT OR REPLACE INTO AcceptedExtraSavings
+                (
+                    MonthKey,
+                    Amount
+                )
+
+                VALUES
+                (
+                    @MonthKey,
+                    @Amount
+                );
+                ",
+                connection);
+
+
+        saveCommand.Parameters.AddWithValue(
+            "@MonthKey",
+            monthKey);
+
+
+        saveCommand.Parameters.AddWithValue(
+            "@Amount",
+            amount);
+
+
+        saveCommand.ExecuteNonQuery();
+    }
 }
 
