@@ -586,7 +586,16 @@
                                                 CornerRadius="9"
                                                 Padding="14,8" />
 
-
+                                            <Button
+                                                Text="{Binding PaymentButtonText}"
+                                                Clicked="ToggleBillPaidClicked"
+                                                IsVisible="{Binding ShowPaymentAction}"
+                                                BackgroundColor="{DynamicResource ThemePrimary}"
+                                                TextColor="{DynamicResource TextOnPrimary}"
+                                                FontAttributes="Bold"
+                                                CornerRadius="9"
+                                                Padding="14,8" />
+                                                
                                             <Button
                                                 Text="Edit"
                                                 Clicked="ShowEditBillClicked"

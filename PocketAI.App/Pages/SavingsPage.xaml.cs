@@ -241,9 +241,21 @@ public partial class SavingsPage : ContentPage
 
 
 
+        // ======================================
+        // ACTIVE GOAL DISPLAY ITEMS
+        // ======================================
+
         List<SavingsGoalDisplayItem>
-            displayItems =
+            activeDisplayItems =
                 savingsGoals
+
+                    // A goal remains active even after
+                    // reaching its target until the user
+                    // officially presses Finish Goal.
+                    .Where(
+                        goal =>
+                            !goal.IsCompleted)
+
                     .Select(
                         goal =>
                         {
@@ -266,26 +278,89 @@ public partial class SavingsPage : ContentPage
                                         .HasValue,
                                     recommendationUnavailableReason);
                         })
+
                     .ToList();
 
 
 
-        BindableLayout.SetItemsSource(
-            SavingsGoalsContainer,
-            displayItems);
+        // ======================================
+        // COMPLETED GOAL DISPLAY ITEMS
+        // ======================================
 
+        List<SavingsGoalDisplayItem>
+            completedDisplayItems =
+                savingsGoals
+
+                    .Where(
+                        goal =>
+                            goal.IsCompleted)
+
+                    .OrderByDescending(
+                        goal =>
+                            goal.DateCompleted
+                            ??
+                            DateTime.MinValue)
+
+                    .Select(
+                        goal =>
+                            new SavingsGoalDisplayItem(
+                                goal,
+                                null,
+                                0,
+                                false,
+                                ""))
+
+                    .ToList();
+
+                    BindableLayout.SetItemsSource(
+                    SavingsGoalsContainer,
+                    activeDisplayItems);
+
+
+                BindableLayout.SetItemsSource(
+                    CompletedGoalsContainer,
+                    completedDisplayItems);
+
+                bool hasCompletedGoals =
+                completedDisplayItems.Count > 0;
+
+
+                CompletedGoalsSection.IsVisible =
+                    hasCompletedGoals;
+
+
+                int completedGoalCount =
+                    completedDisplayItems.Count;
+
+
+                double completedGoalTotal =
+                    completedDisplayItems.Sum(
+                        item =>
+                            item.Goal.CurrentAmount);
+
+
+                CompletedGoalsCountLabel.Text =
+                    completedGoalCount == 1
+
+                        ? "1 goal completed"
+
+                        : $"{completedGoalCount} goals completed";
+
+
+                CompletedGoalsTotalLabel.Text =
+                    $"{completedGoalTotal:C} achieved";
 
 
         // ======================================
         // EMPTY STATE
         // ======================================
 
-        bool hasGoals =
-            savingsGoals.Count > 0;
+        bool hasActiveGoals =
+            activeDisplayItems.Count > 0;
 
 
         SavingsEmptyState.IsVisible =
-            !hasGoals;
+            !hasActiveGoals;
 
 
 
@@ -298,6 +373,27 @@ public partial class SavingsPage : ContentPage
                 goal =>
                     goal.CurrentAmount);
 
+        // ==========================================
+        // SAVINGS ACCOUNT BREAKDOWN
+        // ==========================================
+
+        double savingsAccountBalance =
+            currentSnapshot?
+                .ProtectedSavingsBalance
+            ??
+            0;
+
+
+        double assignedSavings =
+            totalSaved;
+
+
+        double unassignedSavings =
+            Math.Max(
+                savingsAccountBalance
+                -
+                assignedSavings,
+                0);
 
         double totalTarget =
             savingsGoals.Sum(
@@ -318,11 +414,21 @@ public partial class SavingsPage : ContentPage
         int activeGoalCount =
             savingsGoals.Count(
                 goal =>
-                    goal.CurrentAmount
-                    <
-                    goal.TargetAmount);
+                    !goal.IsCompleted);
+
+        SavingsAccountBalanceLabel.Text =
+            savingsAccountBalance
+                .ToString("C");
 
 
+        AssignedSavingsLabel.Text =
+            assignedSavings
+                .ToString("C");
+
+
+        UnassignedSavingsLabel.Text =
+            unassignedSavings
+                .ToString("C");
 
         TotalSavedLabel.Text =
             totalSaved
@@ -345,6 +451,42 @@ public partial class SavingsPage : ContentPage
     }
 
 
+    // ==========================================
+    // SAVINGS ACCOUNT ALLOCATION HELPERS
+    // ==========================================
+    private double GetSavingsAccountBalance()
+    {
+        AccountBalance? accountBalance = 
+            dataBaseManager
+                .GetAccountBalance();
+
+        return Math.Max(accountBalance?.SavingsBalance ?? 0, 0);
+    }
+
+    private double GetTotalAssignedSavings(int? exludedGoalId = null)
+    {
+        return savingsGoals.Where(goal => !exludedGoalId.HasValue || goal.Id != exludedGoalId.Value)
+            .Sum(goal => Math.Max(goal.CurrentAmount, 0));
+    }
+
+    private double GetUnassignedSavings(
+    int? excludedGoalId = null)
+    {
+        double savingsAccountBalance =
+            GetSavingsAccountBalance();
+
+
+        double assignedSavings =
+            GetTotalAssignedSavings(
+                excludedGoalId);
+
+
+        return Math.Max(
+            savingsAccountBalance
+            -
+            assignedSavings,
+            0);
+    }
 
     // ==========================================
     // UPDATE SAVINGS PLAN SUMMARY
@@ -561,6 +703,7 @@ public partial class SavingsPage : ContentPage
             savingsGoals
                 .Where(
                     goal =>
+                        !goal.IsCompleted &&
                         goal.PriorityRank > 0)
                 .Select(
                     goal =>
@@ -659,6 +802,7 @@ public partial class SavingsPage : ContentPage
             savingsGoals
                 .Where(
                     goal =>
+                        !goal.IsCompleted &&
                         goal.PriorityRank > 0)
                 .Select(
                     goal =>
@@ -872,7 +1016,31 @@ public partial class SavingsPage : ContentPage
             return;
         }
 
+        // ==========================================
+        // MAKE SURE ASSIGNED SAVINGS EXISTS
+        // ==========================================
 
+        double savingsAccountBalance =
+            GetSavingsAccountBalance();
+
+
+        double availableForThisGoal =
+            GetUnassignedSavings(
+                selectedGoal?.Id);
+
+
+        if (currentAmount >
+            availableForThisGoal)
+        {
+            await DisplayAlertAsync(
+                "Not Enough Unassigned Savings",
+                $"You only have {availableForThisGoal:C} of your Savings Account available to assign. " +
+                "Savings goals organize money already in savings; they do not create additional money.",
+                "OK");
+
+
+            return;
+        }
 
         DateTime deadline =
             GoalDeadlinePicker.Date
@@ -974,6 +1142,17 @@ public partial class SavingsPage : ContentPage
                     isEssential,
                     selectedGoal
                         .CustomAllocationPercentage);
+
+            // Keep completion/history information
+            // when editing an existing goal.
+            updatedGoal.IsCompleted =
+                selectedGoal.IsCompleted;
+
+            updatedGoal.DateCreated =
+                selectedGoal.DateCreated;
+
+            updatedGoal.DateCompleted =
+                selectedGoal.DateCompleted;
 
 
 
@@ -1119,7 +1298,26 @@ public partial class SavingsPage : ContentPage
             return;
         }
 
+        // ==========================================
+        // CHECK UNASSIGNED SAVINGS
+        // ==========================================
 
+        double unassignedSavings =
+            GetUnassignedSavings();
+
+
+        if (amount >
+            unassignedSavings)
+        {
+            await DisplayAlertAsync(
+                "Not Enough Unassigned Savings",
+                $"You only have {unassignedSavings:C} of unassigned money in your Savings Account. " +
+                "To assign more, add money to your Savings Account first or reduce another goal's assigned amount.",
+                "OK");
+
+
+            return;
+        }
 
         double newCurrentAmount =
             selectedGoal.CurrentAmount
@@ -1141,7 +1339,14 @@ public partial class SavingsPage : ContentPage
                 selectedGoal
                     .CustomAllocationPercentage);
 
+        updatedGoal.IsCompleted =
+            selectedGoal.IsCompleted;
 
+        updatedGoal.DateCreated =
+            selectedGoal.DateCreated;
+
+        updatedGoal.DateCompleted =
+            selectedGoal.DateCompleted;
 
         dataBaseManager
             .UpdateSavingsGoal(
@@ -1155,7 +1360,179 @@ public partial class SavingsPage : ContentPage
         LoadSavingsGoals();
     }
 
+    // ==========================================
+    // FINISH SAVINGS GOAL
+    // ==========================================
 
+    private async void FinishGoalClicked(
+        object? sender,
+        EventArgs e)
+    {
+        if (sender is not Button button)
+        {
+            return;
+        }
+
+
+        if (button.BindingContext
+            is not SavingsGoalDisplayItem item)
+        {
+            return;
+        }
+
+
+        SavingsGoal goal =
+            item.Goal;
+
+
+        if (!goal.IsTargetReached ||
+            goal.IsCompleted)
+        {
+            return;
+        }
+
+
+        bool confirmed =
+            await DisplayAlertAsync(
+                "Finish Goal",
+                $"Mark {goal.Name} as completed?\n\n" +
+                $"{goal.CurrentAmount:C} will remain assigned to this goal in your Savings Account. " +
+                "PocketAI will stop recommending future contributions toward it.",
+                "Finish Goal",
+                "Cancel");
+
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+
+        goal.IsCompleted =
+            true;
+
+        goal.DateCompleted =
+            DateTime.Now;
+
+        goal.IsPrimary =
+            false;
+
+
+        dataBaseManager
+            .UpdateSavingsGoal(
+                goal);
+
+        dataBaseManager.NormalizeActiveSavingsGoalPriorities();
+
+        SavingsGoal? nextHomeGoal = dataBaseManager.GetPrimarySavingsGoal();
+
+        if (nextHomeGoal != null)
+        {
+            dataBaseManager.SetPrimarySavingsGoal(nextHomeGoal.Id); 
+        }
+
+
+        await DisplayAlertAsync(
+            "🎉 Goal Completed!",
+            $"You completed {goal.Name} with {goal.CurrentAmount:C} saved. Nice work!",
+            "Awesome");
+
+
+        LoadSavingsGoals();
+    }
+
+    // ==========================================
+    // INCREASE SAVINGS TARGET
+    // ==========================================
+
+    private async void IncreaseTargetClicked(
+        object? sender,
+        EventArgs e)
+    {
+        if (sender is not Button button)
+        {
+            return;
+        }
+
+
+        if (button.BindingContext
+            is not SavingsGoalDisplayItem item)
+        {
+            return;
+        }
+
+
+        SavingsGoal goal =
+            item.Goal;
+
+
+        string? input =
+            await DisplayPromptAsync(
+                title:
+                    "Increase Target",
+
+                message:
+                    $"Your current target is {goal.TargetAmount:C}. Enter a new higher target:",
+
+                accept:
+                    "Save",
+
+                cancel:
+                    "Cancel",
+
+                keyboard:
+                    Keyboard.Numeric,
+
+                initialValue:
+                    goal.TargetAmount
+                        .ToString("0.00"));
+
+
+        if (input == null)
+        {
+            return;
+        }
+
+
+        if (!double.TryParse(
+                input,
+                out double newTarget)
+            ||
+            newTarget <=
+            Math.Max(
+                goal.TargetAmount,
+                goal.CurrentAmount))
+        {
+            await DisplayAlertAsync(
+                "Invalid Target",
+                $"Enter an amount higher than {Math.Max(goal.TargetAmount, goal.CurrentAmount):C}.",
+                "OK");
+
+
+            return;
+        }
+
+
+        goal.TargetAmount =
+            newTarget;
+
+
+        // The goal is active again because
+        // the new target has not been reached.
+        goal.IsCompleted =
+            false;
+
+        goal.DateCompleted =
+            null;
+
+
+        dataBaseManager
+            .UpdateSavingsGoal(
+                goal);
+
+
+        LoadSavingsGoals();
+    }
 
     // ==========================================
     // SHOW ON HOME
@@ -1224,6 +1601,8 @@ public partial class SavingsPage : ContentPage
         dataBaseManager
             .DeleteSavingsGoalById(
                 selectedGoal.Id);
+
+        dataBaseManager.NormalizeActiveSavingsGoalPriorities();
 
 
 
@@ -1822,10 +2201,84 @@ private async void EditAcceptedSavingsClicked(
                 0);
 
 
+        // ==========================================
+        // GOAL STATUS
+        // ==========================================
+
+        // The goal has enough money assigned to reach
+        // its target.
+        //
+        // This happens automatically.
+        public bool IsTargetReached =>
+            Goal.IsTargetReached;
+
+
+        // The user has officially pressed Finish Goal
+        // and archived the goal.
         public bool IsCompleted =>
-            Remaining <= 0;
+            Goal.IsCompleted;
 
 
+        // Show the celebration actions only when the
+        // target has been reached but the user has not
+        // officially finished the goal yet.
+        public bool ShowGoalReachedActions =>
+            IsTargetReached
+            &&
+            !IsCompleted;
+
+        // Message shown when the goal reaches
+        // its target.
+        public string GoalReachedMessage =>
+            $"You saved {Goal.CurrentAmount:C} for {Goal.Name}. Nice work.";
+
+
+        // Hide normal savings recommendations once
+        // the target has been reached.
+        public bool ShowSavingsRecommendation =>
+            !IsTargetReached
+            &&
+            !IsCompleted;
+
+
+        // Hide the normal goal buttons once the
+        // target has been reached.
+        public bool ShowRegularGoalActions =>
+            !IsTargetReached
+            &&
+            !IsCompleted;
+
+
+        // Users should not keep adding savings after
+        // the goal has already reached its target.
+        public bool CanAddSavings =>
+            !IsTargetReached
+            &&
+            !IsCompleted;
+
+        // ==========================================
+        // COMPLETED GOAL DISPLAY
+        // ==========================================
+
+        public string CompletedAmountText =>
+            $"{Goal.CurrentAmount:C}";
+
+
+        public string CompletedDateText
+        {
+            get
+            {
+                if (Goal.DateCompleted.HasValue)
+                {
+                    return
+                        $"Completed {Goal.DateCompleted.Value:MMM d, yyyy}";
+                }
+
+
+                return
+                    "Completed";
+            }
+        }
 
         // ======================================
         // PROGRESS
@@ -1943,6 +2396,12 @@ private async void EditAcceptedSavingsClicked(
                         "Complete";
                 }
 
+                if (IsTargetReached)
+                {
+                    return
+                        "Goal reached";
+                }
+
 
                 if (DaysLeft <= 0)
                 {
@@ -1972,6 +2431,11 @@ private async void EditAcceptedSavingsClicked(
                         "Complete";
                 }
 
+                if (IsTargetReached)
+                {
+                    return
+                        "Goal reached";
+                }
 
                 if (DaysLeft <= 0)
                 {
@@ -2024,6 +2488,12 @@ private async void EditAcceptedSavingsClicked(
                         "Goal complete";
                 }
 
+                if (IsTargetReached)
+                {
+                    return
+                        "Goal reached";
+                }
+
 
 
                 if (optionalExtraSavings <= 0)
@@ -2045,13 +2515,12 @@ private async void EditAcceptedSavingsClicked(
         {
             get
             {
-                if (IsCompleted)
+                if (IsCompleted ||
+                    IsTargetReached)
                 {
                     return
                         "";
                 }
-
-
 
                 if (optionalExtraSavings <= 0)
                 {
@@ -2075,9 +2544,14 @@ private async void EditAcceptedSavingsClicked(
                 if (IsCompleted)
                 {
                     return
-                        "This goal is already fully funded.";
+                        "This Goal is Completed and Archived.";
                 }
 
+                if (IsTargetReached)
+                {
+                    return
+                        "This goal has reached its target, so PocketAI is no longer recommending additional contributions.";
+                }
 
 
                 if (optionalExtraSavings <= 0)
@@ -2148,7 +2622,14 @@ private async void EditAcceptedSavingsClicked(
                 if (IsCompleted)
                 {
                     return
-                        "✓ GOAL COMPLETED";
+                        "✓ COMPLETED";
+                }
+
+
+                if (IsTargetReached)
+                {
+                    return
+                        "🎉 GOAL REACHED";
                 }
 
 
@@ -2170,7 +2651,8 @@ private async void EditAcceptedSavingsClicked(
         {
             get
             {
-                if (IsCompleted)
+                if (IsCompleted ||
+                    IsTargetReached)
                 {
                     return GetThemeColor(
                         "SuccessColor",

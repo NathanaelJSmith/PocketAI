@@ -23,10 +23,71 @@ public class SavingsGoal
     public double TargetAmount { get; set; }
 
 
-    // Amount currently saved toward this goal.
+    // Amount of Savings Account money currently
+    // assigned to this goal.
+    //
+    // This does NOT represent additional money
+    // outside of the Savings Account.
+    //
+    // Assigning money to a goal does NOT change
+    // the Savings Account balance.
     public double CurrentAmount { get; set; }
 
 
+    // ==========================================
+    // GOAL COMPLETION
+    // ==========================================
+
+    // True when the user has officially chosen
+    // to finish/archive the goal.
+    //
+    // Reaching the target does NOT automatically
+    // set this to true because the user may choose
+    // to increase the target instead.
+    public bool IsCompleted {get; set;}
+
+    // Date this goal was originally created.
+    //
+    // Nullable so older PocketAI goals do not get
+    // a fake creation date during database migration.
+    public DateTime? DateCreated
+    {
+        get;
+        set;
+    }
+
+
+    // Date the user officially pressed
+    // Finish Goal.
+    //
+    // null means the goal has not been completed.
+    public DateTime? DateCompleted
+    {
+        get;
+        set;
+    }
+
+    // Automatically tells PocketAI whether the
+    // goal has reached its target amount.
+    //
+    // This is NOT the same as IsCompleted.
+    //
+    // Example:
+    //
+    // CurrentAmount = $2,000
+    // TargetAmount  = $2,000
+    //
+    // IsTargetReached = true
+    //
+    // But IsCompleted remains false until
+    // the user presses Finish Goal.
+    public bool IsTargetReached
+    {
+        get
+        {
+            return CurrentAmount >= TargetAmount;
+        }
+    }
     // Date the user wants to complete the goal.
     public DateTime DeadLine { get; set; }
 
@@ -133,6 +194,12 @@ public class SavingsGoal
 
         DeadLine =
             deadLine;
+        
+        IsCompleted = false;
+
+        DateCreated = DateTime.Now;
+
+        DateCompleted = null;
 
         IsPrimary =
             false;
@@ -186,6 +253,13 @@ public class SavingsGoal
         DeadLine =
             deadLine;
 
+        IsCompleted =
+            false;
+
+        DateCreated = DateTime.Now;
+
+        DateCompleted = null;
+
         IsPrimary =
             isPrimary;
 
@@ -236,6 +310,12 @@ public class SavingsGoal
 
         IsPrimary =
             isPrimary;
+
+        IsCompleted = false;
+
+        DateCreated = DateTime.Now;
+
+        DateCompleted = null;
 
         PriorityRank =
             priorityRank;

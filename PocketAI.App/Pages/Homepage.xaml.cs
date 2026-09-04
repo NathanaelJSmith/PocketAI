@@ -345,7 +345,7 @@ public partial class HomePage : ContentPage
         if (snapshot.ObligationShortfall > 0)
         {
             SafeToSpendStatusLabel.Text =
-                $"⚠ Current obligations exceed spendable cash by " +
+                $"⚠ Your monthly plan is short by " +
                 $"{snapshot.ObligationShortfall:C}.";
 
 
@@ -1534,9 +1534,9 @@ public partial class HomePage : ContentPage
         if (snapshot.ObligationShortfall > 0)
         {
             PocketAIInsightLabel.Text =
-                $"Your current spendable cash is " +
-                $"{snapshot.ObligationShortfall:C} short of your protected upcoming obligations. " +
-                "Review bills, spending, or savings deadlines before making extra purchases.";
+                $"Your monthly plan is {snapshot.ObligationShortfall:C} short after " +
+                $"spending, nills, required savings, and accepted extra savings. " +
+                $"Review your plan before making extra purchases.";
 
 
             return;

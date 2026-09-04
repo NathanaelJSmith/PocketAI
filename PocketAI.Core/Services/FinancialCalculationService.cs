@@ -6,39 +6,48 @@ using System.Linq;
 // ==========================================
 // POCKETAI CENTRAL FINANCIAL ENGINE
 // ==========================================
-//
-// This service is the single source of truth
-// for PocketAI's core financial calculations.
-//
-// Eventually:
-//
-// Home
-// Analytics
-// Savings
-// PocketAI Assistant
-// Budget
-//
-// should all read the same FinancialSnapshot
-// produced by this service.
-//
 // IMPORTANT DEFINITIONS:
 //
-// CURRENT MONEY
-// = money that actually exists now.
+// MONTHLY INCOME
+// = expected income for the month.
 //
-// EXPECTED INCOME
-// = planning information only.
+// TRANSACTIONS
+// = spending recorded during the month.
+//
+// BILLS
+// = obligations that reduce the monthly plan.
+//
+// REQUIRED SAVINGS
+// = savings needed to keep goals on pace.
+//
+// ACCEPTED EXTRA SAVINGS
+// = optional additional savings the user
+//   explicitly chooses.
+//
+// SAFE TO SPEND / AVAILABLE TO SPEND
+// = expected monthly income
+//   - spending
+//   - bills
+//   - required savings
+//   - accepted extra savings.
+//
+// CHECKING
+// = actual money currently in checking.
 //
 // SAVINGS ACCOUNT
-// = protected by default.
+// = actual money currently in savings.
 //
-// SAFE TO SPEND
-// = current spendable cash minus protected
-//   obligations and safety buffer.
+// SAVINGS GOALS
+// = what saved money is intended for.
 //
-// Transactions tell PocketAI what happened.
-// They do NOT magically create cash.
+// CASH
+// = optional physical cash.
 //
+// Account balances answer:
+// "Where is my money right now?"
+//
+// The monthly plan answers:
+// "How much can I still spend this month?"
 // ==========================================
 
 public class FinancialCalculationService

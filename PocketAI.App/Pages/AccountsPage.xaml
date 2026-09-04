@@ -543,7 +543,7 @@
                             TextColor="{DynamicResource TextPrimary}" />
 
                         <Label
-                            Text="Checking and cash determine your current spendable money. Savings stays protected by default. Keeping these balances accurate helps PocketAI calculate Safe to Spend correctly."
+                            Text="Checking and cash show how much spendable money you currently have. Savings stays protected by default. Your monthly Safe to Spend is calculated separately using income, spending, bills, and savings commitments."
                             FontSize="12"
                             LineHeight="1.3"
                             TextColor="{DynamicResource TextSecondary}" />

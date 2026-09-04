@@ -113,7 +113,7 @@ public partial class BillsPage : ContentPage
                     bill =>
                         new BillDisplayItem(
                             bill,
-                            analyticsService))
+                            analyticsService, dataBaseManager.IsRecurringBillPaidForMonth(bill.Id, DateTime.Today)))
                 .ToList();
 
 
@@ -566,7 +566,40 @@ public partial class BillsPage : ContentPage
         LoadBills();
     }
 
+    // ==========================================
+    // MARK BILL PAID / UNPAID
+    // ==========================================
 
+    private void ToggleBillPaidClicked(
+        object? sender,
+        EventArgs e)
+    {
+        if (sender is not Button button)
+        {
+            return;
+        }
+
+
+        if (button.BindingContext
+            is not BillDisplayItem item)
+        {
+            return;
+        }
+
+
+        bool newPaidStatus =
+            !item.IsPaidThisMonth;
+
+
+        dataBaseManager
+            .SetRecurringBillPaidStatus(
+                item.Bill.Id,
+                DateTime.Today,
+                newPaidStatus);
+
+
+        LoadBills();
+    }
 
     // ==========================================
     // DELETE BILL
@@ -686,7 +719,25 @@ public partial class BillsPage : ContentPage
         private readonly AnalyticsService
             analyticsService;
 
+        public bool IsPaidThisMonth
+        {
+            get;
+        }
 
+        // ======================================
+        // PAYMENT ACTION
+        // ======================================
+
+        public bool ShowPaymentAction =>
+            Bill.IsActive;
+
+
+        public string PaymentButtonText =>
+            IsPaidThisMonth
+
+                ? "Mark Unpaid"
+
+                : "Mark Paid";
         public RecurringExpenses Bill
         {
             get;
@@ -828,45 +879,53 @@ public partial class BillsPage : ContentPage
                             today.Month));
 
 
-                DateTime dueDate =
+                DateTime thisMonthDueDate =
                     new DateTime(
                         today.Year,
                         today.Month,
                         validDayThisMonth);
 
 
-                if (dueDate.Date <
-                    today.Date)
+                // If this month's bill has NOT been paid,
+                // keep showing this month's obligation,
+                // even when it is past due.
+                if (!IsPaidThisMonth)
                 {
-                    DateTime nextMonth =
-                        today.AddMonths(1);
-
-
-                    int validDayNextMonth =
-                        Math.Min(
-                            Bill.DueDay,
-                            DateTime.DaysInMonth(
-                                nextMonth.Year,
-                                nextMonth.Month));
-
-
-                    dueDate =
-                        new DateTime(
-                            nextMonth.Year,
-                            nextMonth.Month,
-                            validDayNextMonth);
+                    return thisMonthDueDate
+                        .ToString("MMM d");
                 }
 
 
-                return dueDate.ToString(
-                    "MMM d");
+                // If this month's bill IS paid,
+                // show next month's expected payment.
+                DateTime nextMonth =
+                    today.AddMonths(1);
+
+
+                int validDayNextMonth =
+                    Math.Min(
+                        Bill.DueDay,
+                        DateTime.DaysInMonth(
+                            nextMonth.Year,
+                            nextMonth.Month));
+
+
+                DateTime nextDueDate =
+                    new DateTime(
+                        nextMonth.Year,
+                        nextMonth.Month,
+                        validDayNextMonth);
+
+
+                return nextDueDate
+                    .ToString("MMM d");
             }
         }
 
 
 
         // ======================================
-        // DUE STATUS TEXT
+        // MONTHLY BILL STATUS
         // ======================================
 
         public string DueStatusText
@@ -879,34 +938,68 @@ public partial class BillsPage : ContentPage
                 }
 
 
-                if (DaysUntilDue == 0)
+                if (IsPaidThisMonth)
+                {
+                    return "Paid";
+                }
+
+
+                DateTime today =
+                    DateTime.Today;
+
+
+                int validDueDay =
+                    Math.Min(
+                        Bill.DueDay,
+                        DateTime.DaysInMonth(
+                            today.Year,
+                            today.Month));
+
+
+                DateTime dueDate =
+                    new DateTime(
+                        today.Year,
+                        today.Month,
+                        validDueDay);
+
+
+                if (dueDate.Date <
+                    today.Date)
+                {
+                    return "Past due";
+                }
+
+
+                if (dueDate.Date ==
+                    today.Date)
                 {
                     return "Due today";
                 }
 
 
-                if (DaysUntilDue == 1)
+                int daysUntilDue =
+                    (dueDate.Date -
+                    today.Date)
+                    .Days;
+
+
+                if (daysUntilDue == 1)
                 {
                     return "Due tomorrow";
                 }
 
 
                 return
-                    $"Due in {DaysUntilDue} days";
+                    $"Due in {daysUntilDue} days";
             }
         }
 
 
 
-        // ======================================
-        // DUE STATUS COLOR
-        // ======================================
-
-        public Color DueStatusColor
+       public Color DueStatusColor
         {
             get
             {
-                // Paused bill.
                 if (!Bill.IsActive)
                 {
                     return GetThemeColor(
@@ -915,8 +1008,35 @@ public partial class BillsPage : ContentPage
                 }
 
 
-                // Due within two days.
-                if (DaysUntilDue <= 2)
+                if (IsPaidThisMonth)
+                {
+                    return GetThemeColor(
+                        "SuccessColor",
+                        "#15803D");
+                }
+
+
+                DateTime today =
+                    DateTime.Today;
+
+
+                int validDueDay =
+                    Math.Min(
+                        Bill.DueDay,
+                        DateTime.DaysInMonth(
+                            today.Year,
+                            today.Month));
+
+
+                DateTime dueDate =
+                    new DateTime(
+                        today.Year,
+                        today.Month,
+                        validDueDay);
+
+
+                if (dueDate.Date <
+                    today.Date)
                 {
                     return GetThemeColor(
                         "DangerColor",
@@ -924,8 +1044,8 @@ public partial class BillsPage : ContentPage
                 }
 
 
-                // Due within one week.
-                if (DaysUntilDue <= 7)
+                if (dueDate.Date <=
+                    today.Date.AddDays(3))
                 {
                     return GetThemeColor(
                         "WarningColor",
@@ -933,10 +1053,9 @@ public partial class BillsPage : ContentPage
                 }
 
 
-                // Plenty of time remaining.
                 return GetThemeColor(
-                    "SuccessColor",
-                    "#15803D");
+                    "ThemePrimary",
+                    "#2563EB");
             }
         }
 
@@ -948,7 +1067,8 @@ public partial class BillsPage : ContentPage
 
         public BillDisplayItem(
             RecurringExpenses bill,
-            AnalyticsService analyticsService)
+            AnalyticsService analyticsService,
+            bool isPaidThisMonth)
         {
             Bill =
                 bill;
@@ -956,6 +1076,10 @@ public partial class BillsPage : ContentPage
 
             this.analyticsService =
                 analyticsService;
+
+
+            IsPaidThisMonth =
+                isPaidThisMonth;
         }
     }
 }

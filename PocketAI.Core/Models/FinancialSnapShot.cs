@@ -53,8 +53,15 @@ public class FinancialSnapshot
 
     // Checking + cash.
     //
-    // This is the starting point for
-    // CURRENT Safe to Spend calculations.
+    // This represents actual spendable money
+    // currently held by the user.
+    //
+    // It answers:
+    // "How much money do I physically have
+    // available in checking and cash right now?"
+    //
+    // It does NOT determine the monthly
+    // Safe to Spend calculation.
     public double CurrentSpendableCash
     {
         get;
@@ -101,16 +108,21 @@ public class FinancialSnapshot
     }
 
 
-    // Monthly planning calculation:
+    // Monthly budgeting calculation:
     //
-    // Expected income
-    // - recorded monthly spending
-    // - planned recurring expenses
+    // Expected Monthly Income
+    // - Current Month Spending
+    // - Bills
+    // - Required Savings
+    // - Accepted Extra Savings
     //
-    // This replaces the misleading meaning
-    // previously attached to "MoneyLeft".
+    // This answers:
     //
-    // It is NOT current spendable cash.
+    // "How much of my monthly plan is
+    // still available?"
+    //
+    // This is separate from actual
+    // checking, savings, and cash balances.
     public double MonthlyPlanRemaining
     {
         get;
@@ -181,8 +193,19 @@ public class FinancialSnapshot
     }
 
 
-    // If current obligations exceed current
-    // spendable cash, this records the shortage.
+    // Amount by which the monthly plan
+    // is short.
+    //
+    // Example:
+    //
+    // Income = $2,000
+    // Spending + Bills + Required Savings
+    // = $2,200
+    //
+    // ObligationShortfall = $200.
+    //
+    // This represents a monthly planning
+    // shortage, not an account-balance shortage.
     public double ObligationShortfall
     {
         get;
@@ -195,13 +218,23 @@ public class FinancialSnapshot
     // SAFE TO SPEND
     // ==========================================
 
-    // CurrentSpendableCash
-    // - UpcomingBills
-    // - RequiredSavingsThisMonth
-    // - AcceptedExtraSavings
-    // - SafetyBuffer
+    // Available to Spend / Safe to Spend:
+    //
+    // Expected Monthly Income
+    // - Current Month Spending
+    // - Bills
+    // - Required Savings
+    // - Accepted Extra Savings
+    //
+    // SafeToSpendTotal is the amount remaining
+    // in the user's MONTHLY budget.
+    //
+    // It does NOT represent the current
+    // checking-account balance.
     //
     // Never below zero for display purposes.
+    // Any shortage is stored separately in
+    // ObligationShortfall.
     public double SafeToSpendTotal
     {
         get;

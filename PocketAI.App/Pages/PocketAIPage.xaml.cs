@@ -403,9 +403,9 @@ public partial class PocketAIPage : ContentPage
         {
             ShowAssistantResponse(
                 $"I would avoid extra spending right now. " +
-                $"Your recorded spendable cash is currently " +
-                $"{currentSnapshot.ObligationShortfall:C} short of your " +
-                $"known upcoming bills, required savings, and other accepted commitments.");
+                $"Your monthly plan is currently " +
+                $"{currentSnapshot.ObligationShortfall:C} short after " +
+                $"spending, upcoming bills, required savings, and accepted extra savings.");
 
             return;
         }
@@ -421,7 +421,8 @@ public partial class PocketAIPage : ContentPage
             ShowAssistantResponse(
                 $"I wouldn't recommend discretionary spending right now. " +
                 $"Your current Safe to Spend is {currentSafeToSpend:C} " +
-                $"after protecting known obligations and your safety buffer.");
+                $"after monthly spending, upcoming bills, required savings, " +
+                $"and accepted extra savings.");
 
             return;
         }
@@ -452,8 +453,8 @@ public partial class PocketAIPage : ContentPage
             $"Based on your current financial information, about " +
             $"{currentDailySafeToSpend:C} is Safe to Spend today. " +
             $"You currently have {currentSafeToSpend:C} Safe to Spend " +
-            $"for the rest of the month after protecting upcoming bills, " +
-            $"required savings, accepted extra savings, and your safety buffer." +
+            $"for the rest of the month after monthly spending, upcoming bills, " +
+            $"required savings, and accepted extra savings." +
             confidenceNote);
     }
 
@@ -890,11 +891,10 @@ public partial class PocketAIPage : ContentPage
         if (currentSnapshot.ObligationShortfall > 0)
         {
             ShowAssistantResponse(
-                $"Your first priority should be covering your known obligations. " +
-                $"Your current spendable cash is " +
-                $"{currentSnapshot.ObligationShortfall:C} short of your " +
-                $"upcoming bills, required savings, and accepted commitments. " +
-                $"I would avoid unnecessary spending until that gap is covered.");
+                $"Your monthly plan is currently " +
+                $"{currentSnapshot.ObligationShortfall:C} short. " +
+                $"I would review your spending, bills, and savings commitments " +
+                $"before adding unnecessary purchases.");
 
             return;
         }
@@ -2932,8 +2932,8 @@ public partial class PocketAIPage : ContentPage
         {
             ShowAssistantResponse(
                 $"I wouldn't recommend the {purchaseAmount:C} purchase right now. " +
-                $"Your recorded spendable cash is already " +
-                $"{currentSnapshot.ObligationShortfall:C} short of your known obligations.");
+                $"Your monthly plan is already " +
+                $"{currentSnapshot.ObligationShortfall:C} short.");
 
             return;
         }

@@ -58,8 +58,10 @@ public class DataBaseManager
             IsPrimary INTEGER NOT NULL DEFAULT 0,
             Priorityrank INTEGER NOT NULL DEFAULT 0,
             IsEssential INTEGER NOT NULL DEFAULT 0,
-            CustomAllocationPercentage REAL NULL
-
+            CustomAllocationPercentage REAL NULL,
+            IsCompleted INTEGER NOT NULL DEFAULT 0,
+            DateCreated TEXT NOT NULL,
+            DateCompleted TEXT NULL
             );
         ";
 
@@ -98,6 +100,16 @@ public class DataBaseManager
             IsActive INTEGER NOT NULL
             );";
 
+        string createRecurringBillPaymentsTable = @"
+        CREATE TABLE IF NOT EXISTS RecurringBillPayments (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            RecurringExpensesId INTEGER NOT NULL,
+            MonthKey TEXT NOT NULL,
+            IsPaid TEXT NOT NULL,
+            DatePaid TEXT NOT NULL,
+            UNIQUE(RecurringExpensesId, MonthKey)
+        );";
+
         string createAcceptedExtraSavingsTable = @"
         CREATE TABLE IF NOT EXISTS AcceptedExtraSavings (
             MonthKey TEXT PRIMARY KEY,
@@ -129,6 +141,9 @@ public class DataBaseManager
 
         using SqliteCommand recurringExpensesCommand = new SqliteCommand(createRecurringExpensesTable, connection);
         recurringExpensesCommand.ExecuteNonQuery();
+        
+        using SqliteCommand recurringBillPaymentsCommand = new SqliteCommand(createRecurringBillPaymentsTable, connection);
+        recurringBillPaymentsCommand.ExecuteNonQuery();
 
         using SqliteCommand acceptedExtraSavingsCommand = new SqliteCommand(createAcceptedExtraSavingsTable, connection);
         acceptedExtraSavingsCommand.ExecuteNonQuery();
@@ -317,6 +332,69 @@ public class DataBaseManager
             command.ExecuteNonQuery();
         }
 
+        // ======================================
+        // COMPLETED GOAL STATUS
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "IsCompleted"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN IsCompleted
+                    INTEGER NOT NULL DEFAULT 0;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+
+        // ======================================
+        // DATE CREATED
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "DateCreated"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN DateCreated
+                    TEXT NULL;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
+
+
+
+        // ======================================
+        // DATE COMPLETED
+        // ======================================
+
+        if (!existingColumns.Contains(
+                "DateCompleted"))
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    ALTER TABLE SavingsGoals
+                    ADD COLUMN DateCompleted
+                    TEXT NULL;
+                    ",
+                    connection);
+
+
+            command.ExecuteNonQuery();
+        }
 
 
         // ======================================
@@ -1159,7 +1237,10 @@ public class DataBaseManager
                 IsPrimary,
                 PriorityRank,
                 IsEssential,
-                CustomAllocationPercentage
+                CustomAllocationPercentage,
+                IsCompleted,
+                DateCreated,
+                DateCompleted
             )
 
             VALUES
@@ -1171,7 +1252,10 @@ public class DataBaseManager
                 @IsPrimary,
                 @PriorityRank,
                 @IsEssential,
-                @CustomAllocationPercentage
+                @CustomAllocationPercentage,
+                @IsCompleted,
+                @DateCreated,
+                @DateCompleted
             );
             ";
 
@@ -1236,6 +1320,33 @@ public class DataBaseManager
                         .Value);
 
 
+        command.Parameters.AddWithValue(
+            "@IsCompleted",
+            savingsGoal.IsCompleted
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@DateCreated",
+            savingsGoal.DateCreated.HasValue
+
+                ? savingsGoal.DateCreated.Value
+                    .ToString("O")
+
+                : DBNull.Value);
+
+
+        command.Parameters.AddWithValue(
+            "@DateCompleted",
+            savingsGoal.DateCompleted.HasValue
+
+                ? savingsGoal.DateCompleted.Value
+                    .ToString("O")
+
+                : DBNull.Value);
+
+
         command.ExecuteNonQuery();
     }
 
@@ -1269,7 +1380,10 @@ public class DataBaseManager
                 IsPrimary,
                 PriorityRank,
                 IsEssential,
-                CustomAllocationPercentage
+                CustomAllocationPercentage,
+                IsCompleted,
+                DateCreated,
+                DateCompleted
 
             FROM SavingsGoals
 
@@ -1333,6 +1447,27 @@ public class DataBaseManager
                     ? null
 
                     : reader.GetDouble(8);
+            
+            bool isCompleted =
+                reader.GetInt32(9) == 1;
+
+
+            DateTime? dateCreated =
+                reader.IsDBNull(10)
+
+                    ? null
+
+                    : DateTime.Parse(
+                        reader.GetString(10));
+
+
+            DateTime? dateCompleted =
+                reader.IsDBNull(11)
+
+                    ? null
+
+                    : DateTime.Parse(
+                        reader.GetString(11));
 
 
 
@@ -1348,9 +1483,19 @@ public class DataBaseManager
                     isEssential,
                     customAllocationPercentage);
 
+            savingsGoal.IsCompleted =
+                            isCompleted;
+
+            savingsGoal.DateCreated =
+                dateCreated;            
+
+            savingsGoal.DateCompleted =
+                dateCompleted;
 
             savingsGoals.Add(
                 savingsGoal);
+
+            
         }
 
 
@@ -1423,8 +1568,16 @@ public class DataBaseManager
 
                         ELSE CustomAllocationPercentage
 
-                    END
+                    END,
 
+                IsCompleted =
+                    @IsCompleted,
+
+                DateCreated =
+                    @DateCreated,
+
+                DateCompleted =
+                    @DateCompleted
 
             WHERE Id =
                 @Id;
@@ -1484,6 +1637,31 @@ public class DataBaseManager
                         .CustomAllocationPercentage
                         .Value);
 
+        command.Parameters.AddWithValue(
+            "@IsCompleted",
+            savingsGoal.IsCompleted
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@DateCreated",
+            savingsGoal.DateCreated.HasValue
+
+                ? savingsGoal.DateCreated.Value
+                    .ToString("O")
+
+                : DBNull.Value);
+
+
+        command.Parameters.AddWithValue(
+            "@DateCompleted",
+            savingsGoal.DateCompleted.HasValue
+
+                ? savingsGoal.DateCompleted.Value
+                    .ToString("O")
+
+                : DBNull.Value);
 
         command.Parameters.AddWithValue(
             "@Id",
@@ -1564,11 +1742,28 @@ public class DataBaseManager
         {
             string promoteNextGoal = @"
                 UPDATE SavingsGoals
+
                 SET IsPrimary = 1
-                WHERE Id = (
+
+                WHERE Id =
+                (
                     SELECT Id
+
                     FROM SavingsGoals
-                    ORDER BY Id
+
+                    WHERE
+                        IsCompleted = 0
+
+                    ORDER BY
+                        CASE
+                            WHEN PriorityRank <= 0
+                                THEN 2147483647
+
+                            ELSE PriorityRank
+                        END,
+
+                        Id ASC
+
                     LIMIT 1
                 );
             ";
@@ -1633,25 +1828,183 @@ public class DataBaseManager
 
         transaction.Commit();
     }
+   
+    // ==========================================
+    // NORMALIZE ACTIVE SAVINGS PRIORITIES
+    // ==========================================
+
+    public void NormalizeActiveSavingsGoalPriorities()
+    {
+        using SqliteConnection connection =
+        new SqliteConnection(
+            connectionString);
 
 
+        connection.Open();
+
+
+        using SqliteTransaction transaction =
+            connection.BeginTransaction();
+
+
+        // ======================================
+        // FIND ACTIVE PRIORITY TIERS
+        // ======================================
+
+        List<int> priorityLevels =
+            new List<int>();
+
+
+        using (SqliteCommand command =
+            new SqliteCommand(
+                @"
+                SELECT DISTINCT
+                    PriorityRank
+
+                FROM SavingsGoals
+
+                WHERE
+                    IsCompleted = 0
+                    AND
+                    PriorityRank > 0
+
+                ORDER BY
+                    PriorityRank ASC;
+                ",
+                connection,
+                transaction))
+        {
+            using SqliteDataReader reader =
+                command.ExecuteReader();
+
+
+            while (reader.Read())
+            {
+                priorityLevels.Add(
+                    reader.GetInt32(0));
+            }
+        }
+
+
+        // ======================================
+        // COMPACT THE PRIORITY TIERS
+        // ======================================
+
+        int newPriorityRank =
+            1;
+
+
+        foreach (int oldPriorityRank
+                in priorityLevels)
+        {
+            using SqliteCommand command =
+                new SqliteCommand(
+                    @"
+                    UPDATE SavingsGoals
+
+                    SET PriorityRank =
+                        @NewPriorityRank
+
+                    WHERE
+                        IsCompleted = 0
+                        AND
+                        PriorityRank =
+                            @OldPriorityRank;
+                    ",
+                    connection,
+                    transaction);
+
+
+            command.Parameters.AddWithValue(
+                "@NewPriorityRank",
+                newPriorityRank);
+
+
+            command.Parameters.AddWithValue(
+                "@OldPriorityRank",
+                oldPriorityRank);
+
+
+            command.ExecuteNonQuery();
+
+
+            newPriorityRank++;
+        }
+
+
+        transaction.Commit();
+
+    }
 
     // ==========================================
-    // GET PRIMARY SAVINGS GOAL
+    // GET PRIMARY ACTIVE SAVINGS GOAL
+    // ==========================================
+    //
+    // Completed goals should never appear as the
+    // featured savings goal on Home.
+    //
+    // If the user's old primary goal was completed,
+    // PocketAI falls back to the highest-priority
+    // active goal.
     // ==========================================
 
     public SavingsGoal? GetPrimarySavingsGoal()
     {
-        List<SavingsGoal> goals =
-            GetSavingsGoals();
+        List<SavingsGoal> activeGoals =
+            GetSavingsGoals()
+                .Where(
+                    goal =>
+                        !goal.IsCompleted)
+                .ToList();
 
 
-        return goals.FirstOrDefault(
-                goal => goal.IsPrimary)
-            ??
-            goals.FirstOrDefault();
+        // ======================================
+        // NO ACTIVE GOALS
+        // ======================================
+
+        if (activeGoals.Count == 0)
+        {
+            return null;
+        }
+
+
+        // ======================================
+        // EXISTING ACTIVE PRIMARY
+        // ======================================
+
+        SavingsGoal? primaryGoal =
+            activeGoals.FirstOrDefault(
+                goal =>
+                    goal.IsPrimary);
+
+
+        if (primaryGoal != null)
+        {
+            return primaryGoal;
+        }
+
+
+        // ======================================
+        // FALLBACK
+        // ======================================
+        //
+        // If the old primary goal was completed,
+        // use the highest-priority active goal.
+        // ======================================
+
+        return activeGoals
+            .OrderBy(
+                goal =>
+                    goal.PriorityRank <= 0
+
+                        ? int.MaxValue
+
+                        : goal.PriorityRank)
+            .ThenBy(
+                goal =>
+                    goal.Id)
+            .FirstOrDefault();
     }
-
 
 
     // ==========================================
@@ -2088,6 +2441,216 @@ public class DataBaseManager
 
         command.ExecuteNonQuery();
     }
+
+
+    // ==========================================
+    // GET RECURRING BILL PAYMENT FOR MONTH
+    // ==========================================
+
+    public RecurringBillPayment?
+        GetRecurringBillPayment(
+            int recurringExpenseId,
+            DateTime month)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
+        connection.Open();
+
+
+        string monthKey =
+            month.ToString(
+                "yyyy-MM");
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                @"
+                SELECT
+                    Id,
+                    RecurringExpenseId,
+                    MonthKey,
+                    IsPaid,
+                    DatePaid
+
+                FROM RecurringBillPayments
+
+                WHERE
+                    RecurringExpenseId =
+                        @RecurringExpenseId
+
+                    AND
+
+                    MonthKey =
+                        @MonthKey
+
+                LIMIT 1;
+                ",
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@RecurringExpenseId",
+            recurringExpenseId);
+
+
+        command.Parameters.AddWithValue(
+            "@MonthKey",
+            monthKey);
+
+
+        using SqliteDataReader reader =
+            command.ExecuteReader();
+
+
+        if (!reader.Read())
+        {
+            return null;
+        }
+
+
+        int id =
+            reader.GetInt32(0);
+
+
+        int billId =
+            reader.GetInt32(1);
+
+
+        string savedMonthKey =
+            reader.GetString(2);
+
+
+        bool isPaid =
+            reader.GetInt32(3) == 1;
+
+
+        DateTime? datePaid =
+            reader.IsDBNull(4)
+
+                ? null
+
+                : DateTime.Parse(
+                    reader.GetString(4));
+
+
+        return new RecurringBillPayment(
+            id,
+            billId,
+            savedMonthKey,
+            isPaid,
+            datePaid);
+    }
+
+    //IS RECURRING BILL PAID FOR MONTH
+    public bool IsRecurringBillPaidForMonth(
+        int recurringExpenseId,
+        DateTime month)
+    {
+        RecurringBillPayment? payment =
+            GetRecurringBillPayment(
+                recurringExpenseId,
+                month);
+
+
+        return payment?.IsPaid
+            ?? false;
+    }
+
+    public void SetRecurringBillPaidStatus(
+    int recurringExpenseId,
+    DateTime month,
+    bool isPaid)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
+        connection.Open();
+
+
+        string monthKey =
+            month.ToString(
+                "yyyy-MM");
+
+
+        string? datePaid =
+            isPaid
+
+                ? DateTime.Now.ToString(
+                    "O")
+
+                : null;
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                @"
+                INSERT INTO RecurringBillPayments
+                (
+                    RecurringExpenseId,
+                    MonthKey,
+                    IsPaid,
+                    DatePaid
+                )
+
+                VALUES
+                (
+                    @RecurringExpenseId,
+                    @MonthKey,
+                    @IsPaid,
+                    @DatePaid
+                )
+
+                ON CONFLICT
+                (
+                    RecurringExpenseId,
+                    MonthKey
+                )
+
+                DO UPDATE SET
+
+                    IsPaid =
+                        excluded.IsPaid,
+
+                    DatePaid =
+                        excluded.DatePaid;
+                ",
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@RecurringExpenseId",
+            recurringExpenseId);
+
+
+        command.Parameters.AddWithValue(
+            "@MonthKey",
+            monthKey);
+
+
+        command.Parameters.AddWithValue(
+            "@IsPaid",
+            isPaid
+                ? 1
+                : 0);
+
+
+        command.Parameters.AddWithValue(
+            "@DatePaid",
+            datePaid is null
+
+                ? DBNull.Value
+
+                : datePaid);
+
+
+        command.ExecuteNonQuery();
+    }
+
 
     // ==========================================
     // DELETE RECURRING EXPENSE
