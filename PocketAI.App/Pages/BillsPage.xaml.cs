@@ -113,7 +113,11 @@ public partial class BillsPage : ContentPage
                     bill =>
                         new BillDisplayItem(
                             bill,
-                            analyticsService, dataBaseManager.IsRecurringBillPaidForMonth(bill.Id, DateTime.Today)))
+                            analyticsService,
+                            dataBaseManager
+                                .IsRecurringBillPaidForMonth(
+                                    bill.Id,
+                                    DateTime.Today)))
                 .ToList();
 
 

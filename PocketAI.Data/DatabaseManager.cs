@@ -100,15 +100,22 @@ public class DataBaseManager
             IsActive INTEGER NOT NULL
             );";
 
-        string createRecurringBillPaymentsTable = @"
-        CREATE TABLE IF NOT EXISTS RecurringBillPayments (
+        string createRecurringBillPaymentTable = @"
+        CREATE TABLE IF NOT EXISTS RecurringBillPayment
+        (
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            RecurringExpensesId INTEGER NOT NULL,
+            RecurringExpenseId INTEGER NOT NULL,
             MonthKey TEXT NOT NULL,
-            IsPaid TEXT NOT NULL,
-            DatePaid TEXT NOT NULL,
-            UNIQUE(RecurringExpensesId, MonthKey)
-        );";
+            IsPaid INTEGER NOT NULL DEFAULT 0,
+            DatePaid TEXT NULL,
+
+            UNIQUE
+            (
+                RecurringExpenseId,
+                MonthKey
+            )
+        );
+        ";
 
         string createAcceptedExtraSavingsTable = @"
         CREATE TABLE IF NOT EXISTS AcceptedExtraSavings (
@@ -142,7 +149,7 @@ public class DataBaseManager
         using SqliteCommand recurringExpensesCommand = new SqliteCommand(createRecurringExpensesTable, connection);
         recurringExpensesCommand.ExecuteNonQuery();
         
-        using SqliteCommand recurringBillPaymentsCommand = new SqliteCommand(createRecurringBillPaymentsTable, connection);
+        using SqliteCommand recurringBillPaymentsCommand = new SqliteCommand(createRecurringBillPaymentTable, connection);
         recurringBillPaymentsCommand.ExecuteNonQuery();
 
         using SqliteCommand acceptedExtraSavingsCommand = new SqliteCommand(createAcceptedExtraSavingsTable, connection);
@@ -2448,9 +2455,9 @@ public class DataBaseManager
     // ==========================================
 
     public RecurringBillPayment?
-        GetRecurringBillPayment(
-            int recurringExpenseId,
-            DateTime month)
+    GetRecurringBillPayment(
+        int recurringExpenseId,
+        DateTime month)
     {
         using SqliteConnection connection =
             new SqliteConnection(
@@ -2461,33 +2468,29 @@ public class DataBaseManager
 
 
         string monthKey =
-            month.ToString(
-                "yyyy-MM");
+            month.ToString("yyyy-MM");
+
+
+        string sql = @"
+            SELECT
+                Id,
+                RecurringExpenseId,
+                MonthKey,
+                IsPaid,
+                DatePaid
+
+            FROM RecurringBillPayments
+
+            WHERE RecurringExpenseId = @RecurringExpenseId
+            AND MonthKey = @MonthKey
+
+            LIMIT 1;
+        ";
 
 
         using SqliteCommand command =
             new SqliteCommand(
-                @"
-                SELECT
-                    Id,
-                    RecurringExpenseId,
-                    MonthKey,
-                    IsPaid,
-                    DatePaid
-
-                FROM RecurringBillPayments
-
-                WHERE
-                    RecurringExpenseId =
-                        @RecurringExpenseId
-
-                    AND
-
-                    MonthKey =
-                        @MonthKey
-
-                LIMIT 1;
-                ",
+                sql,
                 connection);
 
 
@@ -2512,28 +2515,45 @@ public class DataBaseManager
 
 
         int id =
-            reader.GetInt32(0);
+            Convert.ToInt32(
+                reader["Id"]);
 
 
         int billId =
-            reader.GetInt32(1);
+            Convert.ToInt32(
+                reader["RecurringExpenseId"]);
 
 
         string savedMonthKey =
-            reader.GetString(2);
+            reader["MonthKey"]?
+                .ToString()
+            ?? "";
 
 
         bool isPaid =
-            reader.GetInt32(3) == 1;
+            Convert.ToInt32(
+                reader["IsPaid"]) == 1;
 
 
         DateTime? datePaid =
-            reader.IsDBNull(4)
+            null;
 
-                ? null
 
-                : DateTime.Parse(
-                    reader.GetString(4));
+        if (reader["DatePaid"] != DBNull.Value)
+        {
+            string? datePaidText =
+                reader["DatePaid"]?
+                    .ToString();
+
+
+            if (DateTime.TryParse(
+                    datePaidText,
+                    out DateTime parsedDate))
+            {
+                datePaid =
+                    parsedDate;
+            }
+        }
 
 
         return new RecurringBillPayment(
