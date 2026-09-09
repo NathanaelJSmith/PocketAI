@@ -14,6 +14,8 @@ public partial class BillsPage : ContentPage
     // Stores the bill currently being edited.
     private RecurringExpenses? selectedBill;
 
+    private bool isSavingBill = false;
+
 
 
     // ==========================================
@@ -189,21 +191,84 @@ public partial class BillsPage : ContentPage
 
 
 
-        // ======================================
+        // ==========================================
         // NEXT UPCOMING BILL
-        // ======================================
+        // ==========================================
 
-        RecurringExpenses? nextBill =
+        DateTime today =
+            DateTime.Today;
+
+
+        var nextBillInfo =
             activeBills
-                .OrderBy(
+                .Select(
                     bill =>
-                        analyticsService
-                            .GetDaysUntilDue(
-                                bill.DueDay))
+                    {
+                        bool isPaidThisMonth =
+                            dataBaseManager
+                                .IsRecurringBillPaidForMonth(
+                                    bill.Id,
+                                    today);
+
+
+                        DateTime dueDate;
+
+
+                        if (!isPaidThisMonth)
+                        {
+                            int dueDay =
+                                Math.Min(
+                                    Math.Max(
+                                        bill.DueDay,
+                                        1),
+                                    DateTime.DaysInMonth(
+                                        today.Year,
+                                        today.Month));
+
+
+                            dueDate =
+                                new DateTime(
+                                    today.Year,
+                                    today.Month,
+                                    dueDay);
+                        }
+                        else
+                        {
+                            DateTime nextMonth =
+                                today.AddMonths(1);
+
+
+                            int dueDay =
+                                Math.Min(
+                                    Math.Max(
+                                        bill.DueDay,
+                                        1),
+                                    DateTime.DaysInMonth(
+                                        nextMonth.Year,
+                                        nextMonth.Month));
+
+
+                            dueDate =
+                                new DateTime(
+                                    nextMonth.Year,
+                                    nextMonth.Month,
+                                    dueDay);
+                        }
+
+
+                        return new
+                        {
+                            Bill = bill,
+                            DueDate = dueDate
+                        };
+                    })
+                .OrderBy(
+                    item =>
+                        item.DueDate)
                 .FirstOrDefault();
 
 
-        if (nextBill == null)
+        if (nextBillInfo == null)
         {
             NextBillLabel.Text =
                 "None";
@@ -211,25 +276,32 @@ public partial class BillsPage : ContentPage
         else
         {
             int days =
-                analyticsService
-                    .GetDaysUntilDue(
-                        nextBill.DueDay);
+                (
+                    nextBillInfo.DueDate
+                    -
+                    today
+                ).Days;
 
 
-            if (days == 0)
+            if (days < 0)
             {
                 NextBillLabel.Text =
-                    $"{nextBill.Name} • Today";
+                    $"{nextBillInfo.Bill.Name} • Past due";
+            }
+            else if (days == 0)
+            {
+                NextBillLabel.Text =
+                    $"{nextBillInfo.Bill.Name} • Today";
             }
             else if (days == 1)
             {
                 NextBillLabel.Text =
-                    $"{nextBill.Name} • Tomorrow";
+                    $"{nextBillInfo.Bill.Name} • Tomorrow";
             }
             else
             {
                 NextBillLabel.Text =
-                    $"{nextBill.Name} • {days} days";
+                    $"{nextBillInfo.Bill.Name} • {days} days";
             }
         }
     }
@@ -367,6 +439,11 @@ public partial class BillsPage : ContentPage
         object? sender,
         EventArgs e)
     {
+        if (isSavingBill)
+        {
+            return;
+        }
+
         string name =
             BillNameEntry.Text?
                 .Trim() ?? "";
@@ -405,6 +482,16 @@ public partial class BillsPage : ContentPage
             return;
         }
 
+        if (!name.Any(
+            character =>
+                char.IsLetter(character)))
+        {
+            await DisplayAlertAsync(
+                "Invalid Name",
+                "The bill name must contain at least one letter.",
+                "OK");
+        }
+
 
 
         // ======================================
@@ -432,6 +519,8 @@ public partial class BillsPage : ContentPage
         if (!double.TryParse(
                 amountText,
                 out double amount)
+            ||
+            !double.IsFinite(amount)
             ||
             amount <= 0)
         {
@@ -519,10 +608,89 @@ public partial class BillsPage : ContentPage
         }
 
 
+        bool isEditing =
+    selectedBill != null;
+
+
+    try
+    {
+        isSavingBill =
+            true;
+
+
+        // ======================================
+        // ADD NEW BILL
+        // ======================================
+
+        if (selectedBill == null)
+        {
+            RecurringExpenses newBill =
+                new RecurringExpenses(
+                    0,
+                    name,
+                    category,
+                    amount,
+                    dueDay,
+                    isActive);
+
+
+            dataBaseManager
+                .AddRecurringExpense(
+                    newBill);
+        }
+
+
+        // ======================================
+        // UPDATE EXISTING BILL
+        // ======================================
+
+        else
+        {
+            RecurringExpenses updatedBill =
+                new RecurringExpenses(
+                    selectedBill.Id,
+                    name,
+                    category,
+                    amount,
+                    dueDay,
+                    isActive);
+
+
+            dataBaseManager
+                .UpdateRecurringExpense(
+                    updatedBill);
+        }
+
+
         CloseBillModal();
 
 
         LoadBills();
+    }
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine(
+            $"Failed to save recurring bill: {ex}");
+
+
+        string message =
+            isEditing
+
+                ? "PocketAI could not update this bill. Your previous bill information was kept. Please try again."
+
+                : "PocketAI could not add this bill. Your data was not changed. Please try again.";
+
+
+        await DisplayAlertAsync(
+            "Unable to Save",
+            message,
+            "OK");
+    }
+    finally
+    {
+        isSavingBill =
+            false;
+    }
     }
 
 
@@ -531,7 +699,7 @@ public partial class BillsPage : ContentPage
     // ACTIVE / INACTIVE QUICK TOGGLE
     // ==========================================
 
-    private void ToggleBillActiveClicked(
+    private async void ToggleBillActiveClicked(
         object? sender,
         EventArgs e)
     {
@@ -562,19 +730,33 @@ public partial class BillsPage : ContentPage
                 !bill.IsActive);
 
 
-        dataBaseManager
-            .UpdateRecurringExpense(
-                updatedBill);
+        try
+        {
+            dataBaseManager
+                .UpdateRecurringExpense(
+                    updatedBill);
 
 
-        LoadBills();
+            LoadBills();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to change bill active status: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Update",
+                "PocketAI could not change this bill's active status. Its previous status was kept. Please try again.",
+                "OK");
+        }
     }
 
     // ==========================================
     // MARK BILL PAID / UNPAID
     // ==========================================
 
-    private void ToggleBillPaidClicked(
+    private async void ToggleBillPaidClicked(
         object? sender,
         EventArgs e)
     {
@@ -595,14 +777,28 @@ public partial class BillsPage : ContentPage
             !item.IsPaidThisMonth;
 
 
-        dataBaseManager
-            .SetRecurringBillPaidStatus(
-                item.Bill.Id,
-                DateTime.Today,
-                newPaidStatus);
+        try
+        {
+            dataBaseManager
+                .SetRecurringBillPaidStatus(
+                    item.Bill.Id,
+                    DateTime.Today,
+                    newPaidStatus);
 
 
-        LoadBills();
+            LoadBills();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to change bill payment status: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Update",
+                "PocketAI could not change this bill's payment status. Its previous status was kept. Please try again.",
+                "OK");
+        }
     }
 
     // ==========================================
@@ -633,15 +829,29 @@ public partial class BillsPage : ContentPage
         }
 
 
-        dataBaseManager
-            .DeleteRecurringExpenseById(
-                selectedBill.Id);
+        try
+        {
+            dataBaseManager
+                .DeleteRecurringExpenseById(
+                    selectedBill.Id);
 
 
-        CloseBillModal();
+            CloseBillModal();
 
 
-        LoadBills();
+            LoadBills();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to delete recurring bill: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Delete",
+                "PocketAI could not delete this bill. The bill was kept. Please try again.",
+                "OK");
+        }
     }
 
 

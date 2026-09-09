@@ -198,7 +198,9 @@ public partial class AccountsPage : ContentPage
 
         if (!double.TryParse(
                 input,
-                out double newChecking))
+                out double newChecking)
+            ||
+            !double.IsFinite(newChecking))
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
@@ -219,14 +221,27 @@ public partial class AccountsPage : ContentPage
                 currentCash);
 
 
-
-        dataBaseManager
+        try
+        {
+         dataBaseManager
             .SaveAccountBalance(
                 updatedBalance);
 
 
 
-        LoadAccountData();
+        LoadAccountData();   
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update your checking balance. Please try again.",
+                "OK");
+            
+        }
+        
     }
 
 
@@ -299,19 +314,46 @@ public partial class AccountsPage : ContentPage
         if (!double.TryParse(
                 input,
                 out double newSavings)
-            ||
-            newSavings < 0)
+                ||
+                !double.IsFinite(newSavings)
+                ||
+                newSavings < 0)
+            {
+                await DisplayAlertAsync(
+                    "Invalid Amount",
+                    "Enter a valid savings balance.",
+                    "OK");
+
+
+                return;
+            }
+
+        // ======================================
+        // PROTECT SAVINGS GOAL ASSIGNMENTS
+        // ======================================
+
+        List<SavingsGoal> goals =
+            dataBaseManager.GetSavingsGoals();
+
+
+        double assignedSavings =
+            goals.Sum(
+                goal =>
+                    Math.Max(
+                        goal.CurrentAmount,
+                        0));
+
+
+        if (newSavings < assignedSavings)
         {
             await DisplayAlertAsync(
-                "Invalid Amount",
-                "Enter a valid savings balance.",
+                "Savings Already Assigned",
+                $"You currently have {assignedSavings:C} assigned to savings goals. Your Savings Account cannot be lowered below that amount.",
                 "OK");
 
 
             return;
         }
-
-
 
         // Keep Checking and Cash unchanged.
         AccountBalance updatedBalance =
@@ -321,14 +363,26 @@ public partial class AccountsPage : ContentPage
                 currentCash);
 
 
-
+    try
+        {
         dataBaseManager
             .SaveAccountBalance(
                 updatedBalance);
 
 
 
-        LoadAccountData();
+        LoadAccountData();    
+        }
+        catch(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update your savings balance. Please try again.",
+                "OK");
+        }
+        
     }
 
 
@@ -398,11 +452,13 @@ public partial class AccountsPage : ContentPage
 
 
 
-        if (!double.TryParse(
+        if (double.TryParse(
                 input,
                 out double newCash)
-            ||
-            newCash < 0)
+                ||
+                !double.IsFinite(newCash)
+                ||
+                newCash < 0)
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
@@ -423,14 +479,26 @@ public partial class AccountsPage : ContentPage
                 newCash);
 
 
-
-        dataBaseManager
+        try
+        {
+         dataBaseManager
             .SaveAccountBalance(
                 updatedBalance);
 
 
 
-        LoadAccountData();
+        LoadAccountData();   
+        }
+        catch(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update your cash balance. Please try again.",
+                "OK");
+        }
+        
     }
 
 
@@ -490,6 +558,8 @@ public partial class AccountsPage : ContentPage
                 incomeInput,
                 out double monthlyIncome)
             ||
+            !double.IsFinite(monthlyIncome)
+            ||
             monthlyIncome < 0)
         {
             await DisplayAlertAsync(
@@ -509,13 +579,24 @@ public partial class AccountsPage : ContentPage
                 monthlyIncome);
 
 
-
-        dataBaseManager
+        try
+        {
+         dataBaseManager
             .SaveIncome(
                 income);
 
 
 
         LoadAccountData();
+        }   
+        catch(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to save income: {ex}");
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update your monthly income. Please try again.",
+                "OK");
+        }
     }
 }

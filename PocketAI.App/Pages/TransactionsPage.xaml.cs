@@ -11,6 +11,8 @@ public partial class TransactionsPage : ContentPage
     // Stores the expense currently being edited
     private Expense? selectedExpense;
 
+    // Prevents accidental double submissions
+    private bool isSavingExpense = false;
 
     public TransactionsPage()
     {
@@ -485,6 +487,10 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         EventArgs e)
     {
+        if (isSavingExpense)
+        {
+            return;
+        }
         string expenseName =
             ExpenseNameEntry.Text?
                 .Trim()
@@ -533,20 +539,39 @@ public partial class TransactionsPage : ContentPage
 
 
         // ======================================
+        // VALIDATE USEFUL NAME
+        // ======================================
+
+        if (!expenseName.Any(
+                character =>
+                    char.IsLetter(character)))
+        {
+            await DisplayAlertAsync(
+                "Invalid Name",
+                "The expense name must contain at least one letter.",
+                "OK");
+
+
+            return;
+        }
+
+
+        // ======================================
         // VALIDATE AMOUNT
         // ======================================
 
         if (!double.TryParse(
-                amountText,
-                out double amount)
+        amountText,
+        out double amount)
+            ||
+            !double.IsFinite(amount)
             ||
             amount <= 0)
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
-                "Enter a valid expense amount.",
+                "Enter a valid expense amount greater than zero.",
                 "OK");
-
 
             return;
         }
@@ -587,6 +612,29 @@ public partial class TransactionsPage : ContentPage
 
 
         // ======================================
+        // VALIDATE DATE
+        // ======================================
+
+        DateTime expenseDate =
+            ExpenseDatePicker.Date
+            ??
+            DateTime.Today;
+
+
+        if (expenseDate.Date >
+            DateTime.Today)
+        {
+            await DisplayAlertAsync(
+                "Invalid Date",
+                "A transaction cannot be dated in the future.",
+                "OK");
+
+
+            return;
+        }
+
+
+        // ======================================
         // BUILD EXPENSE
         // ======================================
 
@@ -596,8 +644,7 @@ public partial class TransactionsPage : ContentPage
                 expenseName,
                 amount,
                 category,
-                ExpenseDatePicker.Date
-                    ?? DateTime.Today,
+                expenseDate,
                 paidFromAccount);
 
 
@@ -611,16 +658,37 @@ public partial class TransactionsPage : ContentPage
         // 2. Reduce Checking or Cash
         // 3. Commit both changes together
 
-        dataBaseManager.AddExpense(
-            expense);
+        try
+        {
+            isSavingExpense = true;
 
 
-        // Close modal
-        CloseModals();
+            dataBaseManager.AddExpense(
+                expense);
 
 
-        // Refresh transaction list
-        LoadTransactions();
+            // Close modal
+            CloseModals();
+
+
+            // Refresh transaction list
+            LoadTransactions();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to add expense: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not save this transaction. Your data was not changed. Please try again.",
+                "OK");
+        }
+        finally
+        {
+            isSavingExpense = false;
+        }
     }
 
 
@@ -824,20 +892,39 @@ public partial class TransactionsPage : ContentPage
 
 
         // ======================================
+        // VALIDATE USEFUL NAME
+        // ======================================
+
+        if (!name.Any(
+                character =>
+                    char.IsLetter(character)))
+        {
+            await DisplayAlertAsync(
+                "Invalid Name",
+                "The expense name must contain at least one letter.",
+                "OK");
+
+
+            return;
+        }
+
+
+        // ======================================
         // VALIDATE AMOUNT
         // ======================================
 
         if (!double.TryParse(
-                amountText,
-                out double amount)
+        amountText,
+        out double amount)
+            ||
+            !double.IsFinite(amount)
             ||
             amount <= 0)
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
-                "Enter a valid expense amount.",
+                "Enter a valid expense amount greater than zero.",
                 "OK");
-
 
             return;
         }
@@ -878,6 +965,29 @@ public partial class TransactionsPage : ContentPage
 
 
         // ======================================
+        // VALIDATE DATE
+        // ======================================
+
+        DateTime expenseDate =
+            EditExpenseDatePicker.Date
+            ??
+            DateTime.Today;
+
+
+        if (expenseDate.Date >
+            DateTime.Today)
+        {
+            await DisplayAlertAsync(
+                "Invalid Date",
+                "A transaction cannot be dated in the future.",
+                "OK");
+
+
+            return;
+        }
+
+
+        // ======================================
         // BUILD UPDATED EXPENSE
         // ======================================
 
@@ -887,8 +997,7 @@ public partial class TransactionsPage : ContentPage
                 name,
                 amount,
                 category,
-                EditExpenseDatePicker.Date
-                    ?? DateTime.Today,
+                expenseDate,
                 paidFromAccount);
 
 
@@ -913,16 +1022,30 @@ public partial class TransactionsPage : ContentPage
         // Checking +$20
         // Cash     -$30
 
-        dataBaseManager.UpdateExpense(
-            updatedExpense);
+        try
+        {
+            dataBaseManager.UpdateExpense(
+                updatedExpense);
 
 
-        // Close modal
-        CloseModals();
+            // Close modal
+            CloseModals();
 
 
-        // Refresh page
-        LoadTransactions();
+            // Refresh page
+            LoadTransactions();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to update expense: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update this transaction. Your original transaction was not changed. Please try again.",
+                "OK");
+        }
     }
 
 
@@ -963,16 +1086,30 @@ public partial class TransactionsPage : ContentPage
         // to the original account before deleting
         // the transaction.
 
-        dataBaseManager.DeleteExpenseById(
-            selectedExpense.Id);
+        try
+        {
+            dataBaseManager.DeleteExpenseById(
+                selectedExpense.Id);
 
 
-        // Close modal
-        CloseModals();
+            // Close modal
+            CloseModals();
 
 
-        // Refresh page
-        LoadTransactions();
+            // Refresh page
+            LoadTransactions();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to delete expense: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Delete",
+                "PocketAI could not delete this transaction. Your transaction and account balance were not changed. Please try again.",
+                "OK");
+        }
     }
 
 

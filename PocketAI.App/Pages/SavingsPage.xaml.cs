@@ -988,6 +988,8 @@ public partial class SavingsPage : ContentPage
                 targetText,
                 out double targetAmount)
             ||
+            !double.IsFinite(targetAmount)
+            ||
             targetAmount <= 0)
         {
             await DisplayAlertAsync(
@@ -1004,6 +1006,8 @@ public partial class SavingsPage : ContentPage
         if (!double.TryParse(
                 currentText,
                 out double currentAmount)
+            ||
+            !double.IsFinite(currentAmount)
             ||
             currentAmount < 0)
         {
@@ -1092,81 +1096,93 @@ public partial class SavingsPage : ContentPage
         // ======================================
         // NEW GOAL
         // ======================================
-
-        if (selectedGoal == null)
+    try
         {
-            SavingsGoal newGoal =
-                new SavingsGoal(
-                    name,
-                    targetAmount,
-                    currentAmount,
-                    deadline);
+                
+            if (selectedGoal == null)
+            {
+                SavingsGoal newGoal =
+                    new SavingsGoal(
+                        name,
+                        targetAmount,
+                        currentAmount,
+                        deadline);
 
 
 
-            newGoal.PriorityRank =
-                priorityRank;
+                newGoal.PriorityRank =
+                    priorityRank;
 
 
-            newGoal.IsEssential =
-                isEssential;
+                newGoal.IsEssential =
+                    isEssential;
 
 
-            newGoal.CustomAllocationPercentage =
-                null;
+                newGoal.CustomAllocationPercentage =
+                    null;
 
 
 
-            dataBaseManager
-                .AddSavingsGoal(
-                    newGoal);
+                dataBaseManager
+                    .AddSavingsGoal(
+                        newGoal);
+            }
+
+
+
+            // ======================================
+            // EDIT GOAL
+            // ======================================
+
+            else
+            {
+                SavingsGoal updatedGoal =
+                    new SavingsGoal(
+                        selectedGoal.Id,
+                        name,
+                        targetAmount,
+                        currentAmount,
+                        deadline,
+                        selectedGoal.IsPrimary,
+                        priorityRank,
+                        isEssential,
+                        selectedGoal
+                            .CustomAllocationPercentage);
+
+                // Keep completion/history information
+                // when editing an existing goal.
+                updatedGoal.IsCompleted =
+                    selectedGoal.IsCompleted;
+
+                updatedGoal.DateCreated =
+                    selectedGoal.DateCreated;
+
+                updatedGoal.DateCompleted =
+                    selectedGoal.DateCompleted;
+
+
+
+                dataBaseManager
+                    .UpdateSavingsGoal(
+                        updatedGoal);
+            }
+
+
+
+            CloseSavingsModals();
+
+
+            LoadSavingsGoals();
         }
-
-
-
-        // ======================================
-        // EDIT GOAL
-        // ======================================
-
-        else
+        catch (Exception ex)
         {
-            SavingsGoal updatedGoal =
-                new SavingsGoal(
-                    selectedGoal.Id,
-                    name,
-                    targetAmount,
-                    currentAmount,
-                    deadline,
-                    selectedGoal.IsPrimary,
-                    priorityRank,
-                    isEssential,
-                    selectedGoal
-                        .CustomAllocationPercentage);
+            System.Diagnostics.Debug.WriteLine($"Error saving savings goal: {ex}");
 
-            // Keep completion/history information
-            // when editing an existing goal.
-            updatedGoal.IsCompleted =
-                selectedGoal.IsCompleted;
-
-            updatedGoal.DateCreated =
-                selectedGoal.DateCreated;
-
-            updatedGoal.DateCompleted =
-                selectedGoal.DateCompleted;
-
-
-
-            dataBaseManager
-                .UpdateSavingsGoal(
-                    updatedGoal);
+            await DisplayAlertAsync(
+                "Error",
+                "An error occurred while saving your savings goal. Please try again.",
+                "OK");
         }
-
-
-
-        CloseSavingsModals();
-
-
-        LoadSavingsGoals();
     }
 
 
@@ -1251,6 +1267,8 @@ public partial class SavingsPage : ContentPage
         if (!double.TryParse(
                 amountText,
                 out double amount)
+            ||
+            !double.IsFinite(amount)
             ||
             amount <= 0)
         {
@@ -1348,7 +1366,9 @@ public partial class SavingsPage : ContentPage
         updatedGoal.DateCompleted =
             selectedGoal.DateCompleted;
 
-        dataBaseManager
+        try
+        {
+         dataBaseManager
             .UpdateSavingsGoal(
                 updatedGoal);
 
@@ -1357,7 +1377,18 @@ public partial class SavingsPage : ContentPage
         CloseSavingsModals();
 
 
-        LoadSavingsGoals();
+        LoadSavingsGoals();   
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error adding savings to goal: {ex}");
+
+            await DisplayAlertAsync(
+                "Error",
+                "PocketAI could not add this amount to your savings goal. Your previous goal amount was kept. Please try again.",
+                "OK");
+        }
+        
     }
 
     // ==========================================
@@ -1418,27 +1449,35 @@ public partial class SavingsPage : ContentPage
             false;
 
 
-        dataBaseManager
-            .UpdateSavingsGoal(
-                goal);
-
-        dataBaseManager.NormalizeActiveSavingsGoalPriorities();
-
-        SavingsGoal? nextHomeGoal = dataBaseManager.GetPrimarySavingsGoal();
-
-        if (nextHomeGoal != null)
+        try
         {
-            dataBaseManager.SetPrimarySavingsGoal(nextHomeGoal.Id); 
+            dataBaseManager
+                .NormalizeActiveSavingsGoalPriorities();
+
+
+            SavingsGoal? nextHomeGoal =
+                dataBaseManager
+                    .GetPrimarySavingsGoal();
+
+
+            if (nextHomeGoal != null)
+            {
+                dataBaseManager
+                    .SetPrimarySavingsGoal(
+                        nextHomeGoal.Id);
+            }
         }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Goal completed, but savings priorities could not refresh: {ex}");
 
 
-        await DisplayAlertAsync(
-            "🎉 Goal Completed!",
-            $"You completed {goal.Name} with {goal.CurrentAmount:C} saved. Nice work!",
-            "Awesome");
-
-
-        LoadSavingsGoals();
+            await DisplayAlertAsync(
+                "Goal Completed",
+                "Your savings goal was completed successfully, but PocketAI could not fully refresh your goal priorities. Your saved money was not changed.",
+                "OK");
+        }
     }
 
     // ==========================================
@@ -1498,6 +1537,8 @@ public partial class SavingsPage : ContentPage
                 input,
                 out double newTarget)
             ||
+            !double.IsFinite(newTarget)
+            ||
             newTarget <=
             Math.Max(
                 goal.TargetAmount,
@@ -1526,19 +1567,39 @@ public partial class SavingsPage : ContentPage
             null;
 
 
-        dataBaseManager
-            .UpdateSavingsGoal(
-                goal);
+        try
+        {
+            dataBaseManager
+                .UpdateSavingsGoal(
+                    goal);
 
 
-        LoadSavingsGoals();
+            LoadSavingsGoals();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to increase savings target: {ex}");
+
+
+            // Reload the saved database version so the
+            // page does not keep unsaved changes in memory.
+            LoadSavingsGoals();
+
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not update this savings target. Your previous target was kept. Please try again.",
+                "OK");
+            
+            }
     }
 
     // ==========================================
     // SHOW ON HOME
     // ==========================================
 
-    private void MakePrimaryClicked(
+    private async void MakePrimaryClicked(
         object? sender,
         EventArgs e)
     {
@@ -1556,13 +1617,26 @@ public partial class SavingsPage : ContentPage
 
 
 
-        dataBaseManager
-            .SetPrimarySavingsGoal(
-                item.Goal.Id);
+        try
+        {
+            dataBaseManager
+                .SetPrimarySavingsGoal(
+                    item.Goal.Id);
 
 
+            LoadSavingsGoals();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to set primary savings goal: {ex}");
 
-        LoadSavingsGoals();
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not change the savings goal shown on Home. Your previous Home goal was kept. Please try again.",
+                "OK");
+        };
     }
 
 
@@ -1598,12 +1672,30 @@ public partial class SavingsPage : ContentPage
 
 
 
+        try
+        {
+            dataBaseManager
+                .DeleteSavingsGoalById(
+                    selectedGoal.Id);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to delete savings goal: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Delete",
+                "PocketAI could not delete this savings goal. Your goal was kept. Please try again.",
+                "OK");
+
+
+            return;
+        }
+
+
         dataBaseManager
-            .DeleteSavingsGoalById(
-                selectedGoal.Id);
-
-        dataBaseManager.NormalizeActiveSavingsGoalPriorities();
-
+            .NormalizeActiveSavingsGoalPriorities();
 
 
         CloseSavingsModals();
@@ -1665,6 +1757,8 @@ public partial class SavingsPage : ContentPage
         if (!double.TryParse(
                 amountText,
                 out double amount)
+            ||
+            !double.IsFinite(amount)
             ||
             amount < 0)
         {
@@ -1842,17 +1936,30 @@ private async void AcceptExtraSavingsClicked(
     // SAVE MONTHLY COMMITMENT
     // ======================================
 
-    dataBaseManager
+    try
+        {
+         dataBaseManager
         .SaveAcceptedExtraSavingsForMonth(
             newAcceptedTotal);
 
-
+    
     // The custom preview has now been accepted.
     userExtraSavingsPreviewOverride =
         null;
 
 
-    LoadSavingsGoals();
+    LoadSavingsGoals();   
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving accepted extra savings: {ex}");
+
+            await DisplayAlertAsync(
+                "Error",
+                "An error occurred while saving your accepted extra savings. Please try again.",
+                "OK");
+        }
+    
 }
 
 
@@ -1908,6 +2015,8 @@ private async void EditAcceptedSavingsClicked(
             input,
             out double newAccepted)
         ||
+        !double.IsFinite(newAccepted)
+        ||
         newAccepted < 0)
     {
         await DisplayAlertAsync(
@@ -1955,7 +2064,9 @@ private async void EditAcceptedSavingsClicked(
     }
 
 
-    dataBaseManager
+    try
+        {
+         dataBaseManager
         .SaveAcceptedExtraSavingsForMonth(
             newAccepted);
 
@@ -1964,7 +2075,18 @@ private async void EditAcceptedSavingsClicked(
         null;
 
 
-    LoadSavingsGoals();
+    LoadSavingsGoals();   
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to edit accepted savings: {ex}");
+
+            await DisplayAlertAsync(
+                "Error",
+                "PocketAI could not update your accepted savings amount. Your previous savings plan was kept. Please try again.",
+                "OK");
+        }
+    
 }
 
 
@@ -2004,8 +2126,9 @@ private async void EditAcceptedSavingsClicked(
             return;
         }
 
-
-        dataBaseManager
+        try
+        {
+         dataBaseManager
             .SaveAcceptedExtraSavingsForMonth(
                 0);
 
@@ -2014,7 +2137,18 @@ private async void EditAcceptedSavingsClicked(
             null;
 
 
-        LoadSavingsGoals();
+        LoadSavingsGoals();   
+        }
+        catch(Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to remove accepted savings: {ex}");
+
+            await DisplayAlertAsync(
+                "Error",
+                "PocketAI could not remove your accepted savings. Your previous savings plan was kept. Please try again.",
+                "OK");
+        }
+        
     }
 
     // ==========================================

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="PocketAI.App.Pages.IncomeSetupPage"
+    BackgroundColor="{DynamicResource PageBackground}"
+    NavigationPage.HasNavigationBar="False"
+    Shell.NavBarIsVisible="False">
+
+
+    <Grid
+        Padding="40">
+
+
+        <Border
+            MaximumWidthRequest="700"
+            Padding="48"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+            Stroke="{DynamicResource ThemePrimaryLight}"
+            StrokeThickness="1">
+
+
+            <Border.StrokeShape>
+
+                <RoundRectangle
+                    CornerRadius="24" />
+
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout
+                Spacing="22">
+
+
+                <!-- STEP -->
+
+                <Label
+                    Text="STEP 1 OF 4"
+                    FontSize="12"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource ThemePrimary}" />
+
+
+                <!-- TITLE -->
+
+                <Label
+                    Text="What do you usually earn each month?"
+                    FontSize="34"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource TextPrimary}" />
+
+
+                <!-- EXPLANATION -->
+
+                <Label
+                    Text="PocketAI uses your expected monthly income to build your spending plan. If your income changes from month to month, use your best estimate for now."
+                    FontSize="15"
+                    TextColor="{DynamicResource TextSecondary}"
+                    LineHeight="1.3" />
+
+
+                <!-- INCOME SOURCE -->
+
+                <VerticalStackLayout
+                    Spacing="8"
+                    Margin="0,10,0,0">
+
+                    <Label
+                        Text="MAIN INCOME SOURCE"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+
+                    <Border
+                        BackgroundColor="{DynamicResource PageBackground}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
+                        StrokeThickness="1"
+                        Padding="14,5">
+
+                        <Border.StrokeShape>
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
+                        </Border.StrokeShape>
+
+
+                        <Entry
+                            x:Name="IncomeSourceEntry"
+                            Placeholder="Example: Job, Tips, Internship"
+                            PlaceholderColor="{DynamicResource TextMuted}"
+                            TextColor="{DynamicResource TextPrimary}"
+                            BackgroundColor="Transparent" />
+
+                    </Border>
+
+                </VerticalStackLayout>
+
+
+                <!-- MONTHLY INCOME -->
+
+                <VerticalStackLayout
+                    Spacing="8">
+
+                    <Label
+                        Text="EXPECTED MONTHLY INCOME"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextSecondary}" />
+
+
+                    <Border
+                        BackgroundColor="{DynamicResource PageBackground}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
+                        StrokeThickness="1"
+                        Padding="14,5">
+
+                        <Border.StrokeShape>
+
+                            <RoundRectangle
+                                CornerRadius="10" />
+
+                        </Border.StrokeShape>
+
+
+                        <Grid
+                            ColumnDefinitions="Auto,*"
+                            ColumnSpacing="8">
+
+                            <Label
+                                Grid.Column="0"
+                                Text="$"
+                                FontSize="20"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource TextSecondary}"
+                                VerticalOptions="Center" />
+
+
+                            <Entry
+                                Grid.Column="1"
+                                x:Name="MonthlyIncomeEntry"
+                                Placeholder="0.00"
+                                Keyboard="Numeric"
+                                FontSize="20"
+                                TextColor="{DynamicResource TextPrimary}"
+                                PlaceholderColor="{DynamicResource TextMuted}"
+                                BackgroundColor="Transparent" />
+
+                        </Grid>
+
+                    </Border>
+
+                </VerticalStackLayout>
+
+
+                <!-- INFO -->
+
+                <Border
+                    Padding="16"
+                    BackgroundColor="{DynamicResource PageBackground}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
+                    StrokeThickness="1">
+
+                    <Border.StrokeShape>
+
+                        <RoundRectangle
+                            CornerRadius="12" />
+
+                    </Border.StrokeShape>
+
+
+                    <Label
+                        Text="This is planning information. PocketAI will not treat expected income as money already sitting in your bank account."
+                        FontSize="12"
+                        TextColor="{DynamicResource TextSecondary}"
+                        LineHeight="1.25" />
+
+                </Border>
+
+
+                <!-- CONTINUE -->
+
+                <Button
+                    Text="Continue"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    BackgroundColor="{DynamicResource ThemePrimary}"
+                    TextColor="{DynamicResource TextOnPrimary}"
+                    CornerRadius="12"
+                    HeightRequest="52"
+                    Margin="0,6,0,0"
+                    Clicked="ContinueClicked" />
+
+            </VerticalStackLayout>
+
+        </Border>
+
+    </Grid>
+
+</ContentPage>

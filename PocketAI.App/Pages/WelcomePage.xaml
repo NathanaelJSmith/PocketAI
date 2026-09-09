@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="PocketAI.App.Pages.WelcomePage"
+    BackgroundColor="{DynamicResource PageBackground}"
+    NavigationPage.HasNavigationBar="False"
+    Shell.NavBarIsVisible="False">
+
+
+    <Grid
+        Padding="40">
+
+
+        <Border
+            MaximumWidthRequest="760"
+            Padding="48"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+            Stroke="{DynamicResource ThemePrimaryLight}"
+            StrokeThickness="1">
+
+
+            <Border.StrokeShape>
+
+                <RoundRectangle
+                    CornerRadius="24" />
+
+            </Border.StrokeShape>
+
+
+            <VerticalStackLayout
+                Spacing="22">
+
+
+                <!-- POCKETAI -->
+
+                <Label
+                    Text="● POCKETAI"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource ThemePrimary}"
+                    HorizontalOptions="Center" />
+
+
+                <!-- TITLE -->
+
+                <Label
+                    Text="Money doesn't have to feel complicated."
+                    FontSize="40"
+                    FontAttributes="Bold"
+                    TextColor="{DynamicResource TextPrimary}"
+                    HorizontalTextAlignment="Center"
+                    Margin="0,8,0,0" />
+
+
+                <!-- DESCRIPTION -->
+
+                <Label
+                    Text="PocketAI will help you understand where your money is going, build a plan you can actually follow, and make progress toward the things that matter to you."
+                    FontSize="16"
+                    TextColor="{DynamicResource TextSecondary}"
+                    HorizontalTextAlignment="Center"
+                    LineHeight="1.35"
+                    MaximumWidthRequest="620" />
+
+
+                <!-- WHAT WE WILL SET UP -->
+
+                <Border
+                    Margin="0,14,0,4"
+                    Padding="24"
+                    BackgroundColor="{DynamicResource PageBackground}"
+                    Stroke="{DynamicResource ThemePrimaryLight}"
+                    StrokeThickness="1">
+
+
+                    <Border.StrokeShape>
+
+                        <RoundRectangle
+                            CornerRadius="16" />
+
+                    </Border.StrokeShape>
+
+
+                    <VerticalStackLayout
+                        Spacing="16">
+
+
+                        <Label
+                            Text="WE'LL SET UP"
+                            FontSize="11"
+                            FontAttributes="Bold"
+                            TextColor="{DynamicResource ThemePrimary}" />
+
+
+                        <Grid
+                            ColumnDefinitions="Auto,*"
+                            RowDefinitions="Auto,Auto,Auto,Auto"
+                            ColumnSpacing="14"
+                            RowSpacing="14">
+
+
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Text="1"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
+
+                            <Label
+                                Grid.Row="0"
+                                Grid.Column="1"
+                                Text="Your monthly income"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="2"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
+
+                            <Label
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Text="Your current account balances"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+
+                            <Label
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Text="3"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
+
+                            <Label
+                                Grid.Row="2"
+                                Grid.Column="1"
+                                Text="Your recurring monthly bills"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+
+                            <Label
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Text="4"
+                                FontAttributes="Bold"
+                                TextColor="{DynamicResource ThemePrimary}" />
+
+                            <Label
+                                Grid.Row="3"
+                                Grid.Column="1"
+                                Text="Your first savings goal"
+                                TextColor="{DynamicResource TextPrimary}" />
+
+                        </Grid>
+
+                        <Label
+                            Text="Then we'll show you how PocketAI turns this information into budgets, analytics, and personalized guidance."
+                            FontSize="12"
+                            TextColor="{DynamicResource TextSecondary}"
+                            LineHeight="1.25"
+                            Margin="0,8,0,0" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+
+                <!-- BUTTON -->
+
+                <Button
+                    Text="Get Started"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    BackgroundColor="{DynamicResource ThemePrimary}"
+                    TextColor="{DynamicResource TextOnPrimary}"
+                    CornerRadius="12"
+                    HeightRequest="52"
+                    Margin="0,8,0,0"
+                    Clicked="GetStartedClicked" />
+
+
+                <Label
+                    Text="This should only take a few minutes."
+                    FontSize="12"
+                    TextColor="{DynamicResource TextMuted}"
+                    HorizontalTextAlignment="Center" />
+
+            </VerticalStackLayout>
+
+        </Border>
+
+    </Grid>
+
+</ContentPage>

@@ -126,7 +126,10 @@ public class FinancialSnapshotProvider
                 dataBaseManager
                     .GetRecuringExpenses();
 
-
+        HashSet<int> paidRecurringExpenseIds =
+        dataBaseManager
+        .GetPaidRecurringExpenseIdsForMonth(
+            DateTime.Today);
         // ======================================
         // ACCEPTED EXTRA SAVINGS
         // ======================================
@@ -149,15 +152,17 @@ public class FinancialSnapshotProvider
         // ======================================
 
         FinancialSnapshot snapshot =
-            financialCalculationService
-                .BuildSnapshot(
-                    expenses,
-                    income,
-                    accountBalance,
-                    savingsGoals,
-                    budgetLimits,
-                    recurringExpenses,
-                    acceptedExtraSavings);
+        financialCalculationService
+            .BuildSnapshot(
+                expenses,
+                income,
+                accountBalance,
+                savingsGoals,
+                budgetLimits,
+                recurringExpenses,
+                acceptedExtraSavings,
+                paidRecurringExpenseIds:
+                    paidRecurringExpenseIds);
 
 
 

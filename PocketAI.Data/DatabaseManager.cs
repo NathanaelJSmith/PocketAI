@@ -101,7 +101,7 @@ public class DataBaseManager
             );";
 
         string createRecurringBillPaymentTable = @"
-        CREATE TABLE IF NOT EXISTS RecurringBillPayment
+        CREATE TABLE IF NOT EXISTS RecurringBillPayments
         (
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
             RecurringExpenseId INTEGER NOT NULL,
@@ -148,7 +148,8 @@ public class DataBaseManager
 
         using SqliteCommand recurringExpensesCommand = new SqliteCommand(createRecurringExpensesTable, connection);
         recurringExpensesCommand.ExecuteNonQuery();
-        
+
+
         using SqliteCommand recurringBillPaymentsCommand = new SqliteCommand(createRecurringBillPaymentTable, connection);
         recurringBillPaymentsCommand.ExecuteNonQuery();
 
@@ -2077,6 +2078,57 @@ public class DataBaseManager
         command.ExecuteNonQuery();
     }
 
+    // ==========================================
+    // UPDATE BUDGET LIMIT
+    // ==========================================
+
+    public void UpdateBudgetLimit(
+        string originalCategory,
+        BudgetLimit budgetLimit)
+    {
+        using SqliteConnection connection =
+            new SqliteConnection(
+                connectionString);
+
+
+        connection.Open();
+
+
+        string updateBudgetLimit = @"
+            UPDATE BudgetLimits
+
+            SET
+                Category = @NewCategory,
+                LimitAmount = @LimitAmount
+
+            WHERE Category = @OriginalCategory;
+        ";
+
+
+        using SqliteCommand command =
+            new SqliteCommand(
+                updateBudgetLimit,
+                connection);
+
+
+        command.Parameters.AddWithValue(
+            "@NewCategory",
+            budgetLimit.Category);
+
+
+        command.Parameters.AddWithValue(
+            "@LimitAmount",
+            budgetLimit.LimitAmount);
+
+
+        command.Parameters.AddWithValue(
+            "@OriginalCategory",
+            originalCategory);
+
+
+        command.ExecuteNonQuery();
+    }
+
     //Loads all budget limits from the database 
     public List<BudgetLimit> GetBudgetLimits()
     {
@@ -2449,6 +2501,41 @@ public class DataBaseManager
         command.ExecuteNonQuery();
     }
 
+    // ==========================================
+    // GET PAID RECURRING BILL IDS FOR MONTH
+    // ==========================================
+    public HashSet<int> GetPaidRecurringExpenseIdsForMonth(DateTime month)
+    {
+        HashSet<int> paidBillsIds =
+            new HashSet<int>();
+
+        using SqliteConnection connection = new SqliteConnection(connectionString);
+        connection.Open();
+
+        string monthKey = month.ToString("yyyy-MM");
+
+        using SqliteCommand command = new SqliteCommand(
+            
+            @"
+            SELECT RecurringExpenseId
+            FROM RecurringBillPayments
+            WHERE MonthKey = @MonthKey
+            AND IsPaid = 1;
+            ",
+            connection);
+        
+        command.Parameters.AddWithValue("@MonthKey", monthKey);
+
+        using SqliteDataReader reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            int recurringExpenseId = Convert.ToInt32(reader["RecurringExpenseId"]);
+            paidBillsIds.Add(recurringExpenseId);
+        }
+
+        return paidBillsIds;
+    }
 
     // ==========================================
     // GET RECURRING BILL PAYMENT FOR MONTH

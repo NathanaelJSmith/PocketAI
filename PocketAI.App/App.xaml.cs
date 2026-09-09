@@ -1,4 +1,5 @@
 ﻿namespace PocketAI.App;
+using PocketAI.App.Pages;
 
 public partial class App : Application
 {
@@ -32,9 +33,17 @@ public partial class App : Application
 
 
     protected override Window CreateWindow(
-        IActivationState? activationState)
+    IActivationState? activationState)
     {
+        if (OnBoardingManager.IsComplete)
+        {
+            return new Window(
+                new AppShell());
+        }
+
+
         return new Window(
-            new AppShell());
+            new NavigationPage(
+                new WelcomePage()));
     }
 }

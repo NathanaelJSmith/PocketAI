@@ -1,5 +1,6 @@
 namespace PocketAI.App.Pages;
 
+
 public partial class BudgetPage : ContentPage
 {
     private readonly DataBaseManager dataBaseManager;
@@ -13,6 +14,13 @@ public partial class BudgetPage : ContentPage
 
     // Stores the budget currently being edited.
     private BudgetLimit? selectedBudget;
+
+
+    // Prevents accidental duplicate saves
+    // from rapid button clicks.
+    private bool isSavingBudget =
+        false;
+
 
 
     // ==========================================
@@ -123,6 +131,7 @@ public partial class BudgetPage : ContentPage
             new List<BudgetDisplayItem>();
 
 
+
         // ======================================
         // SUMMARY VALUES
         // ======================================
@@ -137,6 +146,7 @@ public partial class BudgetPage : ContentPage
 
         int overBudgetCount =
             0;
+
 
 
         foreach (BudgetLimit budget
@@ -379,6 +389,13 @@ public partial class BudgetPage : ContentPage
         object? sender,
         EventArgs e)
     {
+        // Prevent accidental duplicate saves.
+        if (isSavingBudget)
+        {
+            return;
+        }
+
+
         string category =
             BudgetCategoryPicker
                 .SelectedItem?
@@ -417,11 +434,14 @@ public partial class BudgetPage : ContentPage
                 amountText,
                 out double limitAmount)
             ||
+            !double.IsFinite(
+                limitAmount)
+            ||
             limitAmount <= 0)
         {
             await DisplayAlertAsync(
                 "Invalid Limit",
-                "Enter a valid monthly budget amount.",
+                "Enter a valid monthly budget amount greater than zero.",
                 "OK");
 
 
@@ -430,100 +450,141 @@ public partial class BudgetPage : ContentPage
 
 
 
+        bool isEditing =
+            selectedBudget != null;
+
+
+
         // ======================================
-        // ADD NEW BUDGET
+        // SAVE TO DATABASE
         // ======================================
 
-        if (selectedBudget == null)
+        try
         {
-            bool categoryAlreadyExists =
-                allBudgets.Any(
-                    budget =>
-                        budget.Category.Equals(
-                            category,
-                            StringComparison.OrdinalIgnoreCase));
+            isSavingBudget =
+                true;
 
 
-            if (categoryAlreadyExists)
+
+            // ==================================
+            // ADD NEW BUDGET
+            // ==================================
+
+            if (selectedBudget == null)
             {
-                await DisplayAlertAsync(
-                    "Budget Already Exists",
-                    $"You already have a budget for {category}. Click that budget to edit it.",
-                    "OK");
+                bool categoryAlreadyExists =
+                    allBudgets.Any(
+                        budget =>
+                            budget.Category.Equals(
+                                category,
+                                StringComparison.OrdinalIgnoreCase));
 
 
-                return;
+                if (categoryAlreadyExists)
+                {
+                    await DisplayAlertAsync(
+                        "Budget Already Exists",
+                        $"You already have a budget for {category}. Click that budget to edit it.",
+                        "OK");
+
+
+                    return;
+                }
+
+
+                BudgetLimit newBudget =
+                    new BudgetLimit(
+                        category,
+                        limitAmount);
+
+
+                dataBaseManager
+                    .SaveBudgetLimit(
+                        newBudget);
             }
 
 
-            BudgetLimit newBudget =
-                new BudgetLimit(
-                    category,
-                    limitAmount);
 
+            // ==================================
+            // EDIT EXISTING BUDGET
+            // ==================================
 
-            dataBaseManager.SaveBudgetLimit(
-                newBudget);
-        }
-
-
-
-        // ======================================
-        // EDIT EXISTING BUDGET
-        // ======================================
-
-        else
-        {
-            bool categoryUsedByAnotherBudget =
-                allBudgets.Any(
-                    budget =>
-                        !ReferenceEquals(
-                            budget,
-                            selectedBudget)
-                        &&
-                        budget.Category.Equals(
-                            category,
-                            StringComparison.OrdinalIgnoreCase));
-
-
-            if (categoryUsedByAnotherBudget)
+            else
             {
-                await DisplayAlertAsync(
-                    "Budget Already Exists",
-                    $"You already have another budget for {category}.",
-                    "OK");
+                bool categoryUsedByAnotherBudget =
+                    allBudgets.Any(
+                        budget =>
+                            !ReferenceEquals(
+                                budget,
+                                selectedBudget)
+                            &&
+                            budget.Category.Equals(
+                                category,
+                                StringComparison.OrdinalIgnoreCase));
 
 
-                return;
+                if (categoryUsedByAnotherBudget)
+                {
+                    await DisplayAlertAsync(
+                        "Budget Already Exists",
+                        $"You already have another budget for {category}.",
+                        "OK");
+
+
+                    return;
+                }
+
+
+                BudgetLimit updatedBudget =
+                    new BudgetLimit(
+                        category,
+                        limitAmount);
+
+
+                // Update the existing budget
+                // directly instead of deleting
+                // it first and then inserting it.
+                dataBaseManager
+                    .UpdateBudgetLimit(
+                        selectedBudget.Category,
+                        updatedBudget);
             }
 
 
-            // The current database layer does
-            // not have UpdateBudgetLimit().
-            //
-            // Delete the old budget and save
-            // the edited version.
 
-            dataBaseManager
-                .DeleteBudgetLimitsByCategory(
-                    selectedBudget.Category);
+            // ==================================
+            // SUCCESS
+            // ==================================
+
+            CloseBudgetModal();
 
 
-            BudgetLimit updatedBudget =
-                new BudgetLimit(
-                    category,
-                    limitAmount);
-
-
-            dataBaseManager.SaveBudgetLimit(
-                updatedBudget);
+            LoadBudgets();
         }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save budget limit: {ex}");
 
 
-        CloseBudgetModal();
+            string message =
+                isEditing
+
+                    ? "PocketAI could not update this budget. Your previous budget was kept. Please try again."
+
+                    : "PocketAI could not add this budget. Your previous budget information was kept. Please try again.";
 
 
-        LoadBudgets();
+            await DisplayAlertAsync(
+                "Unable to Save",
+                message,
+                "OK");
+        }
+        finally
+        {
+            isSavingBudget =
+                false;
+        }
     }
 
 
@@ -556,15 +617,34 @@ public partial class BudgetPage : ContentPage
         }
 
 
-        dataBaseManager
-            .DeleteBudgetLimitsByCategory(
-                selectedBudget.Category);
+
+        // ======================================
+        // DELETE FROM DATABASE
+        // ======================================
+
+        try
+        {
+            dataBaseManager
+                .DeleteBudgetLimitsByCategory(
+                    selectedBudget.Category);
 
 
-        CloseBudgetModal();
+            CloseBudgetModal();
 
 
-        LoadBudgets();
+            LoadBudgets();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to delete budget limit: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Delete",
+                "PocketAI could not delete this budget. Your budget was kept. Please try again.",
+                "OK");
+        }
     }
 
 
@@ -722,7 +802,9 @@ public partial class BudgetPage : ContentPage
 
         public string RemainingText =>
             IsOverBudget
+
                 ? $"{Math.Abs(Remaining):C} over"
+
                 : $"{Remaining:C} left";
 
 

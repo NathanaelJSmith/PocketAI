@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="PocketAI.App.Pages.MeetPocketAIPage"
+    BackgroundColor="{DynamicResource PageBackground}"
+    NavigationPage.HasNavigationBar="False"
+    Shell.NavBarIsVisible="False">
+
+
+    <ScrollView>
+
+        <Grid Padding="40">
+
+
+            <Border
+                MaximumWidthRequest="850"
+                Padding="48"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                Stroke="{DynamicResource ThemePrimaryLight}"
+                StrokeThickness="1">
+
+
+                <Border.StrokeShape>
+
+                    <RoundRectangle
+                        CornerRadius="24" />
+
+                </Border.StrokeShape>
+
+
+                <VerticalStackLayout
+                    Spacing="24">
+
+
+                    <!-- COMPLETE -->
+
+                    <Label
+                        Text="YOU'RE ALL SET"
+                        FontSize="12"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource ThemePrimary}"
+                        HorizontalOptions="Center" />
+
+
+                    <!-- TITLE -->
+
+                    <Label
+                        Text="Now PocketAI can start helping you."
+                        FontSize="36"
+                        FontAttributes="Bold"
+                        TextColor="{DynamicResource TextPrimary}"
+                        HorizontalTextAlignment="Center" />
+
+
+                    <!-- DESCRIPTION -->
+
+                    <Label
+                        Text="Your information works together across PocketAI to help you understand your money, make a plan, and know what needs your attention."
+                        FontSize="15"
+                        TextColor="{DynamicResource TextSecondary}"
+                        HorizontalTextAlignment="Center"
+                        LineHeight="1.3"
+                        MaximumWidthRequest="680" />
+
+
+                    <!-- FEATURE CARDS -->
+
+                    <Grid
+                        ColumnDefinitions="*,*"
+                        RowDefinitions="Auto,Auto"
+                        ColumnSpacing="16"
+                        RowSpacing="16"
+                        Margin="0,12,0,0">
+
+
+                        <!-- HOME -->
+
+                        <Border
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Padding="22"
+                            BackgroundColor="{DynamicResource PageBackground}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1">
+
+                            <Border.StrokeShape>
+
+                                <RoundRectangle
+                                    CornerRadius="16" />
+
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="8">
+
+                                <Label
+                                    Text="HOME"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    Text="Know what you can spend"
+                                    FontSize="19"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="See your Safe to Spend, monthly money, savings progress, bills, and the things that need your attention today."
+                                    FontSize="13"
+                                    TextColor="{DynamicResource TextSecondary}"
+                                    LineHeight="1.25" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- BUDGET -->
+
+                        <Border
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Padding="22"
+                            BackgroundColor="{DynamicResource PageBackground}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1">
+
+                            <Border.StrokeShape>
+
+                                <RoundRectangle
+                                    CornerRadius="16" />
+
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="8">
+
+                                <Label
+                                    Text="BUDGET"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    Text="Stay within your plan"
+                                    FontSize="19"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Set spending limits for categories and quickly see when you're on track, getting close, or going over."
+                                    FontSize="13"
+                                    TextColor="{DynamicResource TextSecondary}"
+                                    LineHeight="1.25" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- ANALYTICS -->
+
+                        <Border
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Padding="22"
+                            BackgroundColor="{DynamicResource PageBackground}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1">
+
+                            <Border.StrokeShape>
+
+                                <RoundRectangle
+                                    CornerRadius="16" />
+
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="8">
+
+                                <Label
+                                    Text="ANALYTICS"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    Text="Understand where your money goes"
+                                    FontSize="19"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Turn your transactions into simple charts, spending trends, category breakdowns, and patterns that are easier to understand."
+                                    FontSize="13"
+                                    TextColor="{DynamicResource TextSecondary}"
+                                    LineHeight="1.25" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+
+                        <!-- POCKETAI -->
+
+                        <Border
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Padding="22"
+                            BackgroundColor="{DynamicResource PageBackground}"
+                            Stroke="{DynamicResource ThemePrimaryLight}"
+                            StrokeThickness="1">
+
+                            <Border.StrokeShape>
+
+                                <RoundRectangle
+                                    CornerRadius="16" />
+
+                            </Border.StrokeShape>
+
+
+                            <VerticalStackLayout
+                                Spacing="8">
+
+                                <Label
+                                    Text="POCKETAI"
+                                    FontSize="11"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource ThemePrimary}" />
+
+                                <Label
+                                    Text="Get help making decisions"
+                                    FontSize="19"
+                                    FontAttributes="Bold"
+                                    TextColor="{DynamicResource TextPrimary}" />
+
+                                <Label
+                                    Text="Get explanations and personalized guidance based on your income, spending, bills, savings goals, and financial progress."
+                                    FontSize="13"
+                                    TextColor="{DynamicResource TextSecondary}"
+                                    LineHeight="1.25" />
+
+                            </VerticalStackLayout>
+
+                        </Border>
+
+                    </Grid>
+
+
+                    <!-- LEARNING MESSAGE -->
+
+                    <Border
+                        Padding="18"
+                        BackgroundColor="{DynamicResource PageBackground}"
+                        Stroke="{DynamicResource ThemePrimaryLight}"
+                        StrokeThickness="1">
+
+                        <Border.StrokeShape>
+
+                            <RoundRectangle
+                                CornerRadius="14" />
+
+                        </Border.StrokeShape>
+
+
+                        <Label
+                            Text="You don't need to understand everything right away. PocketAI is designed to help you learn how your money works as you use it."
+                            FontSize="13"
+                            TextColor="{DynamicResource TextSecondary}"
+                            HorizontalTextAlignment="Center"
+                            LineHeight="1.25" />
+
+                    </Border>
+
+
+                    <!-- ENTER APP -->
+
+                    <Button
+                        Text="Enter PocketAI"
+                        FontSize="16"
+                        FontAttributes="Bold"
+                        BackgroundColor="{DynamicResource ThemePrimary}"
+                        TextColor="{DynamicResource TextOnPrimary}"
+                        CornerRadius="12"
+                        HeightRequest="52"
+                        Margin="0,4,0,0"
+                        Clicked="EnterPocketAIClicked" />
+
+                </VerticalStackLayout>
+
+            </Border>
+
+        </Grid>
+
+    </ScrollView>
+
+</ContentPage>

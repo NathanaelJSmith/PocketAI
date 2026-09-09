@@ -56,7 +56,7 @@ public class FinancialCalculationService
     // BUILD COMPLETE FINANCIAL SNAPSHOT
     // ==========================================
 
-    public FinancialSnapshot BuildSnapshot(
+        public FinancialSnapshot BuildSnapshot(
         List<Expense> expenses,
         Income? income,
         AccountBalance? accountBalance,
@@ -64,7 +64,8 @@ public class FinancialCalculationService
         List<BudgetLimit> budgetLimits,
         List<RecurringExpenses> recurringExpenses,
         double acceptedExtraSavings = 0,
-        DateTime? asOfDate = null)
+        DateTime? asOfDate = null,
+        HashSet<int>? paidRecurringExpenseIds = null)
     {
         // ======================================
         // SAFETY FALLBACKS
@@ -85,7 +86,8 @@ public class FinancialCalculationService
         recurringExpenses ??=
             new List<RecurringExpenses>();
 
-
+        paidRecurringExpenseIds ??=
+            new HashSet<int>();
 
         DateTime today =
             (
@@ -315,8 +317,8 @@ public class FinancialCalculationService
 
         double upcomingBills =
             CalculateUpcomingBills(
-                activeRecurringBills,
-                today);
+                activeRecurringBills);
+                
 
 
 
@@ -945,27 +947,26 @@ public class FinancialCalculationService
 
 
     // ==========================================
-    // UPCOMING BILLS
+    // MONTHLY RECURRING BILLS
+    // ==========================================
+    //
+    // Every active bill is treated as committed
+    // money for the current monthly plan.
+    //
+    // Paid status does NOT change Safe to Spend.
+    // It only tracks whether the obligation has
+    // been completed this month.
     // ==========================================
 
     private double CalculateUpcomingBills(
-        List<RecurringExpenses> recurringBills,
-        DateTime today)
+        List<RecurringExpenses> recurringBills)
     {
         double total =
             0;
 
 
-
-        int daysInMonth =
-            DateTime.DaysInMonth(
-                today.Year,
-                today.Month);
-
-
-
         foreach (RecurringExpenses bill
-                 in recurringBills)
+                in recurringBills)
         {
             if (!bill.IsActive)
             {
@@ -973,38 +974,11 @@ public class FinancialCalculationService
             }
 
 
-
-            // Protect against invalid saved
-            // due-day values.
-            int dueDay =
-                Math.Clamp(
-                    bill.DueDay,
-                    1,
-                    daysInMonth);
-
-
-
-            // Due dates that already passed are
-            // currently assumed to have already
-            // been handled by the current account
-            // balance.
-            //
-            // This changes once PocketAI tracks
-            // actual bill payments.
-            if (dueDay <
-                today.Day)
-            {
-                continue;
-            }
-
-
-
             total +=
                 Math.Max(
                     bill.Amount,
                     0);
         }
-
 
 
         return total;
