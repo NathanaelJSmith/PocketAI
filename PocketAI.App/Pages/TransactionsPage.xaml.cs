@@ -1,24 +1,36 @@
 namespace PocketAI.App.Pages;
 
+
 public partial class TransactionsPage : ContentPage
 {
-    private readonly DataBaseManager dataBaseManager;
+    private readonly DataBaseManager
+        dataBaseManager;
 
-    // Stores every expense loaded from SQLite
+
+    // Stores every expense loaded from SQLite.
     private List<Expense> allExpenses =
         new List<Expense>();
 
-    // Stores the expense currently being edited
+
+    // Stores the expense currently being edited.
     private Expense? selectedExpense;
 
-    // Prevents accidental double submissions
-    private bool isSavingExpense = false;
+
+    // Prevents accidental duplicate submissions.
+    private bool isSavingExpense =
+        false;
+
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public TransactionsPage()
     {
         InitializeComponent();
 
-        // Use the same MAUI database as the other pages
+
         string databasePath =
             Path.Combine(
                 FileSystem.AppDataDirectory,
@@ -34,17 +46,22 @@ public partial class TransactionsPage : ContentPage
 
 
         SetupCategories();
+
+
         SetupMonths();
-        SetupPaymentAccounts();
     }
 
 
+
+    // ==========================================
+    // PAGE APPEARS
+    // ==========================================
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
 
-        // Refresh every time the user returns
+
         LoadTransactions();
     }
 
@@ -74,19 +91,19 @@ public partial class TransactionsPage : ContentPage
             };
 
 
-        // Main transaction filter
+        // Main transaction filter.
         CategoryPicker.ItemsSource =
             categories;
 
 
-        // Add Expense picker
+        // Add Expense picker.
         ExpenseCategoryPicker.ItemsSource =
             categories
                 .Skip(1)
                 .ToList();
 
 
-        // Edit Expense picker
+        // Edit Expense picker.
         EditExpenseCategoryPicker.ItemsSource =
             categories
                 .Skip(1)
@@ -95,32 +112,6 @@ public partial class TransactionsPage : ContentPage
 
         CategoryPicker.SelectedIndex =
             0;
-    }
-
-
-
-    // ==========================================
-    // PAYMENT ACCOUNTS
-    // ==========================================
-
-    private void SetupPaymentAccounts()
-    {
-        List<string> paymentAccounts =
-            new List<string>
-            {
-                "Checking",
-                "Cash"
-            };
-
-
-        // Add Expense account picker
-        ExpensePaidFromPicker.ItemsSource =
-            paymentAccounts;
-
-
-        // Edit Expense account picker
-        EditExpensePaidFromPicker.ItemsSource =
-            paymentAccounts;
     }
 
 
@@ -145,12 +136,15 @@ public partial class TransactionsPage : ContentPage
                 1);
 
 
-        // Add the most recent 12 months
-        for (int i = 0; i < 12; i++)
+        // Add the most recent 12 months.
+        for (int i = 0;
+             i < 12;
+             i++)
         {
             months.Add(
                 currentMonth
-                    .AddMonths(-i)
+                    .AddMonths(
+                        -i)
                     .ToString(
                         "MMMM yyyy"));
         }
@@ -160,7 +154,7 @@ public partial class TransactionsPage : ContentPage
             months;
 
 
-        // Default to current month
+        // Default to current month.
         MonthPicker.SelectedIndex =
             1;
     }
@@ -188,6 +182,7 @@ public partial class TransactionsPage : ContentPage
         ApplyFilters();
 
 
+
         // ======================================
         // THIS MONTH TOTAL
         // ======================================
@@ -211,8 +206,9 @@ public partial class TransactionsPage : ContentPage
 
 
         ThisMonthTotalLabel.Text =
-            thisMonthTotal.ToString(
-                "C");
+            thisMonthTotal
+                .ToString(
+                    "C");
     }
 
 
@@ -249,8 +245,10 @@ public partial class TransactionsPage : ContentPage
 
     private void ApplyFilters()
     {
-        IEnumerable<Expense> filteredExpenses =
-            allExpenses;
+        IEnumerable<Expense>
+            filteredExpenses =
+                allExpenses;
+
 
 
         // --------------------------------------
@@ -268,37 +266,28 @@ public partial class TransactionsPage : ContentPage
                 searchText))
         {
             filteredExpenses =
-                filteredExpenses.Where(
-                    expense =>
-                        expense.Name.Contains(
-                            searchText,
-                            StringComparison
-                                .OrdinalIgnoreCase)
-                        ||
-                        expense.Category.Contains(
-                            searchText,
-                            StringComparison
-                                .OrdinalIgnoreCase)
-                        ||
-                        (
-                            expense.PaidFromAccount
-                                != null
-                            &&
-                            expense
-                                .PaidFromAccount
-                                .Contains(
-                                    searchText,
-                                    StringComparison
-                                        .OrdinalIgnoreCase)
-                        ));
+                filteredExpenses
+                    .Where(
+                        expense =>
+                            expense.Name.Contains(
+                                searchText,
+                                StringComparison
+                                    .OrdinalIgnoreCase)
+                            ||
+                            expense.Category.Contains(
+                                searchText,
+                                StringComparison
+                                    .OrdinalIgnoreCase));
         }
+
 
 
         // --------------------------------------
         // CATEGORY FILTER
         // --------------------------------------
 
-        if (CategoryPicker.SelectedIndex > 0)
+        if (CategoryPicker.SelectedIndex >
+            0)
         {
             string selectedCategory =
                 CategoryPicker
@@ -309,20 +298,23 @@ public partial class TransactionsPage : ContentPage
 
 
             filteredExpenses =
-                filteredExpenses.Where(
-                    expense =>
-                        expense.Category.Equals(
-                            selectedCategory,
-                            StringComparison
-                                .OrdinalIgnoreCase));
+                filteredExpenses
+                    .Where(
+                        expense =>
+                            expense.Category.Equals(
+                                selectedCategory,
+                                StringComparison
+                                    .OrdinalIgnoreCase));
         }
+
 
 
         // --------------------------------------
         // MONTH FILTER
         // --------------------------------------
 
-        if (MonthPicker.SelectedIndex > 0)
+        if (MonthPicker.SelectedIndex >
+            0)
         {
             string selectedMonth =
                 MonthPicker
@@ -337,15 +329,17 @@ public partial class TransactionsPage : ContentPage
                     out DateTime monthDate))
             {
                 filteredExpenses =
-                    filteredExpenses.Where(
-                        expense =>
-                            expense.Date.Year ==
-                                monthDate.Year
-                            &&
-                            expense.Date.Month ==
-                                monthDate.Month);
+                    filteredExpenses
+                        .Where(
+                            expense =>
+                                expense.Date.Year ==
+                                    monthDate.Year
+                                &&
+                                expense.Date.Month ==
+                                    monthDate.Month);
             }
         }
+
 
 
         // ======================================
@@ -367,11 +361,13 @@ public partial class TransactionsPage : ContentPage
 
 
         NoTransactionsLabel.IsVisible =
-            displayItems.Count == 0;
+            displayItems.Count ==
+            0;
 
 
         TransactionsCollectionView.IsVisible =
-            displayItems.Count > 0;
+            displayItems.Count >
+            0;
     }
 
 
@@ -386,6 +382,7 @@ public partial class TransactionsPage : ContentPage
     {
         selectedExpense =
             null;
+
 
 
         // ======================================
@@ -404,21 +401,17 @@ public partial class TransactionsPage : ContentPage
             -1;
 
 
-        // Checking is the default payment account
-        ExpensePaidFromPicker.SelectedIndex =
-            0;
-
-
         ExpenseDatePicker.Date =
             DateTime.Today;
 
 
-        // Make sure edit modal is closed
+
+        // Make sure Edit modal is closed.
         EditExpenseModal.IsVisible =
             false;
 
 
-        // Show Add Expense
+        // Show Add Expense modal.
         ModalBackground.IsVisible =
             true;
 
@@ -491,6 +484,8 @@ public partial class TransactionsPage : ContentPage
         {
             return;
         }
+
+
         string expenseName =
             ExpenseNameEntry.Text?
                 .Trim()
@@ -513,12 +508,19 @@ public partial class TransactionsPage : ContentPage
             "";
 
 
-        string paidFromAccount =
-            ExpensePaidFromPicker
-                .SelectedItem?
-                .ToString()
-            ??
-            "";
+        // ======================================
+        // CHECKING IS THE ONLY SPENDING ACCOUNT
+        // ======================================
+        //
+        // Cash has been removed from PocketAI.
+        //
+        // Transactions automatically reduce
+        // Checking.
+        // ======================================
+
+        const string paidFromAccount =
+            "Checking";
+
 
 
         // ======================================
@@ -538,13 +540,15 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // VALIDATE USEFUL NAME
         // ======================================
 
         if (!expenseName.Any(
                 character =>
-                    char.IsLetter(character)))
+                    char.IsLetter(
+                        character)))
         {
             await DisplayAlertAsync(
                 "Invalid Name",
@@ -556,15 +560,17 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // VALIDATE AMOUNT
         // ======================================
 
         if (!double.TryParse(
-        amountText,
-        out double amount)
+                amountText,
+                out double amount)
             ||
-            !double.IsFinite(amount)
+            !double.IsFinite(
+                amount)
             ||
             amount <= 0)
         {
@@ -573,8 +579,10 @@ public partial class TransactionsPage : ContentPage
                 "Enter a valid expense amount greater than zero.",
                 "OK");
 
+
             return;
         }
+
 
 
         // ======================================
@@ -593,22 +601,6 @@ public partial class TransactionsPage : ContentPage
             return;
         }
 
-
-        // ======================================
-        // VALIDATE PAYMENT ACCOUNT
-        // ======================================
-
-        if (string.IsNullOrWhiteSpace(
-                paidFromAccount))
-        {
-            await DisplayAlertAsync(
-                "Missing Account",
-                "Choose which account paid for this expense.",
-                "OK");
-
-
-            return;
-        }
 
 
         // ======================================
@@ -634,6 +626,7 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // BUILD EXPENSE
         // ======================================
@@ -648,30 +641,32 @@ public partial class TransactionsPage : ContentPage
                 paidFromAccount);
 
 
+
         // ======================================
         // SAVE TO SQLITE
         // ======================================
-
+        //
         // DataBaseManager will:
         //
-        // 1. Save the expense
-        // 2. Reduce Checking or Cash
-        // 3. Commit both changes together
+        // 1. Save the expense.
+        // 2. Reduce Checking by the amount.
+        // 3. Commit both changes together.
+        // ======================================
 
         try
         {
-            isSavingExpense = true;
+            isSavingExpense =
+                true;
 
 
-            dataBaseManager.AddExpense(
-                expense);
+            dataBaseManager
+                .AddExpense(
+                    expense);
 
 
-            // Close modal
             CloseModals();
 
 
-            // Refresh transaction list
             LoadTransactions();
         }
         catch (Exception ex)
@@ -687,7 +682,8 @@ public partial class TransactionsPage : ContentPage
         }
         finally
         {
-            isSavingExpense = false;
+            isSavingExpense =
+                false;
         }
     }
 
@@ -701,26 +697,29 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         SelectionChangedEventArgs e)
     {
-        if (e.CurrentSelection.Count == 0)
+        if (e.CurrentSelection.Count ==
+            0)
         {
             return;
         }
 
 
-        TransactionDisplayItem? selectedItem =
-            e.CurrentSelection[0]
-                as TransactionDisplayItem;
+        TransactionDisplayItem?
+            selectedItem =
+                e.CurrentSelection[0]
+                    as TransactionDisplayItem;
 
 
-        if (selectedItem == null)
+        if (selectedItem ==
+            null)
         {
             return;
         }
 
 
-        // Store real Expense object
         selectedExpense =
             selectedItem.Expense;
+
 
 
         // ======================================
@@ -732,13 +731,15 @@ public partial class TransactionsPage : ContentPage
 
 
         EditExpenseAmountEntry.Text =
-            selectedExpense.Amount
+            selectedExpense
+                .Amount
                 .ToString(
                     "0.00");
 
 
         EditExpenseDatePicker.Date =
             selectedExpense.Date;
+
 
 
         // --------------------------------------
@@ -751,7 +752,8 @@ public partial class TransactionsPage : ContentPage
                 as List<string>;
 
 
-        if (categories != null)
+        if (categories !=
+            null)
         {
             EditExpenseCategoryPicker
                 .SelectedIndex =
@@ -764,43 +766,13 @@ public partial class TransactionsPage : ContentPage
         }
 
 
-        // --------------------------------------
-        // FIND EXISTING PAYMENT ACCOUNT
-        // --------------------------------------
 
-        List<string>? paymentAccounts =
-            EditExpensePaidFromPicker
-                .ItemsSource
-                as List<string>;
-
-
-        if (paymentAccounts != null)
-        {
-            EditExpensePaidFromPicker
-                .SelectedIndex =
-                paymentAccounts.FindIndex(
-                    account =>
-                        account.Equals(
-                            selectedExpense
-                                .PaidFromAccount,
-                            StringComparison
-                                .OrdinalIgnoreCase));
-        }
-
-
-        // Old transactions may not have a
-        // PaidFromAccount yet.
-        //
-        // In that situation FindIndex returns -1,
-        // which leaves the picker unselected.
-
-
-        // Make sure Add modal is closed
+        // Make sure Add modal is closed.
         AddExpenseModal.IsVisible =
             false;
 
 
-        // Show Edit modal
+        // Show Edit modal.
         ModalBackground.IsVisible =
             true;
 
@@ -809,10 +781,10 @@ public partial class TransactionsPage : ContentPage
             true;
 
 
-        // Remove selection highlight
+        // Remove CollectionView highlight.
         TransactionsCollectionView
             .SelectedItem =
-            null;
+                null;
     }
 
 
@@ -838,7 +810,14 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         EventArgs e)
     {
-        if (selectedExpense == null)
+        if (selectedExpense ==
+            null)
+        {
+            return;
+        }
+
+
+        if (isSavingExpense)
         {
             return;
         }
@@ -866,12 +845,10 @@ public partial class TransactionsPage : ContentPage
             "";
 
 
-        string paidFromAccount =
-            EditExpensePaidFromPicker
-                .SelectedItem?
-                .ToString()
-            ??
-            "";
+        // Every transaction belongs to Checking.
+        const string paidFromAccount =
+            "Checking";
+
 
 
         // ======================================
@@ -891,13 +868,15 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // VALIDATE USEFUL NAME
         // ======================================
 
         if (!name.Any(
                 character =>
-                    char.IsLetter(character)))
+                    char.IsLetter(
+                        character)))
         {
             await DisplayAlertAsync(
                 "Invalid Name",
@@ -909,15 +888,17 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // VALIDATE AMOUNT
         // ======================================
 
         if (!double.TryParse(
-        amountText,
-        out double amount)
+                amountText,
+                out double amount)
             ||
-            !double.IsFinite(amount)
+            !double.IsFinite(
+                amount)
             ||
             amount <= 0)
         {
@@ -926,8 +907,10 @@ public partial class TransactionsPage : ContentPage
                 "Enter a valid expense amount greater than zero.",
                 "OK");
 
+
             return;
         }
+
 
 
         // ======================================
@@ -946,22 +929,6 @@ public partial class TransactionsPage : ContentPage
             return;
         }
 
-
-        // ======================================
-        // VALIDATE PAYMENT ACCOUNT
-        // ======================================
-
-        if (string.IsNullOrWhiteSpace(
-                paidFromAccount))
-        {
-            await DisplayAlertAsync(
-                "Missing Account",
-                "Choose which account paid for this expense.",
-                "OK");
-
-
-            return;
-        }
 
 
         // ======================================
@@ -987,6 +954,7 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // BUILD UPDATED EXPENSE
         // ======================================
@@ -1001,38 +969,49 @@ public partial class TransactionsPage : ContentPage
                 paidFromAccount);
 
 
+
         // ======================================
         // UPDATE SQLITE
         // ======================================
-
+        //
         // DataBaseManager will:
         //
-        // 1. Restore the old account effect
-        // 2. Update the transaction
-        // 3. Apply the new account effect
+        // 1. Restore the original transaction
+        //    amount to Checking.
+        //
+        // 2. Update the transaction.
+        //
+        // 3. Subtract the updated amount from
+        //    Checking.
         //
         // Example:
         //
-        // Old:
-        // $20 from Checking
+        // Original transaction:
+        // $20
         //
-        // New:
-        // $30 from Cash
+        // Updated transaction:
+        // $30
         //
-        // Checking +$20
-        // Cash     -$30
+        // Checking is restored by $20,
+        // then reduced by $30.
+        //
+        // Net change = -$10.
+        // ======================================
 
         try
         {
-            dataBaseManager.UpdateExpense(
-                updatedExpense);
+            isSavingExpense =
+                true;
 
 
-            // Close modal
+            dataBaseManager
+                .UpdateExpense(
+                    updatedExpense);
+
+
             CloseModals();
 
 
-            // Refresh page
             LoadTransactions();
         }
         catch (Exception ex)
@@ -1046,6 +1025,11 @@ public partial class TransactionsPage : ContentPage
                 "PocketAI could not update this transaction. Your original transaction was not changed. Please try again.",
                 "OK");
         }
+        finally
+        {
+            isSavingExpense =
+                false;
+        }
     }
 
 
@@ -1058,7 +1042,8 @@ public partial class TransactionsPage : ContentPage
         object? sender,
         EventArgs e)
     {
-        if (selectedExpense == null)
+        if (selectedExpense ==
+            null)
         {
             return;
         }
@@ -1078,25 +1063,26 @@ public partial class TransactionsPage : ContentPage
         }
 
 
+
         // ======================================
         // DELETE FROM SQLITE
         // ======================================
-
-        // DataBaseManager will restore the money
-        // to the original account before deleting
-        // the transaction.
+        //
+        // DataBaseManager restores the money to
+        // Checking when the transaction is
+        // deleted.
+        // ======================================
 
         try
         {
-            dataBaseManager.DeleteExpenseById(
-                selectedExpense.Id);
+            dataBaseManager
+                .DeleteExpenseById(
+                    selectedExpense.Id);
 
 
-            // Close modal
             CloseModals();
 
 
-            // Refresh page
             LoadTransactions();
         }
         catch (Exception ex)
@@ -1107,7 +1093,7 @@ public partial class TransactionsPage : ContentPage
 
             await DisplayAlertAsync(
                 "Unable to Delete",
-                "PocketAI could not delete this transaction. Your transaction and account balance were not changed. Please try again.",
+                "PocketAI could not delete this transaction. Your transaction and checking balance were not changed. Please try again.",
                 "OK");
         }
     }
@@ -1120,7 +1106,10 @@ public partial class TransactionsPage : ContentPage
 
     public class TransactionDisplayItem
     {
-        public Expense Expense { get; }
+        public Expense Expense
+        {
+            get;
+        }
 
 
         public string Name =>
@@ -1136,19 +1125,15 @@ public partial class TransactionsPage : ContentPage
                 "MMM d");
 
 
-        public string PaidFromText =>
-            string.IsNullOrWhiteSpace(
-                Expense.PaidFromAccount)
-
-                ? "Not set"
-
-                : Expense.PaidFromAccount;
-
-
         public string AmountText =>
             Expense.Amount.ToString(
                 "C");
 
+
+
+        // ======================================
+        // CONSTRUCTOR
+        // ======================================
 
         public TransactionDisplayItem(
             Expense expense)

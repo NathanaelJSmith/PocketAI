@@ -40,8 +40,6 @@ using System.Linq;
 // SAVINGS GOALS
 // = what saved money is intended for.
 //
-// CASH
-// = optional physical cash.
 //
 // Account balances answer:
 // "Where is my money right now?"
@@ -183,11 +181,6 @@ public class FinancialCalculationService
                         string.Equals(
                             expense.PaidFromAccount,
                             "Checking",
-                            StringComparison.OrdinalIgnoreCase)
-                        ||
-                        string.Equals(
-                            expense.PaidFromAccount,
-                            "Cash",
                             StringComparison.OrdinalIgnoreCase))
                 .Sum(
                     expense =>
@@ -212,15 +205,6 @@ public class FinancialCalculationService
             ??
             0;
 
-
-        double cashBalance =
-            accountBalance?
-                .CashBalance
-            ??
-            0;
-
-
-
         // ======================================
         // CURRENT SPENDABLE CASH
         // ======================================
@@ -239,15 +223,13 @@ public class FinancialCalculationService
         // ======================================
 
         double currentSpendableCash =
-            checkingBalance +
-            cashBalance;
+            checkingBalance;
 
 
 
         double totalAccountBalance =
             checkingBalance +
-            savingsBalance +
-            cashBalance;
+            savingsBalance;
 
 
 
@@ -766,13 +748,6 @@ public class FinancialCalculationService
                     Math.Round(
                         checkingBalance,
                         2),
-
-
-                CashBalance =
-                    Math.Round(
-                        cashBalance,
-                        2),
-
 
                 ProtectedSavingsBalance =
                     Math.Round(

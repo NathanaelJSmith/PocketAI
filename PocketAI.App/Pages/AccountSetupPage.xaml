@@ -46,6 +46,7 @@
                         TextColor="{DynamicResource ThemePrimary}" />
 
 
+
                     <!-- TITLE -->
 
                     <Label
@@ -55,20 +56,25 @@
                         TextColor="{DynamicResource TextPrimary}" />
 
 
+
                     <!-- DESCRIPTION -->
 
                     <Label
-                        Text="Enter your current account balances. These numbers represent money you actually have right now."
+                        Text="Enter your current checking and savings balances. These numbers represent money you actually have right now."
                         FontSize="15"
                         TextColor="{DynamicResource TextSecondary}"
                         LineHeight="1.3" />
 
 
-                    <!-- CHECKING -->
+
+                    <!-- =================================
+                         CHECKING
+                         ================================= -->
 
                     <VerticalStackLayout
                         Spacing="8"
                         Margin="0,10,0,0">
+
 
                         <Label
                             Text="CHECKING ACCOUNT"
@@ -83,6 +89,7 @@
                             StrokeThickness="1"
                             Padding="14,5">
 
+
                             <Border.StrokeShape>
 
                                 <RoundRectangle
@@ -94,6 +101,7 @@
                             <Grid
                                 ColumnDefinitions="Auto,*"
                                 ColumnSpacing="8">
+
 
                                 <Label
                                     Text="$"
@@ -120,10 +128,14 @@
                     </VerticalStackLayout>
 
 
-                    <!-- SAVINGS -->
+
+                    <!-- =================================
+                         SAVINGS
+                         ================================= -->
 
                     <VerticalStackLayout
                         Spacing="8">
+
 
                         <Label
                             Text="SAVINGS ACCOUNT"
@@ -138,6 +150,7 @@
                             StrokeThickness="1"
                             Padding="14,5">
 
+
                             <Border.StrokeShape>
 
                                 <RoundRectangle
@@ -149,6 +162,7 @@
                             <Grid
                                 ColumnDefinitions="Auto,*"
                                 ColumnSpacing="8">
+
 
                                 <Label
                                     Text="$"
@@ -175,68 +189,17 @@
                     </VerticalStackLayout>
 
 
-                    <!-- CASH -->
 
-                    <VerticalStackLayout
-                        Spacing="8">
-
-                        <Label
-                            Text="CASH"
-                            FontSize="11"
-                            FontAttributes="Bold"
-                            TextColor="{DynamicResource TextSecondary}" />
-
-
-                        <Border
-                            BackgroundColor="{DynamicResource PageBackground}"
-                            Stroke="{DynamicResource ThemePrimaryLight}"
-                            StrokeThickness="1"
-                            Padding="14,5">
-
-                            <Border.StrokeShape>
-
-                                <RoundRectangle
-                                    CornerRadius="10" />
-
-                            </Border.StrokeShape>
-
-
-                            <Grid
-                                ColumnDefinitions="Auto,*"
-                                ColumnSpacing="8">
-
-                                <Label
-                                    Text="$"
-                                    FontSize="20"
-                                    FontAttributes="Bold"
-                                    TextColor="{DynamicResource TextSecondary}"
-                                    VerticalOptions="Center" />
-
-
-                                <Entry
-                                    Grid.Column="1"
-                                    x:Name="CashBalanceEntry"
-                                    Placeholder="0.00"
-                                    Keyboard="Numeric"
-                                    FontSize="20"
-                                    TextColor="{DynamicResource TextPrimary}"
-                                    PlaceholderColor="{DynamicResource TextMuted}"
-                                    BackgroundColor="Transparent" />
-
-                            </Grid>
-
-                        </Border>
-
-                    </VerticalStackLayout>
-
-
-                    <!-- EXPLANATION -->
+                    <!-- =================================
+                         EXPLANATION
+                         ================================= -->
 
                     <Border
                         Padding="16"
                         BackgroundColor="{DynamicResource PageBackground}"
                         Stroke="{DynamicResource ThemePrimaryLight}"
                         StrokeThickness="1">
+
 
                         <Border.StrokeShape>
 
@@ -249,14 +212,16 @@
                         <VerticalStackLayout
                             Spacing="5">
 
+
                             <Label
                                 Text="Account balances and your monthly plan are different."
                                 FontSize="12"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource TextPrimary}" />
 
+
                             <Label
-                                Text="These balances tell PocketAI where your money currently is. Your monthly income, bills, spending, and savings plan determine how much is Safe to Spend."
+                                Text="Checking is your main spending account. Savings is protected money. Your monthly income, bills, spending, and savings commitments determine how much is Safe to Spend."
                                 FontSize="12"
                                 TextColor="{DynamicResource TextSecondary}"
                                 LineHeight="1.25" />
@@ -266,7 +231,10 @@
                     </Border>
 
 
-                    <!-- CONTINUE -->
+
+                    <!-- =================================
+                         CONTINUE
+                         ================================= -->
 
                     <Button
                         Text="Continue"

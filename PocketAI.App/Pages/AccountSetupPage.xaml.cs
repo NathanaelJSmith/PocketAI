@@ -7,6 +7,11 @@ public partial class AccountSetupPage : ContentPage
         dataBaseManager;
 
 
+    private bool isSaving =
+        false;
+
+
+
     // ==========================================
     // CONSTRUCTOR
     // ==========================================
@@ -31,6 +36,7 @@ public partial class AccountSetupPage : ContentPage
     }
 
 
+
     // ==========================================
     // PAGE APPEARS
     // ==========================================
@@ -44,6 +50,7 @@ public partial class AccountSetupPage : ContentPage
     }
 
 
+
     // ==========================================
     // LOAD EXISTING BALANCES
     // ==========================================
@@ -55,8 +62,17 @@ public partial class AccountSetupPage : ContentPage
                 .GetAccountBalance();
 
 
-        if (accountBalance == null)
+        if (accountBalance ==
+            null)
         {
+            CheckingBalanceEntry.Text =
+                "";
+
+
+            SavingsBalanceEntry.Text =
+                "";
+
+
             return;
         }
 
@@ -64,20 +80,17 @@ public partial class AccountSetupPage : ContentPage
         CheckingBalanceEntry.Text =
             accountBalance
                 .CheckingBalance
-                .ToString("0.00");
+                .ToString(
+                    "0.00");
 
 
         SavingsBalanceEntry.Text =
             accountBalance
                 .SavingsBalance
-                .ToString("0.00");
-
-
-        CashBalanceEntry.Text =
-            accountBalance
-                .CashBalance
-                .ToString("0.00");
+                .ToString(
+                    "0.00");
     }
+
 
 
     // ==========================================
@@ -88,6 +101,17 @@ public partial class AccountSetupPage : ContentPage
         object? sender,
         EventArgs e)
     {
+        if (isSaving)
+        {
+            return;
+        }
+
+
+
+        // ======================================
+        // CHECKING
+        // ======================================
+
         if (!TryReadAmount(
                 CheckingBalanceEntry.Text,
                 out double checking))
@@ -102,13 +126,20 @@ public partial class AccountSetupPage : ContentPage
         }
 
 
+
+        // ======================================
+        // SAVINGS
+        // ======================================
+
         if (!TryReadAmount(
                 SavingsBalanceEntry.Text,
-                out double savings))
+                out double savings)
+            ||
+            savings < 0)
         {
             await DisplayAlertAsync(
                 "Invalid Savings Balance",
-                "Enter a valid savings balance.",
+                "Enter a valid savings balance of zero or more.",
                 "OK");
 
 
@@ -116,47 +147,69 @@ public partial class AccountSetupPage : ContentPage
         }
 
 
-        if (!TryReadAmount(
-                CashBalanceEntry.Text,
-                out double cash))
-        {
-            await DisplayAlertAsync(
-                "Invalid Cash Balance",
-                "Enter a valid cash balance.",
-                "OK");
 
-
-            return;
-        }
-
+        // ======================================
+        // BUILD ACCOUNT BALANCE
+        // ======================================
+        //
+        // Cash has been removed from PocketAI.
+        //
+        // The database still temporarily has an
+        // old CashBalance field, so we explicitly
+        // save zero for compatibility.
+        // ======================================
 
         AccountBalance accountBalance =
             new AccountBalance(
                 checking,
                 savings,
-                cash);
+                0);
 
 
-        dataBaseManager
-            .SaveAccountBalance(
-                accountBalance);
+
+        // ======================================
+        // SAVE
+        // ======================================
+
+        try
+        {
+            isSaving =
+                true;
 
 
-        await Navigation.PushAsync(
-            new BillsSetupPage());
+            dataBaseManager
+                .SaveAccountBalance(
+                    accountBalance);
 
 
-        // Recurring Bills setup will be
-        // connected in a later step.
+            await Navigation.PushAsync(
+                new BillsSetupPage());
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save onboarding account balances: {ex}");
+
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                "PocketAI could not save your account balances. Please try again.",
+                "OK");
+        }
+        finally
+        {
+            isSaving =
+                false;
+        }
     }
+
 
 
     // ==========================================
     // READ AMOUNT
     // ==========================================
     //
-    // Leaving an optional account blank means
-    // the user currently has $0 there.
+    // Leaving an account blank means $0.
     // ==========================================
 
     private bool TryReadAmount(
@@ -166,14 +219,29 @@ public partial class AccountSetupPage : ContentPage
         if (string.IsNullOrWhiteSpace(
                 text))
         {
-            amount = 0;
+            amount =
+                0;
+
 
             return true;
         }
 
 
-        return double.TryParse(
-            text.Trim(),
-            out amount);
+        if (!double.TryParse(
+                text.Trim(),
+                out amount))
+        {
+            return false;
+        }
+
+
+        if (!double.IsFinite(
+                amount))
+        {
+            return false;
+        }
+
+
+        return true;
     }
 }

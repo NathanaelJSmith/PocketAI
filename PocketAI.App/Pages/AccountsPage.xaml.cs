@@ -1,17 +1,22 @@
 namespace PocketAI.App.Pages;
 
+
 public partial class AccountsPage : ContentPage
 {
-    private readonly DataBaseManager dataBaseManager;
+    private readonly DataBaseManager
+        dataBaseManager;
 
+
+
+    // ==========================================
+    // CONSTRUCTOR
+    // ==========================================
 
     public AccountsPage()
     {
         InitializeComponent();
 
 
-        // Stores the database in PocketAI's
-        // app data folder.
         string databasePath =
             Path.Combine(
                 FileSystem.AppDataDirectory,
@@ -37,8 +42,6 @@ public partial class AccountsPage : ContentPage
         base.OnAppearing();
 
 
-        // Refresh balances and income every time
-        // the user returns to Accounts.
         LoadAccountData();
     }
 
@@ -50,39 +53,87 @@ public partial class AccountsPage : ContentPage
 
     private void LoadAccountData()
     {
-        // ======================================
-        // ACCOUNT BALANCES
-        // ======================================
-
         AccountBalance? accountBalance =
             dataBaseManager
                 .GetAccountBalance();
 
 
-        if (accountBalance != null)
+
+        // ======================================
+        // ACCOUNT BALANCES
+        // ======================================
+
+        if (accountBalance !=
+            null)
         {
             CheckingBalanceLabel.Text =
                 accountBalance
                     .CheckingBalance
-                    .ToString("C");
+                    .ToString(
+                        "C");
 
 
             SavingsBalanceLabel.Text =
                 accountBalance
                     .SavingsBalance
-                    .ToString("C");
+                    .ToString(
+                        "C");
 
 
-            CashBalanceLabel.Text =
+            // Cash is no longer part of
+            // PocketAI's displayed total.
+            double totalBalance =
                 accountBalance
-                    .CashBalance
-                    .ToString("C");
+                    .CheckingBalance
+                +
+                accountBalance
+                    .SavingsBalance;
 
 
             TotalBalanceLabel.Text =
-                accountBalance
-                    .GetTotalBalance()
-                    .ToString("C");
+                totalBalance
+                    .ToString(
+                        "C");
+
+
+            // ==================================
+            // REMOVE LEGACY CASH VALUE
+            // ==================================
+            //
+            // Existing alpha databases may still
+            // contain an old physical-cash value.
+            //
+            // PocketAI no longer uses Cash, so
+            // normalize it to zero.
+            // ==================================
+
+            if (Math.Abs(
+                    accountBalance
+                        .CashBalance)
+                >
+                0.001)
+            {
+                try
+                {
+                    AccountBalance cleanedBalance =
+                        new AccountBalance(
+                            accountBalance
+                                .CheckingBalance,
+                            accountBalance
+                                .SavingsBalance,
+                            0);
+
+
+                    dataBaseManager
+                        .SaveAccountBalance(
+                            cleanedBalance);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Failed to clear legacy cash balance: {ex}");
+                }
+            }
         }
 
         else
@@ -92,10 +143,6 @@ public partial class AccountsPage : ContentPage
 
 
             SavingsBalanceLabel.Text =
-                "$0.00";
-
-
-            CashBalanceLabel.Text =
                 "$0.00";
 
 
@@ -114,12 +161,14 @@ public partial class AccountsPage : ContentPage
                 .GetIncome();
 
 
-        if (income != null)
+        if (income !=
+            null)
         {
             MonthlyIncomeLabel.Text =
                 income
                     .MonthlyAmount
-                    .ToString("C");
+                    .ToString(
+                        "C");
         }
 
         else
@@ -158,13 +207,6 @@ public partial class AccountsPage : ContentPage
             0;
 
 
-        double currentCash =
-            currentBalance?
-                .CashBalance
-            ??
-            0;
-
-
 
         string? input =
             await DisplayPromptAsync(
@@ -185,11 +227,13 @@ public partial class AccountsPage : ContentPage
 
                 initialValue:
                     currentChecking
-                        .ToString("0.00"));
+                        .ToString(
+                            "0.00"));
 
 
 
-        if (input == null)
+        if (input ==
+            null)
         {
             return;
         }
@@ -200,7 +244,8 @@ public partial class AccountsPage : ContentPage
                 input,
                 out double newChecking)
             ||
-            !double.IsFinite(newChecking))
+            !double.IsFinite(
+                newChecking))
         {
             await DisplayAlertAsync(
                 "Invalid Amount",
@@ -213,35 +258,34 @@ public partial class AccountsPage : ContentPage
 
 
 
-        // Keep Savings and Cash unchanged.
         AccountBalance updatedBalance =
             new AccountBalance(
                 newChecking,
                 currentSavings,
-                currentCash);
+                0);
+
 
 
         try
         {
-         dataBaseManager
-            .SaveAccountBalance(
-                updatedBalance);
+            dataBaseManager
+                .SaveAccountBalance(
+                    updatedBalance);
 
 
-
-        LoadAccountData();   
+            LoadAccountData();
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save checking balance: {ex}");
+
 
             await DisplayAlertAsync(
                 "Unable to Save",
                 "PocketAI could not update your checking balance. Please try again.",
                 "OK");
-            
         }
-        
     }
 
 
@@ -273,13 +317,6 @@ public partial class AccountsPage : ContentPage
             0;
 
 
-        double currentCash =
-            currentBalance?
-                .CashBalance
-            ??
-            0;
-
-
 
         string? input =
             await DisplayPromptAsync(
@@ -300,11 +337,13 @@ public partial class AccountsPage : ContentPage
 
                 initialValue:
                     currentSavings
-                        .ToString("0.00"));
+                        .ToString(
+                            "0.00"));
 
 
 
-        if (input == null)
+        if (input ==
+            null)
         {
             return;
         }
@@ -314,26 +353,30 @@ public partial class AccountsPage : ContentPage
         if (!double.TryParse(
                 input,
                 out double newSavings)
-                ||
-                !double.IsFinite(newSavings)
-                ||
-                newSavings < 0)
-            {
-                await DisplayAlertAsync(
-                    "Invalid Amount",
-                    "Enter a valid savings balance.",
-                    "OK");
+            ||
+            !double.IsFinite(
+                newSavings)
+            ||
+            newSavings < 0)
+        {
+            await DisplayAlertAsync(
+                "Invalid Amount",
+                "Enter a valid savings balance.",
+                "OK");
 
 
-                return;
-            }
+            return;
+        }
+
+
 
         // ======================================
         // PROTECT SAVINGS GOAL ASSIGNMENTS
         // ======================================
 
         List<SavingsGoal> goals =
-            dataBaseManager.GetSavingsGoals();
+            dataBaseManager
+                .GetSavingsGoals();
 
 
         double assignedSavings =
@@ -344,7 +387,8 @@ public partial class AccountsPage : ContentPage
                         0));
 
 
-        if (newSavings < assignedSavings)
+        if (newSavings <
+            assignedSavings)
         {
             await DisplayAlertAsync(
                 "Savings Already Assigned",
@@ -355,150 +399,36 @@ public partial class AccountsPage : ContentPage
             return;
         }
 
-        // Keep Checking and Cash unchanged.
+
+
         AccountBalance updatedBalance =
             new AccountBalance(
                 currentChecking,
                 newSavings,
-                currentCash);
+                0);
 
 
-    try
+
+        try
         {
-        dataBaseManager
-            .SaveAccountBalance(
-                updatedBalance);
+            dataBaseManager
+                .SaveAccountBalance(
+                    updatedBalance);
 
 
-
-        LoadAccountData();    
+            LoadAccountData();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save savings balance: {ex}");
+
 
             await DisplayAlertAsync(
                 "Unable to Save",
                 "PocketAI could not update your savings balance. Please try again.",
                 "OK");
         }
-        
-    }
-
-
-
-    // ==========================================
-    // EDIT CASH
-    // ==========================================
-
-    private async void EditCashClicked(
-        object? sender,
-        EventArgs e)
-    {
-        AccountBalance? currentBalance =
-            dataBaseManager
-                .GetAccountBalance();
-
-
-        double currentChecking =
-            currentBalance?
-                .CheckingBalance
-            ??
-            0;
-
-
-        double currentSavings =
-            currentBalance?
-                .SavingsBalance
-            ??
-            0;
-
-
-        double currentCash =
-            currentBalance?
-                .CashBalance
-            ??
-            0;
-
-
-
-        string? input =
-            await DisplayPromptAsync(
-                title:
-                    "Edit Cash",
-
-                message:
-                    "Enter how much physical cash you currently have:",
-
-                accept:
-                    "Save",
-
-                cancel:
-                    "Cancel",
-
-                keyboard:
-                    Keyboard.Numeric,
-
-                initialValue:
-                    currentCash
-                        .ToString("0.00"));
-
-
-
-        if (input == null)
-        {
-            return;
-        }
-
-
-
-        if (double.TryParse(
-                input,
-                out double newCash)
-                ||
-                !double.IsFinite(newCash)
-                ||
-                newCash < 0)
-        {
-            await DisplayAlertAsync(
-                "Invalid Amount",
-                "Enter a valid cash balance.",
-                "OK");
-
-
-            return;
-        }
-
-
-
-        // Keep Checking and Savings unchanged.
-        AccountBalance updatedBalance =
-            new AccountBalance(
-                currentChecking,
-                currentSavings,
-                newCash);
-
-
-        try
-        {
-         dataBaseManager
-            .SaveAccountBalance(
-                updatedBalance);
-
-
-
-        LoadAccountData();   
-        }
-        catch(Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Failed to save account balance: {ex}");
-
-            await DisplayAlertAsync(
-                "Unable to Save",
-                "PocketAI could not update your cash balance. Please try again.",
-                "OK");
-        }
-        
     }
 
 
@@ -543,11 +473,13 @@ public partial class AccountsPage : ContentPage
 
                 initialValue:
                     existingIncome
-                        .ToString("0.00"));
+                        .ToString(
+                            "0.00"));
 
 
 
-        if (incomeInput == null)
+        if (incomeInput ==
+            null)
         {
             return;
         }
@@ -558,7 +490,8 @@ public partial class AccountsPage : ContentPage
                 incomeInput,
                 out double monthlyIncome)
             ||
-            !double.IsFinite(monthlyIncome)
+            !double.IsFinite(
+                monthlyIncome)
             ||
             monthlyIncome < 0)
         {
@@ -579,19 +512,21 @@ public partial class AccountsPage : ContentPage
                 monthlyIncome);
 
 
+
         try
         {
-         dataBaseManager
-            .SaveIncome(
-                income);
+            dataBaseManager
+                .SaveIncome(
+                    income);
 
 
-
-        LoadAccountData();
-        }   
-        catch(Exception ex)
+            LoadAccountData();
+        }
+        catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Failed to save income: {ex}");
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save income: {ex}");
+
 
             await DisplayAlertAsync(
                 "Unable to Save",
