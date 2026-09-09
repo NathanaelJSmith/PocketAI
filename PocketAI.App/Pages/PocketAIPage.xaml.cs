@@ -247,7 +247,7 @@ public partial class PocketAIPage : ContentPage
 
         // IMPORTANT:
         // This is REAL spendable money currently
-        // in Checking + Cash.
+        // in Checking.
         //
         // We will rename the visible XAML heading
         // from "Money Left" to "Spendable Cash"
@@ -277,14 +277,14 @@ public partial class PocketAIPage : ContentPage
                 $"{financialHealthScore} / 100";
 
 
-            if (financialHealthScore >= 80)
+            if (financialHealthScore >= 70)
             {
                 SnapshotHealthLabel.SetDynamicResource(
                     Label.TextColorProperty,
                     "SuccessColor");
             }
 
-            else if (financialHealthScore >= 60)
+            else if (financialHealthScore >= 50)
             {
                 SnapshotHealthLabel.SetDynamicResource(
                     Label.TextColorProperty,

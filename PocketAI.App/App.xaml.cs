@@ -32,18 +32,18 @@ public partial class App : Application
     }
 
 
-    protected override Window CreateWindow(
+   protected override Window CreateWindow(
     IActivationState? activationState)
+{
+    if (OnBoardingManager.IsComplete)
     {
-        if (OnBoardingManager.IsComplete)
-        {
-            return new Window(
-                new AppShell());
-        }
-
-
         return new Window(
-            new NavigationPage(
-                new WelcomePage()));
+            new AppShell());
     }
+
+
+    return new Window(
+        new NavigationPage(
+            new WelcomePage()));
+}
 }

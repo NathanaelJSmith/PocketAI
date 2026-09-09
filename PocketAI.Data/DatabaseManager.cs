@@ -1544,6 +1544,9 @@ public class DataBaseManager
 
                 DeadLine =
                     @DeadLine,
+                
+                IsPrimary = 
+                    @IsPrimary,
 
 
                 PriorityRank =
@@ -1619,6 +1622,12 @@ public class DataBaseManager
             savingsGoal.DeadLine
                 .ToString(
                     "yyyy-MM-dd"));
+
+        command.Parameters.AddWithValue(
+            "@IsPrimary",
+            savingsGoal.IsPrimary
+                ? 1
+                : 0);
 
 
         command.Parameters.AddWithValue(

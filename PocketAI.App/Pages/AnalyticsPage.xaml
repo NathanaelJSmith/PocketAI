@@ -125,7 +125,7 @@
                     ColumnSpacing="14">
 
 
-                    <!-- SPENDABLE CASH -->
+                    <!-- CHECKING TOTAL-->
 
                     <Border
                         Grid.Column="0"
@@ -154,7 +154,7 @@
                                 TextColor="{DynamicResource TextPrimary}" />
 
                             <Label
-                                Text="Checking + cash"
+                                Text="Current checking balance"
                                 FontSize="11"
                                 TextColor="{DynamicResource TextMuted}" />
 

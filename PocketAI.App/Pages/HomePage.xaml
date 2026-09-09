@@ -537,7 +537,7 @@
 
 
                             <Label
-                                Text="SPENDABLE CASH"
+                                Text="CHECKING BALANCE"
                                 FontSize="10"
                                 FontAttributes="Bold"
                                 TextColor="{DynamicResource TextSecondary}" />
@@ -552,7 +552,7 @@
 
 
                             <Label
-                                Text="Checking + cash"
+                                Text="Current checking balance"
                                 FontSize="10"
                                 TextColor="{DynamicResource TextMuted}" />
 

@@ -1102,12 +1102,13 @@
                                                 <Label
                                                     Text="{Binding GoalReachedMessage}"
                                                     FontSize="12"
-                                                    TextColor="{DynamicResource TextSecondary}" />
+                                                    TextColor="{DynamicResource SuccessColor}" />
 
                                                 <Label
                                                     Text="Finish this goal or increase the target if your plans changed."
                                                     FontSize="11"
-                                                    TextColor="{DynamicResource TextSecondary}" />
+                                                    TextColor="{DynamicResource SuccessColor}"
+                                                    Opacity="0.85" />
 
                                             </VerticalStackLayout>
 

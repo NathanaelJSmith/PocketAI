@@ -1416,7 +1416,8 @@ public partial class SavingsPage : ContentPage
             item.Goal;
 
 
-        if (!goal.IsTargetReached ||
+        if (!goal.IsTargetReached
+            ||
             goal.IsCompleted)
         {
             return;
@@ -1439,43 +1440,90 @@ public partial class SavingsPage : ContentPage
         }
 
 
-        goal.IsCompleted =
+        // ======================================
+        // BUILD COMPLETED GOAL
+        // ======================================
+
+        SavingsGoal completedGoal =
+            new SavingsGoal(
+                goal.Id,
+                goal.Name,
+                goal.TargetAmount,
+                goal.CurrentAmount,
+                goal.DeadLine,
+                false,
+                goal.PriorityRank,
+                goal.IsEssential,
+                goal.CustomAllocationPercentage);
+
+
+        completedGoal.IsCompleted =
             true;
 
-        goal.DateCompleted =
-            DateTime.Now;
 
-        goal.IsPrimary =
-            false;
+        completedGoal.DateCreated =
+            goal.DateCreated;
+
+
+        completedGoal.DateCompleted =
+            DateTime.Now;
 
 
         try
         {
+            // ==================================
+            // SAVE COMPLETION
+            // ==================================
+
+            dataBaseManager
+                .UpdateSavingsGoal(
+                    completedGoal);
+
+
+            // ==================================
+            // REORDER ACTIVE GOALS
+            // ==================================
+
             dataBaseManager
                 .NormalizeActiveSavingsGoalPriorities();
 
+
+            // ==================================
+            // CHOOSE NEXT HOME GOAL
+            // ==================================
 
             SavingsGoal? nextHomeGoal =
                 dataBaseManager
                     .GetPrimarySavingsGoal();
 
 
-            if (nextHomeGoal != null)
+            if (nextHomeGoal !=
+                null)
             {
                 dataBaseManager
                     .SetPrimarySavingsGoal(
                         nextHomeGoal.Id);
             }
+
+
+            // ==================================
+            // REFRESH SAVINGS PAGE
+            // ==================================
+
+            LoadSavingsGoals();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"Goal completed, but savings priorities could not refresh: {ex}");
+                $"Failed to complete savings goal: {ex}");
+
+
+            LoadSavingsGoals();
 
 
             await DisplayAlertAsync(
-                "Goal Completed",
-                "Your savings goal was completed successfully, but PocketAI could not fully refresh your goal priorities. Your saved money was not changed.",
+                "Unable to Complete Goal",
+                "PocketAI could not finish this savings goal. Your saved money was not changed. Please try again.",
                 "OK");
         }
     }

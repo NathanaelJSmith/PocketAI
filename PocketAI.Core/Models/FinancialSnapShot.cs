@@ -51,7 +51,7 @@ public class FinancialSnapshot
     }
 
 
-    // Checking + cash.
+    // Checking.
     //
     // This represents actual spendable money
     // currently held by the user.
@@ -69,7 +69,7 @@ public class FinancialSnapshot
     }
 
 
-    // Checking + savings + cash.
+    // Checking + savings.
     //
     // Useful for showing total account value,
     // but NOT for calculating Safe to Spend.

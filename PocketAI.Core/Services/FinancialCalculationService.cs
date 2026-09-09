@@ -211,15 +211,15 @@ public class FinancialCalculationService
         //
         // Savings is intentionally NOT included.
         //
-        // Checking + Cash are considered
+        // Checking is considered
         // available spending sources.
         //
         // Example:
         //
         // Checking = $308.29
-        // Cash     = $200
+        // 
         //
-        // Current Spendable Cash = $508.29
+        // Current Spendable Cash = $308.29
         // ======================================
 
         double currentSpendableCash =
@@ -355,7 +355,7 @@ public class FinancialCalculationService
         // Expected income is PLANNING information.
         //
         // It does NOT get added to current
-        // Checking or Cash and therefore does
+        // Checking so therefore does
         // NOT directly increase Safe to Spend.
         //
         // We subtract:

@@ -436,34 +436,42 @@ public partial class BillsPage : ContentPage
     // ==========================================
 
     private async void SaveBillClicked(
-        object? sender,
-        EventArgs e)
+    object? sender,
+    EventArgs e)
     {
         if (isSavingBill)
         {
             return;
         }
 
+
         string name =
             BillNameEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
 
 
         string category =
             BillCategoryPicker
                 .SelectedItem?
-                .ToString() ?? "";
+                .ToString()
+            ??
+            "";
 
 
         string amountText =
             BillAmountEntry.Text?
-                .Trim() ?? "";
+                .Trim()
+            ??
+            "";
 
 
         string dueDayText =
             BillDueDayEntry.Text?
-                .Trim() ?? "";
-
+                .Trim()
+            ??
+            "";
 
 
         // ======================================
@@ -482,16 +490,20 @@ public partial class BillsPage : ContentPage
             return;
         }
 
+
         if (!name.Any(
-            character =>
-                char.IsLetter(character)))
+                character =>
+                    char.IsLetter(
+                        character)))
         {
             await DisplayAlertAsync(
                 "Invalid Name",
                 "The bill name must contain at least one letter.",
                 "OK");
-        }
 
+
+            return;
+        }
 
 
         // ======================================
@@ -511,7 +523,6 @@ public partial class BillsPage : ContentPage
         }
 
 
-
         // ======================================
         // VALIDATE AMOUNT
         // ======================================
@@ -520,7 +531,8 @@ public partial class BillsPage : ContentPage
                 amountText,
                 out double amount)
             ||
-            !double.IsFinite(amount)
+            !double.IsFinite(
+                amount)
             ||
             amount <= 0)
         {
@@ -532,7 +544,6 @@ public partial class BillsPage : ContentPage
 
             return;
         }
-
 
 
         // ======================================
@@ -557,140 +568,94 @@ public partial class BillsPage : ContentPage
         }
 
 
-
         bool isActive =
             BillActiveSwitch.IsToggled;
 
 
-
-        // ======================================
-        // ADD NEW BILL
-        // ======================================
-
-        if (selectedBill == null)
-        {
-            RecurringExpenses newBill =
-                new RecurringExpenses(
-                    0,
-                    name,
-                    category,
-                    amount,
-                    dueDay,
-                    isActive);
-
-
-            dataBaseManager
-                .AddRecurringExpense(
-                    newBill);
-        }
-
-
-
-        // ======================================
-        // UPDATE EXISTING BILL
-        // ======================================
-
-        else
-        {
-            RecurringExpenses updatedBill =
-                new RecurringExpenses(
-                    selectedBill.Id,
-                    name,
-                    category,
-                    amount,
-                    dueDay,
-                    isActive);
-
-
-            dataBaseManager
-                .UpdateRecurringExpense(
-                    updatedBill);
-        }
-
-
         bool isEditing =
-    selectedBill != null;
+            selectedBill != null;
 
 
-    try
-    {
-        isSavingBill =
-            true;
-
-
-        // ======================================
-        // ADD NEW BILL
-        // ======================================
-
-        if (selectedBill == null)
+        try
         {
-            RecurringExpenses newBill =
-                new RecurringExpenses(
-                    0,
-                    name,
-                    category,
-                    amount,
-                    dueDay,
-                    isActive);
+            isSavingBill =
+                true;
 
 
-            dataBaseManager
-                .AddRecurringExpense(
-                    newBill);
+            // ==================================
+            // ADD NEW BILL
+            // ==================================
+
+            if (selectedBill ==
+                null)
+            {
+                RecurringExpenses newBill =
+                    new RecurringExpenses(
+                        0,
+                        name,
+                        category,
+                        amount,
+                        dueDay,
+                        isActive);
+
+
+                dataBaseManager
+                    .AddRecurringExpense(
+                        newBill);
+            }
+
+
+            // ==================================
+            // UPDATE EXISTING BILL
+            // ==================================
+
+            else
+            {
+                RecurringExpenses updatedBill =
+                    new RecurringExpenses(
+                        selectedBill.Id,
+                        name,
+                        category,
+                        amount,
+                        dueDay,
+                        isActive);
+
+
+                dataBaseManager
+                    .UpdateRecurringExpense(
+                        updatedBill);
+            }
+
+
+            CloseBillModal();
+
+
+            LoadBills();
         }
-
-
-        // ======================================
-        // UPDATE EXISTING BILL
-        // ======================================
-
-        else
+        catch (Exception ex)
         {
-            RecurringExpenses updatedBill =
-                new RecurringExpenses(
-                    selectedBill.Id,
-                    name,
-                    category,
-                    amount,
-                    dueDay,
-                    isActive);
+            System.Diagnostics.Debug.WriteLine(
+                $"Failed to save recurring bill: {ex}");
 
 
-            dataBaseManager
-                .UpdateRecurringExpense(
-                    updatedBill);
+            string message =
+                isEditing
+
+                    ? "PocketAI could not update this bill. Your previous bill information was kept. Please try again."
+
+                    : "PocketAI could not add this bill. Your data was not changed. Please try again.";
+
+
+            await DisplayAlertAsync(
+                "Unable to Save",
+                message,
+                "OK");
         }
-
-
-        CloseBillModal();
-
-
-        LoadBills();
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine(
-            $"Failed to save recurring bill: {ex}");
-
-
-        string message =
-            isEditing
-
-                ? "PocketAI could not update this bill. Your previous bill information was kept. Please try again."
-
-                : "PocketAI could not add this bill. Your data was not changed. Please try again.";
-
-
-        await DisplayAlertAsync(
-            "Unable to Save",
-            message,
-            "OK");
-    }
-    finally
-    {
-        isSavingBill =
-            false;
-    }
+        finally
+        {
+            isSavingBill =
+                false;
+        }
     }
 
 

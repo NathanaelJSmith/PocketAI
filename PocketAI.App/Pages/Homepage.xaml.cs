@@ -572,10 +572,10 @@ public partial class HomePage : ContentPage
 
 
         // ======================================
-        // CURRENT SPENDABLE CASH
+        // CURRENT CHECKING AMOUNT
         // ======================================
         //
-        // Checking + Cash
+        // Checking
         //
         // Savings remains protected.
         // ======================================
