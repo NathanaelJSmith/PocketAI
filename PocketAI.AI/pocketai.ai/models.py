@@ -226,3 +226,368 @@ class BillContext:
 # ==========================================
 # COMPLETE FINANCIAL CONTEXT
 # ==========================================
+
+@dataclass
+class FinancialContext:
+    checking_balance: float = 0
+    savings_account: float = 0
+
+    expected_monthly_income: float = 0
+
+    current_month_spent: float = 0
+
+    upcoming_bills: float = 0
+
+    required_savings_this_month = float = 0
+
+    accepted_extra_savings: float = 0
+
+    safe_to_spend_total: float = 0
+
+    safe_to_spend_today: float = 0
+
+    safe_to_spend_week: float = 0
+
+    obligation_shortfall: float = 0
+
+    projected_additional_spending: float = 0
+
+    projected_month_and_money: float = 0
+
+    over_budget_count: int = 0
+
+    budget_count: int = 0
+
+    current_month_transaction_count: int = 0
+
+    active_recurring_bill_count: int = 0
+
+    active_savings_goal_count: int = 0
+
+    data_confidence: str = "Low"
+
+    financial_health_score: int | None = None
+
+    category_spending: list[
+        CategorySpending
+    ] = field(
+        default_factory=list
+    )
+
+    savings_goals: list[
+        SavingsGoalContext
+    ] = field(
+        default_factory=list
+    )
+
+    bills: list[
+        BillContext
+    ] = field(
+        default_factory=list
+    )
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+    ) -> "FinancialContext":
+
+        health_score_raw = data.get(
+            "financialHealthScore"
+        )
+
+        health_score = (
+            safe_int(
+                health_score_raw
+            )
+            if health_score_raw
+            is not None
+            else None
+        )
+
+        return cls(
+            checking_balance=safe_float(
+                data.get(
+                    "checkingBalance",
+                    0,
+                )
+            ),
+
+            savings_balance=max(
+                safe_float(
+                    data.get(
+                        "savingsBalance",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            expected_monthly_income=max(
+                safe_float(
+                    data.get(
+                        "expectedMonthlyIncome",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            current_month_spent=max(
+                safe_float(
+                    data.get(
+                        "currentMonthSpent",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            upcoming_bills=max(
+                safe_float(
+                    data.get(
+                        "upcomingBills",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            required_savings_this_month=max(
+                safe_float(
+                    data.get(
+                        "requiredSavingsThisMonth",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            accepted_extra_savings=max(
+                safe_float(
+                    data.get(
+                        "acceptedExtraSavings",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            safe_to_spend_total=max(
+                safe_float(
+                    data.get(
+                        "safeToSpendTotal",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            safe_to_spend_today=max(
+                safe_float(
+                    data.get(
+                        "safeToSpendToday",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            safe_to_spend_this_week=max(
+                safe_float(
+                    data.get(
+                        "safeToSpendThisWeek",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            obligation_shortfall=max(
+                safe_float(
+                    data.get(
+                        "obligationShortfall",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            projected_additional_spending=max(
+                safe_float(
+                    data.get(
+                        "projectedAdditionalSpending",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            projected_month_end_money=safe_float(
+                data.get(
+                    "projectedMonthEndMoney",
+                    0,
+                )
+            ),
+
+            over_budget_count=max(
+                safe_int(
+                    data.get(
+                        "overBudgetCount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            budget_count=max(
+                safe_int(
+                    data.get(
+                        "budgetCount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            current_month_transaction_count=max(
+                safe_int(
+                    data.get(
+                        "currentMonthTransactionCount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            active_recurring_bill_count=max(
+                safe_int(
+                    data.get(
+                        "activeRecurringBillCount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            active_savings_goal_count=max(
+                safe_int(
+                    data.get(
+                        "activeSavingsGoalCount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            data_confidence=str(
+                data.get(
+                    "dataConfidence",
+                    "Low",
+                )
+            ),
+
+            financial_health_score=health_score,
+
+            category_spending=[
+                CategorySpending.from_dict(
+                    item
+                )
+                for item
+                in data.get(
+                    "categorySpending",
+                    [],
+                )
+                if isinstance(
+                    item,
+                    dict,
+                )
+            ],
+
+            savings_goals=[
+                SavingsGoalContext.from_dict(
+                    item
+                )
+                for item
+                in data.get(
+                    "savingsGoals",
+                    [],
+                )
+                if isinstance(
+                    item,
+                    dict,
+                )
+            ],
+
+            bills=[
+                BillContext.from_dict(
+                    item
+                )
+                for item
+                in data.get(
+                    "bills",
+                    [],
+                )
+                if isinstance(
+                    item,
+                    dict,
+                )
+            ],
+        )
+
+# ==========================================
+# AI INSIGHT
+# ==========================================
+
+@dataclass
+class Insight:
+    category: str
+
+    serverity: str
+
+    title: str
+
+    message: str
+
+    reason: str
+
+# ==========================================
+# RECOMMENDED ACTION
+# ==========================================
+
+@dataclass
+class RecommendedAction:
+    priority: int
+
+    action: str
+
+    reason: setattr
+
+
+# ==========================================
+# AI ANALYSIS RESULT
+# ==========================================
+
+@dataclass
+class AnalysisResult:
+    engine_version: str
+
+    overall_status: str
+
+    summary: str
+
+    confidence: str
+
+    insights: list[Insight]
+
+    recommended_actions: list[
+        RecommendedAction
+    ]
+
+    def to_dict(
+            self
+    ) -> dict[str, Any]:
+
+        return asdict(
+            self
+        )
