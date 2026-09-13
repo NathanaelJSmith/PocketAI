@@ -4,13 +4,15 @@ from dataclasses import asdict, dataclass, field
 from math import isfinite
 from typing import Any
 
+
 # ==========================================
 # SAFE NUMBER HELPERS
 # ==========================================
 
+
 def safe_float(
-        value: Any,
-        default: float = 0.0,
+    value: Any,
+    default: float = 0.0,
 ) -> float:
     try:
         number = float(value)
@@ -25,8 +27,8 @@ def safe_float(
 
 
 def safe_int(
-        value: Any,
-        default: int = 0,
+    value: Any,
+    default: int = 0,
 ) -> int:
     try:
         return int(value)
@@ -34,9 +36,11 @@ def safe_int(
     except (TypeError, ValueError):
         return default
 
+
 # ==========================================
 # CATEGORY SPENDING
 # ==========================================
+
 
 @dataclass
 class CategorySpending:
@@ -49,7 +53,7 @@ class CategorySpending:
         cls,
         data: dict[str, Any],
     ) -> "CategorySpending":
-        
+
         budget_value = data.get(
             "budgetLimit"
         )
@@ -79,9 +83,11 @@ class CategorySpending:
             budget_limit=budget_limit,
         )
 
+
 # ==========================================
 # SAVINGS GOAL
 # ==========================================
+
 
 @dataclass
 class SavingsGoalContext:
@@ -115,7 +121,7 @@ class SavingsGoalContext:
 
     @classmethod
     def from_dict(
-        cls, 
+        cls,
         data: dict[str, Any],
     ) -> "SavingsGoalContext":
 
@@ -162,9 +168,11 @@ class SavingsGoalContext:
             ),
         )
 
+
 # ==========================================
 # BILL
 # ==========================================
+
 
 @dataclass
 class BillContext:
@@ -215,7 +223,7 @@ class BillContext:
                     True,
                 )
             ),
-            is_paid_month=bool(
+            is_paid_this_month=bool(
                 data.get(
                     "isPaidThisMonth",
                     False,
@@ -223,14 +231,16 @@ class BillContext:
             ),
         )
 
+
 # ==========================================
 # COMPLETE FINANCIAL CONTEXT
 # ==========================================
 
+
 @dataclass
 class FinancialContext:
     checking_balance: float = 0
-    savings_account: float = 0
+    savings_balance: float = 0
 
     expected_monthly_income: float = 0
 
@@ -238,7 +248,7 @@ class FinancialContext:
 
     upcoming_bills: float = 0
 
-    required_savings_this_month = float = 0
+    required_savings_this_month: float = 0
 
     accepted_extra_savings: float = 0
 
@@ -246,13 +256,13 @@ class FinancialContext:
 
     safe_to_spend_today: float = 0
 
-    safe_to_spend_week: float = 0
+    safe_to_spend_this_week: float = 0
 
     obligation_shortfall: float = 0
 
     projected_additional_spending: float = 0
 
-    projected_month_and_money: float = 0
+    projected_month_end_money: float = 0
 
     over_budget_count: int = 0
 
@@ -535,15 +545,17 @@ class FinancialContext:
             ],
         )
 
+
 # ==========================================
 # AI INSIGHT
 # ==========================================
+
 
 @dataclass
 class Insight:
     category: str
 
-    serverity: str
+    severity: str
 
     title: str
 
@@ -551,9 +563,11 @@ class Insight:
 
     reason: str
 
+
 # ==========================================
 # RECOMMENDED ACTION
 # ==========================================
+
 
 @dataclass
 class RecommendedAction:
@@ -561,12 +575,13 @@ class RecommendedAction:
 
     action: str
 
-    reason: setattr
+    reason: str
 
 
 # ==========================================
 # AI ANALYSIS RESULT
 # ==========================================
+
 
 @dataclass
 class AnalysisResult:
@@ -585,7 +600,7 @@ class AnalysisResult:
     ]
 
     def to_dict(
-            self
+        self,
     ) -> dict[str, Any]:
 
         return asdict(

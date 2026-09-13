@@ -1,0 +1,73 @@
+{
+  "checkingBalance": 1250.00,
+  "savingsBalance": 1000.00,
+
+  "expectedMonthlyIncome": 3000.00,
+
+  "currentMonthSpent": 750.00,
+
+  "upcomingBills": 800.00,
+
+  "requiredSavingsThisMonth": 289.47,
+
+  "acceptedExtraSavings": 0.00,
+
+  "safeToSpendTotal": 1160.53,
+
+  "safeToSpendToday": 52.75,
+
+  "safeToSpendThisWeek": 369.26,
+
+  "obligationShortfall": 0.00,
+
+  "projectedAdditionalSpending": 0.00,
+
+  "projectedMonthEndMoney": 450.00,
+
+  "overBudgetCount": 0,
+
+  "budgetCount": 1,
+
+  "currentMonthTransactionCount": 3,
+
+  "activeRecurringBillCount": 1,
+
+  "activeSavingsGoalCount": 1,
+
+  "dataConfidence": "High",
+
+  "financialHealthScore": 70,
+
+  "categorySpending": [
+    {
+      "category": "Dining",
+      "amount": 550.00,
+      "budgetLimit": 600.00
+    },
+    {
+      "category": "Groceries",
+      "amount": 200.00,
+      "budgetLimit": 400.00
+    }
+  ],
+
+  "savingsGoals": [
+    {
+      "name": "Emergency Fund",
+      "currentAmount": 700.00,
+      "targetAmount": 2000.00,
+      "priorityRank": 1,
+      "isCompleted": false
+    }
+  ],
+
+  "bills": [
+    {
+      "name": "Rent",
+      "amount": 800.00,
+      "dueDay": 15,
+      "isActive": true,
+      "isPaidThisMonth": false
+    }
+  ]
+}
