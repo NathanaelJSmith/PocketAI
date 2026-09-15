@@ -1,3 +1,5 @@
+using PocketAI.App.Services;
+using System.Formats.Asn1;
 using System.Text.RegularExpressions;
 using RoundRectangle = Microsoft.Maui.Controls.Shapes.RoundRectangle;
 
@@ -14,6 +16,8 @@ public partial class PocketAIPage : ContentPage
     private readonly AnalyticsService analyticsService;
 
     private readonly FinancialSnapshotProvider financialSnapshotProvider;
+
+    private readonly AIService aIService;
 
 
     // ==========================================
@@ -120,6 +124,11 @@ public partial class PocketAIPage : ContentPage
         financialSnapshotProvider =
             new FinancialSnapshotProvider(
                 dataBaseManager);
+
+        aIService = 
+            new AIService(
+                dataBaseManager,
+                financialSnapshotProvider);
 
 
         // Make sure all database tables exist.
@@ -841,9 +850,9 @@ public partial class PocketAIPage : ContentPage
     // WHAT SHOULD I FOCUS ON?
     // ==========================================
 
-    private void FocusQuestionClicked(
-        object? sender,
-        EventArgs e)
+    private async void FocusQuestionClicked(
+    object? sender,
+    EventArgs e)
     {
         if (!isProcessingTypedQuestion)
         {
@@ -852,287 +861,132 @@ public partial class PocketAIPage : ContentPage
         }
 
 
-
-        // ======================================
-        // NO SUMMARY
-        // ======================================
-
-        if (currentSnapshot == null)
+        try
         {
-            ShowAssistantResponse(
-                "I don't have enough financial information yet " +
-                "to determine what you should focus on.");
+            // ======================================
+            // ASK OUR PYTHON AI ENGINE
+            // ======================================
 
-            return;
-        }
+            PocketAIAnalysisResult analysis =
+                await aIService
+                    .AnalyzeCurrentFinancesAsync();
 
 
-
-        // ======================================
-        // NO FINANCIAL SNAPSHOT
-        // ======================================
-
-        if (currentSnapshot == null)
-        {
-            ShowAssistantResponse(
-                "I don't have enough financial information yet " +
-                "to determine what you should focus on.");
-
-            return;
-        }
+            string response =
+                analysis.Summary;
 
 
 
-        // ======================================
-        // PRIORITY 1:
-        // KNOWN OBLIGATION SHORTFALL
-        // ======================================
+            // ======================================
+            // TOP RECOMMENDED ACTION
+            // ======================================
 
-        if (currentSnapshot.ObligationShortfall > 0)
-        {
-            ShowAssistantResponse(
-                $"Your monthly plan is currently " +
-                $"{currentSnapshot.ObligationShortfall:C} short. " +
-                $"I would review your spending, bills, and savings commitments " +
-                $"before adding unnecessary purchases.");
-
-            return;
-        }
+            PocketAIRecommendedAction?
+                topAction =
+                    analysis
+                        .RecommendedActions
+                        .OrderBy(
+                            action =>
+                                action.Priority)
+                        .FirstOrDefault();
 
 
-
-        // ======================================
-        // PRIORITY 2:
-        // MISSING EXPECTED INCOME
-        // ======================================
-
-        if (currentSnapshot.ExpectedMonthlyIncome <= 0)
-        {
-            ShowAssistantResponse(
-                "Nothing shows a known cash shortfall right now, " +
-                "but I would enter your expected monthly income next. " +
-                "That will improve PocketAI's monthly planning and financial analysis.");
-
-            return;
-        }
-
-
-
-        // ======================================
-        // CURRENT MONTH EXPENSES
-        // ======================================
-
-        List<Expense> currentMonthExpenses =
-            analyticsService
-                .GetCurrentMonthExpense(
-                    currentExpenses);
-
-
-
-        // ======================================
-        // PRIORITY 3:
-        // OVER-BUDGET CATEGORY
-        // ======================================
-
-        string? worstBudgetCategory =
-            null;
-
-
-        double biggestBudgetOverage =
-            0;
-
-
-        foreach (BudgetLimit budget
-                 in currentBudgetLimits)
-        {
-            double categorySpent =
-                analyticsService
-                    .GetCategoryTotal(
-                        currentMonthExpenses,
-                        budget.Category);
-
-
-            double amountOver =
-                categorySpent -
-                budget.LimitAmount;
-
-
-            if (amountOver >
-                biggestBudgetOverage)
+            if (topAction != null)
             {
-                biggestBudgetOverage =
-                    amountOver;
-
-
-                worstBudgetCategory =
-                    budget.Category;
-            }
-        }
-
-
-
-        if (worstBudgetCategory != null &&
-            biggestBudgetOverage > 0)
-        {
-            ShowAssistantResponse(
-                $"I would focus on your {worstBudgetCategory} spending first. " +
-                $"You're currently {biggestBudgetOverage:C} over that " +
-                $"category's budget. Reducing spending there will have " +
-                $"the most immediate impact on getting your budget back on track.");
-
-            return;
-        }
-
-
-
-        // ======================================
-        // PRIORITY 4:
-        // NEGATIVE MONTH-END PROJECTION
-        // ======================================
-
-        if (currentProjectedEndOfMonthMoney < 0)
-        {
-            double projectedShortage =
-                Math.Abs(
-                    currentProjectedEndOfMonthMoney);
-
-
-            ShowAssistantResponse(
-                $"Your spending pace should be your main focus. " +
-                $"At your current rate, you're projected to finish " +
-                $"the month about {projectedShortage:C} short. " +
-                $"Try reducing discretionary spending for the rest " +
-                $"of the month so your projected balance stays positive.");
-
-            return;
-        }
-
-
-
-        // ======================================
-        // PRIORITY 5:
-        // UPCOMING BILL
-        // ======================================
-
-        RecurringExpenses? upcomingBill =
-            currentRecurringExpenses
-                .Where(
-                    bill =>
-                        bill.IsActive)
-                .OrderBy(
-                    bill =>
-                        analyticsService
-                            .GetDaysUntilDue(
-                                bill.DueDay))
-                .FirstOrDefault();
-
-
-
-        if (upcomingBill != null)
-        {
-            int daysUntilBill =
-                analyticsService
-                    .GetDaysUntilDue(
-                        upcomingBill.DueDay);
-
-
-            if (daysUntilBill <= 7)
-            {
-                string dueText;
-
-
-                if (daysUntilBill == 0)
-                {
-                    dueText =
-                        "today";
-                }
-
-                else if (daysUntilBill == 1)
-                {
-                    dueText =
-                        "tomorrow";
-                }
-
-                else
-                {
-                    dueText =
-                        $"in {daysUntilBill} days";
-                }
+                response +=
+                    "\n\nMy top recommendation: " +
+                    topAction.Action +
+                    " " +
+                    topAction.Reason;
 
 
                 ShowAssistantResponse(
-                    $"Your next priority should be preparing for " +
-                    $"{upcomingBill.Name}. " +
-                    $"The {upcomingBill.Amount:C} bill is due {dueText}. " +
-                    $"Make sure that money remains available before " +
-                    $"making additional discretionary purchases.");
+                    response);
+
 
                 return;
             }
+
+
+
+            // ======================================
+            // FIND MOST IMPORTANT INSIGHT
+            // ======================================
+
+            PocketAIInsight? importantInsight =
+                analysis.Insights
+                    .FirstOrDefault(
+                        insight =>
+                            insight.Severity
+                                .Equals(
+                                    "critical",
+                                    StringComparison.OrdinalIgnoreCase));
+
+
+            importantInsight ??=
+                analysis.Insights
+                    .FirstOrDefault(
+                        insight =>
+                            insight.Severity
+                                .Equals(
+                                    "warning",
+                                    StringComparison.OrdinalIgnoreCase));
+
+
+            importantInsight ??=
+                analysis.Insights
+                    .FirstOrDefault(
+                        insight =>
+                            insight.Category
+                                .Equals(
+                                    "budget",
+                                    StringComparison.OrdinalIgnoreCase));
+
+
+            importantInsight ??=
+                analysis.Insights
+                    .FirstOrDefault(
+                        insight =>
+                            insight.Category
+                                .Equals(
+                                    "savings",
+                                    StringComparison.OrdinalIgnoreCase));
+
+
+            if (importantInsight != null)
+            {
+                response +=
+                    "\n\n" +
+                    importantInsight.Message;
+
+
+                if (!string.IsNullOrWhiteSpace(
+                        importantInsight.Reason))
+                {
+                    response +=
+                        " " +
+                        importantInsight.Reason;
+                }
+            }
+
+
+            ShowAssistantResponse(
+                response);
         }
 
 
-
-        // ======================================
-        // PRIORITY 6:
-        // SAVINGS GOALS
-        // ======================================
-
-        if (currentSavingsNeededThisMonth > 0)
+        catch (Exception ex)
         {
-            ShowAssistantResponse(
-                $"Your finances are currently stable enough that I would " +
-                $"focus on your savings goals next. " +
-                $"Based on your goal deadlines, you should try to put about " +
-                $"{currentSavingsNeededThisMonth:C} toward savings this month. " +
-                $"You still have {currentSafeToSpend:C} available after " +
-                $"accounting for that savings plan.");
-
-            return;
-        }
-
-
-
-        // ======================================
-        // PRIORITY 7:
-        // FINANCES LOOK HEALTHY
-        // ======================================
-
-        if (currentMonthExpenses.Count > 0)
-        {
-            string biggestCategory =
-                analyticsService
-                    .GetBiggestSpendingCategory(
-                        currentMonthExpenses);
-
-
-            double biggestCategoryAmount =
-                analyticsService
-                    .GetCategoryTotal(
-                        currentMonthExpenses,
-                        biggestCategory);
+            System.Diagnostics.Debug.WriteLine(
+                $"PocketAI Python integration error: {ex}");
 
 
             ShowAssistantResponse(
-                $"Nothing urgent stands out right now. " +
-                $"You have {currentSafeToSpend:C} available within your " +
-                $"current plan and your end-of-month projection is positive. " +
-                $"If you want to improve further, keep an eye on " +
-                $"{biggestCategory}, your largest spending category " +
-                $"this month at {biggestCategoryAmount:C}.");
-        }
-
-        else
-        {
-            ShowAssistantResponse(
-                $"Nothing urgent stands out right now. " +
-                $"You currently have {currentSafeToSpend:C} available " +
-                $"within your financial plan. " +
-                $"Keep recording transactions so I can give you more " +
-                $"detailed recommendations as your spending data grows.");
+                "I couldn't run the PocketAI reasoning engine right now. " +
+                "Your financial data was not changed.");
         }
     }
-
+    
 
 
     // ==========================================

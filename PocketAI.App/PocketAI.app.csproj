@@ -76,4 +76,13 @@
 	  <ProjectReference Include="..\PocketAI.Data\PocketAI.Data.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+
+    <Content
+        Include="..\PocketAI.AI\**\*.py"
+        Link="PocketAI.AI\%(RecursiveDir)%(Filename)%(Extension)"
+        CopyToOutputDirectory="PreserveNewest" />
+
+	</ItemGroup>
+
 </Project>
