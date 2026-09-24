@@ -4,15 +4,22 @@ import json
 import sys
 from typing import Any
 
+from .conversation import PocketAIConversationEngine
 from .engine import PocketAIEngine
-from . models import FinancialContext
+from .models import FinancialContext
+from .models import(
+    ConversationState,
+    FinancialContext,
+)
+
 
 # ==========================================
 # RUN POCKETAI
 # ==========================================
 
+
 def run_analysis(
-        payload: dict[str, Any],
+    payload: dict[str, Any],
 ) -> dict[str, Any]:
 
     context = (
@@ -21,15 +28,63 @@ def run_analysis(
         )
     )
 
-    engine = (
-        PocketAIEngine()
-    )
 
-    result = (
-        engine.analyze(
-            context
+    question = str(
+        payload.get(
+            "question",
+            "",
+        )
+        or
+        ""
+    ).strip()
+
+    conversation_state = (
+        ConversationState.from_dict(
+            payload.get(
+                "conversationState",
+                {},
+            )
         )
     )
+
+
+    # ======================================
+    # USER ASKED A QUESTION
+    # ======================================
+
+    if question:
+
+        conversation_engine = (
+            PocketAIConversationEngine()
+        )
+
+
+        result = (
+            conversation_engine.answer(
+                question,
+                context,
+                conversation_state,
+            )
+        )
+
+
+    # ======================================
+    # FINANCIAL ANALYSIS ONLY
+    # ======================================
+
+    else:
+
+        engine = (
+            PocketAIEngine()
+        )
+
+
+        result = (
+            engine.analyze(
+                context
+            )
+        )
+
 
     return result.to_dict()
 
@@ -37,6 +92,7 @@ def run_analysis(
 # ==========================================
 # COMMAND LINE ENTRY
 # ==========================================
+
 
 def main() -> None:
 
@@ -46,10 +102,13 @@ def main() -> None:
             sys.stdin.read()
         )
 
+
         if not raw_input.strip():
+
             raise ValueError(
-                "No Financial data was provided."
+                "No financial data was provided."
             )
+
 
         payload = (
             json.loads(
@@ -57,13 +116,16 @@ def main() -> None:
             )
         )
 
+
         if not isinstance(
             payload,
             dict,
         ):
+
             raise ValueError(
-                "PocketAi expected a JSON object."
+                "PocketAI expected a JSON object."
             )
+
 
         result = (
             run_analysis(
@@ -71,12 +133,15 @@ def main() -> None:
             )
         )
 
+
         print(
             json.dumps(
                 result,
                 indent=2,
             )
         )
+
+
     except Exception as error:
 
         error_result = {
@@ -86,6 +151,7 @@ def main() -> None:
             ),
         }
 
+
         print(
             json.dumps(
                 error_result,
@@ -93,9 +159,11 @@ def main() -> None:
             )
         )
 
+
         sys.exit(
             1
         )
+
 
 if __name__ == "__main__":
     main()

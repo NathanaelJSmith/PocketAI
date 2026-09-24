@@ -582,6 +582,148 @@ class RecommendedAction:
 # AI ANALYSIS RESULT
 # ==========================================
 
+# ==========================================
+# CONVERSATION STATE
+# ==========================================
+
+
+@dataclass
+class ConversationState:
+    last_intent: str = ""
+
+    last_purchase_amount: float | None = None
+
+    last_purchase_description: str = ""
+
+    last_category: str = ""
+
+    last_bill_name: str = ""
+
+    last_savings_goal_name: str = ""
+
+    previous_question: str = ""
+
+    previous_answer: str = ""
+
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Any,
+    ) -> "ConversationState":
+
+        if not isinstance(
+            data,
+            dict,
+        ):
+            return cls()
+
+
+        raw_amount = data.get(
+            "lastPurchaseAmount",
+            data.get(
+                "last_purchase_amount"
+            ),
+        )
+
+
+        purchase_amount = (
+            safe_float(
+                raw_amount
+            )
+            if raw_amount is not None
+            else None
+        )
+
+
+        return cls(
+            last_intent=str(
+                data.get(
+                    "lastIntent",
+                    data.get(
+                        "last_intent",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            last_purchase_amount=
+                purchase_amount,
+
+            last_purchase_description=str(
+                data.get(
+                    "lastPurchaseDescription",
+                    data.get(
+                        "last_purchase_description",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            last_category=str(
+                data.get(
+                    "lastCategory",
+                    data.get(
+                        "last_category",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            last_bill_name=str(
+                data.get(
+                    "lastBillName",
+                    data.get(
+                        "last_bill_name",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            last_savings_goal_name=str(
+                data.get(
+                    "lastSavingsGoalName",
+                    data.get(
+                        "last_savings_goal_name",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            previous_question=str(
+                data.get(
+                    "previousQuestion",
+                    data.get(
+                        "previous_question",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+
+            previous_answer=str(
+                data.get(
+                    "previousAnswer",
+                    data.get(
+                        "previous_answer",
+                        "",
+                    ),
+                )
+                or
+                ""
+            ),
+        )
 
 @dataclass
 class AnalysisResult:
@@ -598,6 +740,16 @@ class AnalysisResult:
     recommended_actions: list[
         RecommendedAction
     ]
+
+    intent: str = "financial_overview"
+
+    intent_confidence: float = 1.0
+
+    answer: str = ""
+
+    conversation_state: ConversationState = field(
+        default_factory=ConversationState
+    )
 
     def to_dict(
         self,

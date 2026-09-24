@@ -1019,504 +1019,116 @@ public partial class PocketAIPage : ContentPage
     // PROCESS TYPED QUESTIONS
     // ==========================================
 
-    private void ProcessUserQuestion()
+private async void ProcessUserQuestion()
+{
+    // ==========================================
+    // PREVENT DOUBLE SUBMIT
+    // ==========================================
+
+    if (isProcessingTypedQuestion)
     {
-        string question =
-            QuestionEntry.Text?
-                .Trim() ?? "";
+        return;
+    }
 
 
-        // Don't submit an empty question.
-        if (string.IsNullOrWhiteSpace(
+    string question =
+        QuestionEntry.Text?
+            .Trim()
+        ??
+        "";
+
+
+    // ==========================================
+    // EMPTY QUESTION
+    // ==========================================
+
+    if (string.IsNullOrWhiteSpace(
             question))
-        {
-            return;
-        }
+    {
+        return;
+    }
 
 
-        // Display exactly what the user typed.
-        AddUserMessage(
-            question);
+    // ==========================================
+    // SHOW USER MESSAGE
+    // ==========================================
+
+    AddUserMessage(
+        question);
 
 
-        // Makes matching easier.
-        string lowerQuestion =
-            question
-                .ToLowerInvariant();
+    // Clear immediately so the UI feels responsive.
+    QuestionEntry.Text =
+        "";
 
 
-        // Prevent quick-question handlers
-        // from creating duplicate user bubbles.
-        isProcessingTypedQuestion =
-            true;
-
-        try
-        {
-            // ==================================
-            // CATEGORY BUDGET REMAINING
-            // ==================================
-
-            string? spendingLimitCategory =
-                FindMentionedCategory(
-                    lowerQuestion);
+    isProcessingTypedQuestion =
+        true;
 
 
-            if (spendingLimitCategory != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "how much can i spend",
-                    "how much can i still spend",
-                    "how much do i have left",
-                    "how much is left",
-                    "remaining budget",
-                    "budget remaining",
-                    "how much room do i have"))
-            {
-                AnswerCategoryAvailableToSpendQuestion(
-                    spendingLimitCategory);
+    try
+    {
+        // ======================================
+        // SEND REAL QUESTION + REAL FINANCES
+        // TO POCKETAI'S PYTHON ENGINE
+        // ======================================
 
-                return;
-            }
-            // ==================================
-            // AFFORDABILITY FOLLOW-UP
-            // ==================================
-
-            if (lastReferencedPurchaseAmount.HasValue &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "what about",
-                    "how about",
-                    "instead",
-                    "what if"))
-            {
-                Match followUpAmount =
-                    Regex.Match(
-                        question,
-                        @"\$?\s*(\d+(?:\.\d{1,2})?)");
-
-
-                if (followUpAmount.Success)
-                {
-                    AnswerAffordabilityQuestion(
-                        question);
-
-                    return;
-                }
-            }
-            // ==================================
-            // REFER TO LAST PURCHASE
-            // ==================================
-
-            if (lastReferencedPurchaseAmount.HasValue &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "is that too much",
-                    "is that to much",
-                    "is it too much",
-                    "is it to much",
-                    "is that expensive",
-                    "is it expensive",
-                    "is that safe",
-                    "is it safe",
-                    "should i do it",
-                    "should i buy it",
-                    "can i do it",
-                    "can i afford it"))
-            {
-                AnswerAffordabilityQuestion(
-                    $"Can I afford ${lastReferencedPurchaseAmount.Value:F2}?");
-
-                return;
-            }
-            // ==================================
-            // AFFORDABILITY / SAFE TO SPEND
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "afford",
-                "can i spend",
-                "should i spend",
-                "can i buy",
-                "should i buy",
-                "safe to spend",
-                "how much can i spend",
-                "money to spend"))
-            {
-                AnswerAffordabilityQuestion(
+        PocketAIAnalysisResult result =
+            await aIService
+                .AnalyzeCurrentFinancesAsync(
                     question);
 
-                return;
-            }
 
-            // ==================================
-            // FOLLOW-UP ABOUT LAST CATEGORY
-            // ==================================
+        // ======================================
+        // RESPONSE
+        // ======================================
 
-            if (lastReferencedCategory != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "how much over",
-                    "am i over",
-                    "is that over",
-                    "is it over",
-                    "what is the budget for that",
-                    "what's the budget for that",
-                    "budget for it",
-                    "budget for that",
-                    "what is the remaining budget",
-                    "what's the remaining budget",
-                    "whats the remaining budget",
-                    "remaining budget",
-                    "budget remaining",
-                    "how much is left in the budget",
-                    "how much do i have left in the budget",
-                    "how much do i have left"))
-            {
-                AnswerReferencedCategoryBudgetQuestion();
+        string response =
+            !string.IsNullOrWhiteSpace(
+                result.Answer)
 
-                return;
-            }
+                ? result.Answer
 
-            // ==================================
-            // BUDGET RISK / CLOSE TO LIMIT
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "which budget should i watch",
-                "what budget should i watch",
-                "closest to going over",
-                "closest to my budget",
-                "close to my budget",
-                "close to any budget",
-                "close to a budget",
-                "budget is getting close",
-                "budget getting close",
-                "near my budget",
-                "near a budget",
-                "budget risk"))
-            {
-                AnswerBudgetRiskQuestion();
-
-                return;
-            }
-
-            // ==================================
-            // BUDGETS
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "budget",
-                "over budget",
-                "budget limit",
-                "blow my budget",
-                "blew my budget"))
-            {
-                AnswerBudgetQuestion();
-
-                return;
-            }
-
-            // ==================================
-            // FOLLOW-UP ABOUT LAST BILL
-            // ==================================
-
-            if (lastReferencedBill != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "how much is that",
-                    "how much is it",
-                    "how much does that cost",
-                    "how much does it cost",
-                    "when is that due",
-                    "when is it due",
-                    "when is that due again",
-                    "when is it due again",
-                    "is that due soon",
-                    "is it due soon"))
-            {
-                AnswerReferencedBillQuestion(
-                    lowerQuestion);
-
-                return;
-            }
+                : result.Summary;
 
 
-            // ==================================
-            // FOLLOW-UP ABOUT SAVINGS GOAL
-            // ==================================
-
-            if (lastReferencedSavingsGoal != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "how much do i have left",
-                    "how much is left",
-                    "how much left",
-                    "how much have i saved",
-                    "how much did i save",
-                    "when is it due",
-                    "when is that due",
-                    "when is the goal due",
-                    "when is my goal due",
-                    "how long do i have",
-                    "how far along",
-                    "what percent",
-                    "what percentage",
-                    "progress on it"))
-            {
-                AnswerReferencedSavingsGoalQuestion(
-                    lowerQuestion);
-
-                return;
-            }
-
-            
-            // ==================================
-            // BILLS
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "bill",
-                "bills",
-                "due",
-                "recurring",
-                "payment",
-                "payments"))
-            {
-                AnswerBillsQuestion();
-
-                return;
-            }
-
-
-
-            // ==================================
-            // SAVINGS
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "saving",
-                "savings",
-                "save",
-                "goal",
-                "goals"))
-            {
-                SavingsQuestionClicked(
-                    this,
-                    EventArgs.Empty);
-
-                return;
-            }
-
-            // ==================================
-            // SPECIFIC SPENDING CATEGORY
-            // ==================================
-
-            string? mentionedCategory =
-                FindMentionedCategory(
-                    lowerQuestion);
-
-
-            if (mentionedCategory != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "spend",
-                    "spent",
-                    "spending",
-                    "how much",
-                    "cost"))
-            {
-                AnswerCategorySpendingQuestion(
-                    mentionedCategory);
-
-                return;
-            }
-
-            // ==================================
-            // SPENDING
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "spending",
-                "spend the most",
-                "where is my money going",
-                "where does my money go",
-                "biggest category",
-                "most money",
-                "largest expense",
-                "costs me the most"))
-            {
-                SpendingQuestionClicked(
-                    this,
-                    EventArgs.Empty);
-
-                return;
-            }
-            // ==================================
-            // CATEGORY SPENDING COMPARISON
-            // ==================================
-
-            string? comparisonCategory =
-                FindMentionedCategory(
-                    lowerQuestion);
-
-
-            bool comparingWeeks =
-                lowerQuestion.Contains("this week") &&
-                lowerQuestion.Contains("last week");
-
-
-            bool comparingMonths =
-                lowerQuestion.Contains("this month") &&
-                lowerQuestion.Contains("last month");
-
-
-            if (comparisonCategory != null &&
-                (comparingWeeks ||
-                comparingMonths) &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "more",
-                    "less",
-                    "compare",
-                    "compared",
-                    "difference",
-                    "change"))
-            {
-                AnswerCategorySpendingComparisonQuestion(
-                    comparisonCategory,
-                    lowerQuestion);
-
-                return;
-            }
-            // ==================================
-            // SPENDING PERIOD COMPARISON
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "this week than last week",
-                "this week compare to last week",
-                "this week compared to last week",
-                "compare this week",
-                "this month than last month",
-                "this month compare to last month",
-                "this month compared to last month",
-                "compare this month"))
-            {
-                AnswerSpendingComparisonQuestion(
-                    lowerQuestion);
-
-                return;
-            }
-
-
-            // ==================================
-            // CATEGORY + TIME PERIOD SPENDING
-            // ==================================
-
-            string? categoryWithTimePeriod =
-                FindMentionedCategory(
-                    lowerQuestion);
-
-
-            if (categoryWithTimePeriod != null &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "this week",
-                    "last week",
-                    "this month",
-                    "last month") &&
-                QuestionContainsAny(
-                    lowerQuestion,
-                    "spend",
-                    "spent",
-                    "spending",
-                    "how much"))
-            {
-                AnswerCategoryTimePeriodQuestion(
-                    categoryWithTimePeriod,
-                    lowerQuestion);
-
-                return;
-            }
-            // ==================================
-            // SPENDING BY TIME PERIOD
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "spend this week",
-                "spent this week",
-                "spending this week",
-                "spend last week",
-                "spent last week",
-                "spending last week",
-                "spend this month",
-                "spent this month",
-                "spending this month",
-                "spent last month",
-                "spend last month",
-                "spending last month"))
-            {
-                AnswerSpendingTimePeriodQuestion(
-                    lowerQuestion);
-
-                return;
-            }
-
-
-
-            // ==================================
-            // FOCUS / FINANCIAL PRIORITY
-            // ==================================
-
-            if (QuestionContainsAny(
-                lowerQuestion,
-                "focus",
-                "priority",
-                "what should i do",
-                "attention",
-                "worry about",
-                "financially",
-                "how am i doing"))
-            {
-                FocusQuestionClicked(
-                    this,
-                    EventArgs.Empty);
-
-                return;
-            }
-
-
-
-            // ==================================
-            // QUESTION NOT UNDERSTOOD YET
-            // ==================================
-
-            ShowAssistantResponse(
-                "I don't understand that question yet. " +
-                "I can currently help with spending, affordability, " +
-                "budgets, bills, savings goals, and financial priorities.");
-        }
-
-        finally
+        if (string.IsNullOrWhiteSpace(
+                response))
         {
-            // Always reset after processing.
-            isProcessingTypedQuestion =
-                false;
-
-
-            // Clear the input box.
-            QuestionEntry.Text =
-                "";
+            response =
+                "I analyzed your finances, but I could not build a response to that question yet.";
         }
+
+
+        System.Diagnostics.Debug.WriteLine(
+            $"PocketAI Intent: {result.Intent}");
+
+
+        System.Diagnostics.Debug.WriteLine(
+            $"PocketAI Intent Confidence: {result.IntentConfidence:P0}");
+
+
+        ShowAssistantResponse(
+            response);
     }
+
+    catch (Exception ex)
+    {
+        System.Diagnostics.Debug.WriteLine(
+            $"PocketAI conversation error: {ex}");
+
+
+        ShowAssistantResponse(
+            "I couldn't analyze that question right now. " +
+            "Your financial data was not changed.");
+    }
+
+    finally
+    {
+        isProcessingTypedQuestion =
+            false;
+    }
+}
     // ==========================================
     // ANSWER CATEGORY AVAILABLE TO SPEND
     // ==========================================

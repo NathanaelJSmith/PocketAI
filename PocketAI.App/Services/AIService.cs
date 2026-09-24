@@ -19,6 +19,9 @@ public sealed class AIService
     private readonly FinancialSnapshotProvider
         financialSnapshotProvider;
 
+    private PocketAIConversationState
+    conversationState = new PocketAIConversationState();
+
 
 
     // ==========================================
@@ -44,7 +47,8 @@ public sealed class AIService
     // ==========================================
 
     public async Task<PocketAIAnalysisResult>
-        AnalyzeCurrentFinancesAsync()
+    AnalyzeCurrentFinancesAsync(
+        string? question = null)
     {
         // ======================================
         // TRUSTED C# FINANCIAL SNAPSHOT
@@ -242,6 +246,36 @@ public sealed class AIService
         var payload =
             new
             {
+                question,
+
+                conversationState =
+                new
+                {
+                    lastIntent =
+                        conversationState.LastIntent,
+
+                    lastPurchaseAmount =
+                        conversationState.LastPurchaseAmount,
+
+                    lastPurchaseDescription =
+                        conversationState.LastPurchaseDescription,
+
+                    lastCategory =
+                        conversationState.LastCategory,
+
+                    lastBillName =
+                        conversationState.LastBillName,
+
+                    lastSavingsGoalName =
+                        conversationState.LastSavingsGoalName,
+
+                    previousQuestion =
+                        conversationState.PreviousQuestion,
+
+                    previousAnswer =
+                        conversationState.PreviousAnswer
+                },
+
                 checkingBalance =
                     snapshot.CheckingBalance,
 
@@ -320,7 +354,7 @@ public sealed class AIService
             JsonSerializer.Serialize(
                 payload);
 
-
+        
         // ======================================
         // SEND TO PYTHON
         // ======================================
@@ -384,7 +418,14 @@ public sealed class AIService
                 "PocketAI AI returned an invalid response.");
         }
 
-
+        if (!string.IsNullOrWhiteSpace(
+                question)
+            &&
+            result.ConversationState != null)
+        {
+            conversationState =
+                result.ConversationState;
+        }
         Debug.WriteLine(
             $"PocketAI Python Engine {result.EngineVersion} responded successfully.");
 
@@ -572,6 +613,8 @@ public sealed class PocketAIAnalysisResult
 {
     [JsonPropertyName(
         "engine_version")]
+    
+    
     public string EngineVersion
     {
         get;
@@ -625,6 +668,42 @@ public sealed class PocketAIAnalysisResult
         set;
     } =
         new List<PocketAIRecommendedAction>();
+
+        [JsonPropertyName(
+        "intent")]
+    public string Intent
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "intent_confidence")]
+    public double IntentConfidence
+    {
+        get;
+        set;
+    }
+
+
+    [JsonPropertyName(
+        "answer")]
+    public string Answer
+    {
+        get;
+        set;
+    } = "";
+
+    [JsonPropertyName(
+    "conversation_state")]
+    public PocketAIConversationState
+        ConversationState
+    {
+        get;
+        set;
+    } =
+        new PocketAIConversationState();
 }
 
 
@@ -709,6 +788,85 @@ public sealed class PocketAIRecommendedAction
     [JsonPropertyName(
         "reason")]
     public string Reason
+    {
+        get;
+        set;
+    } = "";
+
+}
+
+// ==========================================
+// CONVERSATION STATE
+// ==========================================
+
+public sealed class PocketAIConversationState
+{
+    [JsonPropertyName(
+        "last_intent")]
+    public string LastIntent
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "last_purchase_amount")]
+    public double? LastPurchaseAmount
+    {
+        get;
+        set;
+    }
+
+
+    [JsonPropertyName(
+        "last_purchase_description")]
+    public string LastPurchaseDescription
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "last_category")]
+    public string LastCategory
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "last_bill_name")]
+    public string LastBillName
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "last_savings_goal_name")]
+    public string LastSavingsGoalName
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "previous_question")]
+    public string PreviousQuestion
+    {
+        get;
+        set;
+    } = "";
+
+
+    [JsonPropertyName(
+        "previous_answer")]
+    public string PreviousAnswer
     {
         get;
         set;
