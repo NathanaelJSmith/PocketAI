@@ -615,7 +615,7 @@ class FinancialContext:
                 )
                 for item
                 in data.get(
-                    "TransactionHistory",
+                    "transactionHistory",
                     [],
                 )
                 if isinstance(

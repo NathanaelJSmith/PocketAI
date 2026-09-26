@@ -1241,7 +1241,15 @@ class PocketAIConversationEngine:
         self,
         context: FinancialContext,
     ) -> str:
-
+        
+        if not context.transaction_history:
+            return (
+                "I don't have transaction history available "
+                "to analyze yet. Once transactions are "
+                "available, I can compare spending across "
+                "different time periods."
+            )
+        
         patterns = (
             self.pattern_analyzer
                 .analyze(
