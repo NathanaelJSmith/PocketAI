@@ -92,6 +92,50 @@ public sealed class AIService
         DateTime today =
             DateTime.Today;
 
+        // ======================================
+        // TRANSACTION HISTORY FOR AI PATTERNS
+        // ======================================
+
+        DateTime historyStartDate =
+            today.AddDays(-90);
+
+
+        var transactionHistory =
+            expenses
+                .Where(
+                    expense =>
+                        expense.Date.Date >=
+                        historyStartDate)
+                .OrderBy(
+                    expense =>
+                        expense.Date)
+                .Select(
+                    expense =>
+                        new
+                        {
+                            name =
+                                expense.Name,
+
+                            amount =
+                                Math.Round(
+                                    expense.Amount,
+                                    2),
+
+                            category =
+                                string.IsNullOrWhiteSpace(
+                                    expense.Category)
+
+                                    ? "Other"
+
+                                    : expense.Category,
+
+                            date =
+                                expense.Date
+                                    .ToString(
+                                        "yyyy-MM-dd")
+                        })
+                .ToList();
+
 
 
         // ======================================
@@ -346,7 +390,8 @@ public sealed class AIService
                     savingsGoalData,
 
                 bills =
-                    billData
+                    billData,
+                    transactionHistory
             };
 
 

@@ -1,4 +1,5 @@
 from __future__ import annotations
+from .patterns import PatternAnalyzer
 
 from .models import (
     AnalysisResult,
@@ -420,7 +421,22 @@ class PocketAIEngine:
                     ),
                 )
             )
+            
+        # ======================================
+        # BEHAVIOR PATTERNS
+        # ======================================
 
+        pattern_insights = (
+            self.pattern_analyzer
+                .analyze(
+                    context
+                )
+        )
+
+
+        insights.extend(
+            pattern_insights
+        )
 
         # ======================================
         # DATA CONFIDENCE
@@ -607,6 +623,14 @@ class PocketAIEngine:
             unique_actions.append(
                 action
             )
-
-
         return unique_actions
+    
+    def __init__(
+        self,
+    ) -> None:
+
+        self.pattern_analyzer = (
+            PatternAnalyzer()
+        )
+
+        

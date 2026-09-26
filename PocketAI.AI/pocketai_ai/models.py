@@ -233,9 +233,67 @@ class BillContext:
 
 
 # ==========================================
-# COMPLETE FINANCIAL CONTEXT
+# TRANSACTION
 # ==========================================
 
+@dataclass
+class TransactionContext:
+    name: str
+
+    amount: float
+
+    category: str
+
+    date: str
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+    ) -> "TransactionContext":
+
+        return cls(
+            name=str(
+                data.get(
+                    "name",
+                    "Transaction",
+                )
+                or
+                "Transaction"
+            ),
+
+            amount=max(
+                safe_float(
+                    data.get(
+                        "amount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+            category=str(
+                data.get(
+                    "category",
+                    "Other"
+                )
+                or
+                "Other"
+            ),
+
+            date=str(
+                data.get(
+                    "date",
+                    ""
+                )
+                or
+                ""
+            ),
+        )
+
+# ==========================================
+# COMPLETE FINANCIAL CONTEXT
+# ==========================================
 
 @dataclass
 class FinancialContext:
@@ -295,6 +353,13 @@ class FinancialContext:
     ] = field(
         default_factory=list
     )
+
+    transaction_history: list[
+        TransactionContext
+        ] = field(
+            default_factory=list
+        )
+                              
 
     @classmethod
     def from_dict(
@@ -540,6 +605,21 @@ class FinancialContext:
                 )
                 if isinstance(
                     item,
+                    dict,
+                )
+            ],
+
+            transaction_history=[
+                TransactionContext.from_dict(
+                    item
+                )
+                for item
+                in data.get(
+                    "TransactionHistory",
+                    [],
+                )
+                if isinstance(
+                    item, 
                     dict,
                 )
             ],

@@ -3,6 +3,7 @@ from __future__ import annotations
 import calendar
 import re
 from datetime import date
+from .patterns import PatternAnalyzer
 
 from .engine import PocketAIEngine
 from .models import (
@@ -22,6 +23,10 @@ class PocketAIConversationEngine:
     def __init__(self) -> None:
         self.analysis_engine = (
             PocketAIEngine()
+        )
+
+        self.pattern_analyzer = (
+            PatternAnalyzer()
         )
 
 
@@ -120,6 +125,13 @@ class PocketAIConversationEngine:
                 )
             )
 
+        elif intent == "patterns":
+
+            answer = (
+                self._answer_patterns(
+                    context
+                )
+            )
 
         elif intent == "health":
 
@@ -499,6 +511,19 @@ class PocketAIConversationEngine:
                 "biggest category",
                 "largest category",
                 "largest expense",
+            ],
+
+            "patterns": [
+                "anything unusual",
+                "anything weird",
+                "spending pattern",
+                "spending patterns",
+                "any patterns",
+                "notice anything",
+                "spending faster",
+                "spending more",
+                "changed in my spending",
+                "changes in my spending",
             ],
 
             "health": [
@@ -1208,7 +1233,57 @@ class PocketAIConversationEngine:
             f"{due_text}."
         )
 
+    # ==========================================
+    # PATTERN QUESTIONS
+    # ==========================================
 
+    def _answer_patterns(
+        self,
+        context: FinancialContext,
+    ) -> str:
+
+        patterns = (
+            self.pattern_analyzer
+                .analyze(
+                    context
+                )
+        )
+
+
+        if not patterns:
+
+            return (
+                "I don't see a strong spending pattern "
+                "that stands out yet. Keep recording "
+                "transactions and I'll become more "
+                "confident as your history grows."
+            )
+
+
+        # Limit the response so PocketAI does
+        # not overwhelm the user.
+        strongest_patterns = (
+            patterns[:3]
+        )
+
+
+        parts = [
+            (
+                f"{pattern.message} "
+                f"{pattern.reason}"
+            )
+            for pattern
+            in strongest_patterns
+        ]
+
+
+        return (
+            "Here's what stands out: "
+            +
+            " ".join(
+                parts
+            )
+        )
 
     # ==========================================
     # FINANCIAL HEALTH
