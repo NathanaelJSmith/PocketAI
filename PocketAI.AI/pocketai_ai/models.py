@@ -96,6 +96,7 @@ class SavingsGoalContext:
     target_amount: float
     priority_rank: int
     is_completed: bool = False
+    deadline: str = ""
 
     @property
     def remaining(self) -> float:
@@ -166,6 +167,9 @@ class SavingsGoalContext:
                     False,
                 )
             ),
+           deadline=str(
+               data.get("deadline", "") or ""
+           )
         )
 
 

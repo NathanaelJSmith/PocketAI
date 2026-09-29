@@ -1,5 +1,6 @@
 from __future__ import annotations
 from .patterns import PatternAnalyzer
+from .savings_patterns import SavingsDeadlineAnalyzer
 
 from .models import (
     AnalysisResult,
@@ -421,7 +422,7 @@ class PocketAIEngine:
                     ),
                 )
             )
-            
+
         # ======================================
         # BEHAVIOR PATTERNS
         # ======================================
@@ -436,6 +437,21 @@ class PocketAIEngine:
 
         insights.extend(
             pattern_insights
+        )
+
+        # ======================================
+        # SAVINGS DEADLINE ANALYSIS
+        # ======================================
+
+        savings_deadline_insights = (
+            self.savings_deadline_analyzer
+                .analyze(
+                    context
+                )
+        )
+
+        insights.extend(
+            savings_deadline_insights
         )
 
         # ======================================
@@ -631,6 +647,10 @@ class PocketAIEngine:
 
         self.pattern_analyzer = (
             PatternAnalyzer()
+        )
+
+        self.savings_deadline_analyzer = (
+            SavingsDeadlineAnalyzer()
         )
 
         

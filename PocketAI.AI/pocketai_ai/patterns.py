@@ -95,123 +95,92 @@ class PatternAnalyzer:
 
     # ==========================================
     # WEEK-TO-WEEK SPENDING
+    # Compare equivalent weekdays
     # ==========================================
 
     def _detect_weekly_acceleration(
         self,
-        transactions: list[
-            TransactionContext
-        ],
+        transactions: list[TransactionContext],
     ) -> Insight | None:
 
-        today = (
-            date.today()
+        today = date.today()
+
+        days_elapsed = today.weekday() + 1
+
+        # Avoid conclusions from only one or two days.
+        if days_elapsed < 3:
+            return None
+
+        start_this_week = today - timedelta(
+            days=today.weekday()
         )
 
+        start_last_week = start_this_week - timedelta(
+            days=7
+        )
 
-        start_this_week = (
-            today
-            -
-            timedelta(
-                days=today.weekday()
+        # Compare the same number of days.
+        end_last_week = start_last_week + timedelta(
+            days=days_elapsed - 1
+        )
+
+        this_week_total = 0.0
+        last_week_total = 0.0
+
+        this_week_count = 0
+        last_week_count = 0
+
+        for transaction in transactions:
+
+            transaction_date = self._parse_date(
+                transaction.date
             )
-        )
 
+            if transaction_date is None:
+                continue
 
-        start_last_week = (
-            start_this_week
-            -
-            timedelta(
-                days=7
-            )
-        )
+            if start_this_week <= transaction_date <= today:
 
+                this_week_total += transaction.amount
+                this_week_count += 1
 
-        this_week_total = sum(
-            transaction.amount
-            for transaction
-            in transactions
-            if (
-                self._parse_date(
-                    transaction.date
-                )
-                is not None
-                and
-                start_this_week
-                <=
-                self._parse_date(
-                    transaction.date
-                )
-                <=
-                today
-            )
-        )
+            elif start_last_week <= transaction_date <= end_last_week:
 
+                last_week_total += transaction.amount
+                last_week_count += 1
 
-        last_week_total = sum(
-            transaction.amount
-            for transaction
-            in transactions
-            if (
-                self._parse_date(
-                    transaction.date
-                )
-                is not None
-                and
-                start_last_week
-                <=
-                self._parse_date(
-                    transaction.date
-                )
-                <
-                start_this_week
-            )
-        )
-
+        # We need a meaningful comparison period.
+        if this_week_count < 2 or last_week_count < 2:
+            return None
 
         if last_week_total <= 0:
-
             return None
 
+        difference = this_week_total - last_week_total
 
-        difference = (
-            this_week_total
-            -
-            last_week_total
-        )
+        percentage_change = difference / last_week_total
 
-
-        percentage_change = (
-            difference
-            /
-            last_week_total
-        )
-
-
-        # Ignore small changes.
-        if (
-            difference < 50
-            or
-            percentage_change < 0.25
-        ):
-
+        # Require a meaningful increase in both
+        # dollars and percentage.
+        if difference < 50 or percentage_change < 0.25:
             return None
-
 
         return Insight(
             category="pattern",
             severity="warning",
             title="Spending pace increased",
             message=(
-                f"You have spent "
-                f"${this_week_total:,.2f} this week, "
-                f"compared with "
-                f"${last_week_total:,.2f} last week."
+                f"You recorded ${this_week_total:,.2f} "
+                f"of spending so far this week, compared "
+                f"with ${last_week_total:,.2f} over the "
+                f"same weekdays last week."
             ),
             reason=(
-                f"Your weekly spending increased by "
-                f"about "
-                f"{percentage_change * 100:.0f}%."
+                f"That's an increase of "
+                f"${difference:,.2f}, or about "
+                f"{percentage_change * 100:.0f}%. "
+                f"This comparison uses equivalent "
+                f"time periods."
             ),
         )
 
@@ -219,220 +188,166 @@ class PatternAnalyzer:
 
     # ==========================================
     # CATEGORY MONTH-TO-MONTH CHANGE
+    # Compare equivalent calendar days
     # ==========================================
 
     def _detect_category_growth(
         self,
-        transactions: list[
-            TransactionContext
-        ],
+        transactions: list[TransactionContext],
     ) -> Insight | None:
 
-        today = (
-            date.today()
+        today = date.today()
+
+        first_this_month = today.replace(day=1)
+
+        last_day_previous_month = (
+            first_this_month - timedelta(days=1)
         )
 
-
-        first_this_month = (
-            today.replace(
-                day=1
-            )
+        first_last_month = (
+            last_day_previous_month.replace(day=1)
         )
 
-
-        if first_this_month.month == 1:
-
-            first_last_month = (
-                first_this_month.replace(
-                    year=
-                        first_this_month.year
-                        -
-                        1,
-                    month=12,
-                )
-            )
-
-        else:
-
-            first_last_month = (
-                first_this_month.replace(
-                    month=
-                        first_this_month.month
-                        -
-                        1
-                )
-            )
-
-
-        current_totals: dict[
-            str,
-            float
-        ] = defaultdict(
-            float
+        # Both periods must contain the same number
+        # of calendar days.
+        comparison_days = min(
+            today.day,
+            last_day_previous_month.day,
         )
 
+        # Avoid conclusions too early in the month.
+        if comparison_days < 7:
+            return None
 
-        previous_totals: dict[
-            str,
-            float
-        ] = defaultdict(
-            float
+        end_this_period = (
+            first_this_month
+            + timedelta(days=comparison_days - 1)
         )
 
+        end_previous_period = (
+            first_last_month
+            + timedelta(days=comparison_days - 1)
+        )
+
+        current_totals = defaultdict(float)
+        previous_totals = defaultdict(float)
+
+        current_counts = defaultdict(int)
+        previous_counts = defaultdict(int)
+
+        category_names = {}
 
         for transaction in transactions:
 
-            transaction_date = (
-                self._parse_date(
-                    transaction.date
-                )
+            transaction_date = self._parse_date(
+                transaction.date
             )
-
 
             if transaction_date is None:
-
                 continue
 
-
-            category = (
-                transaction.category
-                    .strip()
-                or
-                "Other"
+            category_name = (
+                transaction.category.strip() or "Other"
             )
 
+            # Treat Dining and dining as one category.
+            category_key = category_name.casefold()
+
+            category_names[category_key] = category_name
 
             if (
-                transaction_date
-                >=
                 first_this_month
+                <= transaction_date
+                <= end_this_period
             ):
 
-                current_totals[
-                    category
-                ] += transaction.amount
+                current_totals[category_key] += (
+                    transaction.amount
+                )
 
+                current_counts[category_key] += 1
 
             elif (
                 first_last_month
-                <=
-                transaction_date
-                <
-                first_this_month
+                <= transaction_date
+                <= end_previous_period
             ):
 
-                previous_totals[
-                    category
-                ] += transaction.amount
-
-
-        strongest_category = (
-            None
-        )
-
-
-        strongest_growth = (
-            0.0
-        )
-
-
-        strongest_difference = (
-            0.0
-        )
-
-
-        for (
-            category,
-            current_amount,
-        ) in current_totals.items():
-
-            previous_amount = (
-                previous_totals.get(
-                    category,
-                    0,
+                previous_totals[category_key] += (
+                    transaction.amount
                 )
+
+                previous_counts[category_key] += 1
+
+        strongest_category = None
+
+        strongest_difference = 0.0
+        strongest_growth = 0.0
+
+        for category_key, current_amount in current_totals.items():
+
+            previous_amount = previous_totals.get(
+                category_key,
+                0.0,
             )
 
-
-            if previous_amount <= 0:
-
+            # Require actual recorded history
+            # in both periods.
+            if (
+                current_counts[category_key] < 2
+                or previous_counts[category_key] < 2
+                or previous_amount < 25
+            ):
                 continue
 
+            difference = current_amount - previous_amount
 
-            difference = (
-                current_amount
-                -
-                previous_amount
-            )
+            growth = difference / previous_amount
 
+            # Meaningful increase:
+            # at least $25 and at least 30%.
+            if difference < 25 or growth < 0.30:
+                continue
 
-            growth = (
-                difference
-                /
-                previous_amount
-            )
+            # Select the largest dollar increase.
+            if difference > strongest_difference:
 
-
-            if (
-                difference >= 25
-                and
-                growth >= 0.30
-                and
-                growth > strongest_growth
-            ):
-
-                strongest_category = (
-                    category
-                )
-
-
-                strongest_growth = (
-                    growth
-                )
-
-
-                strongest_difference = (
-                    difference
-                )
-
+                strongest_category = category_key
+                strongest_difference = difference
+                strongest_growth = growth
 
         if strongest_category is None:
-
             return None
 
+        category_name = category_names[
+            strongest_category
+        ]
 
-        current_amount = (
-            current_totals[
-                strongest_category
-            ]
-        )
+        current_amount = current_totals[
+            strongest_category
+        ]
 
-
-        previous_amount = (
-            previous_totals[
-                strongest_category
-            ]
-        )
-
+        previous_amount = previous_totals[
+            strongest_category
+        ]
 
         return Insight(
             category="pattern",
             severity="info",
-            title=(
-                f"{strongest_category} spending increased"
-            ),
+            title=f"{category_name} spending increased",
             message=(
-                f"You have spent "
-                f"${current_amount:,.2f} on "
-                f"{strongest_category} this month, "
-                f"compared with "
-                f"${previous_amount:,.2f} last month."
+                f"You recorded ${current_amount:,.2f} "
+                f"in {category_name} over the first "
+                f"{comparison_days} days of this month, "
+                f"compared with ${previous_amount:,.2f} "
+                f"over the same number of days last month."
             ),
             reason=(
-                f"That is about "
-                f"{strongest_growth * 100:.0f}% higher, "
-                f"an increase of "
-                f"${strongest_difference:,.2f}."
+                f"That's an increase of "
+                f"${strongest_difference:,.2f}, or about "
+                f"{strongest_growth * 100:.0f}%. "
+                f"The comparison uses equivalent "
+                f"calendar periods."
             ),
         )
 

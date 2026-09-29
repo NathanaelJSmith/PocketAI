@@ -242,11 +242,16 @@ public sealed class AIService
                             targetAmount =
                                 goal.TargetAmount,
 
+                            deadline = 
+                                goal.DeadLine.ToString("yyyy-MM-dd"),
+                                
                             priorityRank =
                                 goal.PriorityRank,
 
                             isCompleted =
                                 goal.IsCompleted
+                            
+                            
                         })
                 .ToList();
 
