@@ -589,6 +589,10 @@ public partial class AnalyticsPage : ContentPage
     private void LoadSpending(
         List<Expense> expenses)
     {
+        // ======================================
+        // CURRENT + LAST MONTH
+        // ======================================
+
         List<Expense> currentMonth =
             analyticsService
                 .GetCurrentMonthExpense(
@@ -599,7 +603,6 @@ public partial class AnalyticsPage : ContentPage
             analyticsService
                 .GetLastMonthExpense(
                     expenses);
-
 
 
         double currentSpent =
@@ -614,7 +617,6 @@ public partial class AnalyticsPage : ContentPage
                     lastMonth);
 
 
-
         CurrentMonthSpentLabel.Text =
             currentSpent
                 .ToString("C");
@@ -625,13 +627,36 @@ public partial class AnalyticsPage : ContentPage
                 .ToString("C");
 
 
-
         UpdateSpendingComparison(
             SpendingChangeLabel,
             currentSpent,
             lastSpent,
             "last month");
 
+
+        // ======================================
+        // LOAD BUDGET LIMITS
+        // ======================================
+
+        List<BudgetLimit> budgetLimits =
+            dataBaseManager
+                .GetBudgetLimits();
+
+
+        Dictionary<string, double>
+            budgetLookup =
+                budgetLimits
+                    .GroupBy(
+                        budget =>
+                            budget.Category,
+                        StringComparer.OrdinalIgnoreCase)
+                    .ToDictionary(
+                        group =>
+                            group.Key,
+                        group =>
+                            group.Last()
+                                .LimitAmount,
+                        StringComparer.OrdinalIgnoreCase);
 
 
         // ======================================
@@ -650,31 +675,56 @@ public partial class AnalyticsPage : ContentPage
                             : expense.Category)
                 .Select(
                     group =>
-                        new CategorySpendingItem
+                    {
+                        string categoryName =
+                            group.Key;
+
+
+                        double amount =
+                            group.Sum(
+                                expense =>
+                                    Math.Max(
+                                        expense.Amount,
+                                        0));
+
+
+                        double? budgetLimit =
+                            budgetLookup
+                                .TryGetValue(
+                                    categoryName,
+                                    out double limit)
+
+                                ? limit
+
+                                : null;
+
+
+                        return new CategorySpendingItem
                         {
                             Category =
-                                group.Key,
-
+                                categoryName,
 
                             Amount =
-                                group.Sum(
-                                    expense =>
-                                        Math.Max(
-                                            expense.Amount,
-                                            0))
-                        })
+                                amount,
+
+                            BudgetLimit =
+                                budgetLimit
+                        };
+                    })
                 .OrderByDescending(
                     item =>
                         item.Amount)
                 .ToList();
 
 
+        // ======================================
+        // TOTAL SPENDING
+        // ======================================
 
         double total =
             categories.Sum(
                 item =>
                     item.Amount);
-
 
 
         CategoryDonutTotalLabel.Text =
@@ -685,14 +735,12 @@ public partial class AnalyticsPage : ContentPage
             total > 0;
 
 
-
         foreach (CategorySpendingItem item
-                 in categories)
+                in categories)
         {
             item.TotalSpending =
                 total;
         }
-
 
 
         // ======================================
@@ -703,9 +751,8 @@ public partial class AnalyticsPage : ContentPage
             new List<ISeries>();
 
 
-
         foreach (CategorySpendingItem category
-                 in categories)
+                in categories)
         {
             categorySeries.Add(
                 new PieSeries<double>
@@ -713,17 +760,14 @@ public partial class AnalyticsPage : ContentPage
                     Name =
                         category.Category,
 
-
                     Values =
                         new double[]
                         {
                             category.Amount
                         },
 
-
                     InnerRadius =
                         70,
-
 
                     ToolTipLabelFormatter =
                         point =>
@@ -731,7 +775,6 @@ public partial class AnalyticsPage : ContentPage
                                 .ToString("C2")
                 });
         }
-
 
 
         CategoryDonutChart.Series =
@@ -742,6 +785,9 @@ public partial class AnalyticsPage : ContentPage
             categories.Count > 0;
 
 
+        // ======================================
+        // CATEGORY LIST
+        // ======================================
 
         BindableLayout.SetItemsSource(
             CategorySpendingContainer,
@@ -750,6 +796,146 @@ public partial class AnalyticsPage : ContentPage
 
         CategoryEmptyLabel.IsVisible =
             categories.Count == 0;
+
+
+        // ======================================
+        // SHORT BUDGET INSIGHT
+        // ======================================
+
+        UpdateSpendingBudgetInsight(
+            categories);
+    }
+
+    // ==========================================
+    // SPENDING BUDGET INSIGHT
+    // ==========================================
+
+    private void UpdateSpendingBudgetInsight(
+        List<CategorySpendingItem> categories)
+    {
+        // ======================================
+        // FIND AN OVER-BUDGET CATEGORY
+        // ======================================
+
+        CategorySpendingItem? overBudget =
+            categories
+                .Where(
+                    item =>
+                        item.HasBudget
+                        &&
+                        item.Amount >
+                        item.BudgetLimit!.Value)
+                .OrderByDescending(
+                    item =>
+                        item.Amount
+                        -
+                        item.BudgetLimit!.Value)
+                .FirstOrDefault();
+
+
+        if (overBudget != null)
+        {
+            double overAmount =
+                overBudget.Amount
+                -
+                overBudget.BudgetLimit!.Value;
+
+
+            SpendingBudgetInsightLabel.Text =
+                $"{overBudget.Category} needs attention. " +
+                $"You're {overAmount:C} over budget this month.";
+
+
+            SpendingBudgetInsightLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "DangerColor");
+
+
+            return;
+        }
+
+
+        // ======================================
+        // FIND CATEGORY CLOSE TO LIMIT
+        // ======================================
+
+        CategorySpendingItem? closeToBudget =
+            categories
+                .Where(
+                    item =>
+                        item.HasBudget
+                        &&
+                        item.BudgetUsage >=
+                        0.80)
+                .OrderByDescending(
+                    item =>
+                        item.BudgetUsage)
+                .FirstOrDefault();
+
+
+        if (closeToBudget != null)
+        {
+            double remaining =
+                closeToBudget.BudgetLimit!.Value
+                -
+                closeToBudget.Amount;
+
+
+            SpendingBudgetInsightLabel.Text =
+                $"{closeToBudget.Category} is getting close. " +
+                $"You have {remaining:C} left in that budget.";
+
+
+            SpendingBudgetInsightLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "WarningColor");
+
+
+            return;
+        }
+
+
+        // ======================================
+        // HAS BUDGETS, NOTHING IS TIGHT
+        // ======================================
+
+        bool hasTrackedBudgets =
+            categories.Any(
+                item =>
+                    item.HasBudget);
+
+
+        if (hasTrackedBudgets)
+        {
+            SpendingBudgetInsightLabel.Text =
+                "Your tracked budgets look okay so far.";
+
+
+            SpendingBudgetInsightLabel
+                .SetDynamicResource(
+                    Label.TextColorProperty,
+                    "SuccessColor");
+
+
+            return;
+        }
+
+
+        // ======================================
+        // NO BUDGETS
+        // ======================================
+
+        SpendingBudgetInsightLabel.Text =
+            "Set category budgets to see whether your "
+            + "spending is staying on track.";
+
+
+        SpendingBudgetInsightLabel
+            .SetDynamicResource(
+                Label.TextColorProperty,
+                "TextSecondary");
     }
 
 
@@ -1973,41 +2159,150 @@ public partial class AnalyticsPage : ContentPage
         }
 
 
+        public double? BudgetLimit
+        {
+            get;
+            set;
+        }
+
+
+        // ======================================
+        // HAS BUDGET
+        // ======================================
+
+        public bool HasBudget =>
+            BudgetLimit.HasValue
+            &&
+            BudgetLimit.Value > 0;
+
+
+        // ======================================
+        // AMOUNT TEXT
+        // ======================================
 
         public string AmountText =>
             Amount.ToString(
                 "C");
 
 
+        // ======================================
+        // BUDGET USAGE
+        // ======================================
 
-        public string PercentText
+        public double BudgetUsage
         {
             get
             {
-                if (TotalSpending <= 0)
+                if (!HasBudget)
                 {
-                    return
-                        "0% of spending";
+                    return 0;
                 }
 
 
-                double percentage =
-                    Amount /
-                    TotalSpending *
-                    100;
-
-
-                return
-                    $"{percentage:F0}% of spending";
+                return (
+                    Amount
+                    /
+                    BudgetLimit!.Value
+                );
             }
         }
 
 
+        // ======================================
+        // DETAIL TEXT
+        // ======================================
+
+        public string DetailText
+        {
+            get
+            {
+                // ----------------------------------
+                // CATEGORY HAS A BUDGET
+                // ----------------------------------
+
+                if (HasBudget)
+                {
+                    double remaining =
+                        BudgetLimit!.Value
+                        -
+                        Amount;
+
+
+                    double percentage =
+                        BudgetUsage
+                        *
+                        100;
+
+
+                    if (remaining < 0)
+                    {
+                        return (
+                            $"{percentage:F0}% of budget • "
+                            +
+                            $"{Math.Abs(remaining):C} over"
+                        );
+                    }
+
+
+                    return (
+                        $"{percentage:F0}% of budget • "
+                        +
+                        $"{remaining:C} left"
+                    );
+                }
+
+
+                // ----------------------------------
+                // NO BUDGET
+                // ----------------------------------
+
+                if (TotalSpending <= 0)
+                {
+                    return
+                        "No budget set";
+                }
+
+
+                double spendingPercentage =
+                    Amount
+                    /
+                    TotalSpending
+                    *
+                    100;
+
+
+                return (
+                    $"{spendingPercentage:F0}% of spending • "
+                    +
+                    "No budget set"
+                );
+            }
+        }
+
+
+        // ======================================
+        // PROGRESS BAR
+        // ======================================
 
         public double Progress
         {
             get
             {
+                // If a budget exists, the bar
+                // represents budget usage.
+
+                if (HasBudget)
+                {
+                    return Math.Clamp(
+                        BudgetUsage,
+                        0,
+                        1);
+                }
+
+
+                // Otherwise it represents the
+                // category's share of spending.
+
                 if (TotalSpending <= 0)
                 {
                     return 0;
@@ -2015,7 +2310,8 @@ public partial class AnalyticsPage : ContentPage
 
 
                 return Math.Clamp(
-                    Amount /
+                    Amount
+                    /
                     TotalSpending,
                     0,
                     1);

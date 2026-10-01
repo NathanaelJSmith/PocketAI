@@ -235,7 +235,43 @@ class BillContext:
             ),
         )
 
+# ==========================================
+# BUDGET LIMIT
+# ==========================================
 
+@dataclass
+class BudgetLimitContext:
+    category: str
+    limit_amount: float
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+    ) -> "BudgetLimitContext":
+
+        return cls(
+            category =str(
+                data.get(
+                    "category",
+                    "Other",
+                )
+                or
+                "Other"
+            ),
+
+            limit_amount = max(
+                safe_float(
+                    data.get(
+                        "limitAmount",
+                        0,
+                    )
+                ),
+                0,
+            ),
+
+        )
+    
 # ==========================================
 # TRANSACTION
 # ==========================================
@@ -363,6 +399,14 @@ class FinancialContext:
         ] = field(
             default_factory=list
         )
+
+    transaction_history_start_date: str= ""
+
+    budget_limits: list[
+        BudgetLimitContext
+    ] = field(
+        default_factory=list
+    )
                               
 
     @classmethod
@@ -627,6 +671,30 @@ class FinancialContext:
                     dict,
                 )
             ],
+
+            transaction_history_start_date=str(
+                data.get(
+                    "transactionHistoryStartDate",
+                    "",
+                )
+                or
+                ""
+            ),
+
+            budget_limits=[
+                BudgetLimitContext.from_dict(
+                    item
+                )
+                for item
+                in data.get(
+                    "budgetLimits",
+                    [],
+                )
+                if isinstance(
+                    item,
+                    dict,
+                )
+            ],     
         )
 
 

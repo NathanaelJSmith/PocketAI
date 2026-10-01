@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from .budget_patterns import BudgetPressureAnalyzer
 from .patterns import PatternAnalyzer
 from .savings_patterns import SavingsDeadlineAnalyzer
 
@@ -29,6 +31,25 @@ class PocketAIEngine:
 
     VERSION = "0.1.0"
 
+    # ==========================================
+    # CONSTRUCTOR
+    # ==========================================
+
+    def __init__(
+        self,
+    ) -> None:
+
+        self.pattern_analyzer = (
+            PatternAnalyzer()
+        )
+
+        self.savings_deadline_analyzer = (
+            SavingsDeadlineAnalyzer()
+        )
+
+        self.budget_pressure_analyzer = (
+            BudgetPressureAnalyzer()
+        )
 
     # ==========================================
     # MAIN ANALYSIS
@@ -44,7 +65,6 @@ class PocketAIEngine:
         actions: list[
             RecommendedAction
         ] = []
-
 
         # ======================================
         # MONTHLY SHORTFALL
@@ -71,7 +91,6 @@ class PocketAIEngine:
                 )
             )
 
-
             actions.append(
                 RecommendedAction(
                     priority=1,
@@ -85,7 +104,6 @@ class PocketAIEngine:
                     ),
                 )
             )
-
 
         # ======================================
         # SAFE TO SPEND
@@ -109,7 +127,6 @@ class PocketAIEngine:
                 )
             )
 
-
             actions.append(
                 RecommendedAction(
                     priority=1,
@@ -123,7 +140,6 @@ class PocketAIEngine:
                     ),
                 )
             )
-
 
         else:
 
@@ -145,7 +161,6 @@ class PocketAIEngine:
                 )
             )
 
-
         # ======================================
         # SPENDING PRESSURE
         # ======================================
@@ -157,7 +172,6 @@ class PocketAIEngine:
                 /
                 context.expected_monthly_income
             )
-
 
             if spending_ratio >= 0.80:
 
@@ -178,7 +192,6 @@ class PocketAIEngine:
                     )
                 )
 
-
                 actions.append(
                     RecommendedAction(
                         priority=2,
@@ -193,9 +206,8 @@ class PocketAIEngine:
                     )
                 )
 
-
         # ======================================
-        # CATEGORY BUDGETS
+        # CURRENT CATEGORY BUDGETS
         # ======================================
 
         for category in context.category_spending:
@@ -207,13 +219,15 @@ class PocketAIEngine:
             ):
                 continue
 
-
             usage = (
                 category.amount
                 /
                 category.budget_limit
             )
 
+            # ==================================
+            # OVER BUDGET
+            # ==================================
 
             if usage > 1:
 
@@ -222,7 +236,6 @@ class PocketAIEngine:
                     -
                     category.budget_limit
                 )
-
 
                 insights.append(
                     Insight(
@@ -244,7 +257,6 @@ class PocketAIEngine:
                     )
                 )
 
-
                 actions.append(
                     RecommendedAction(
                         priority=2,
@@ -259,6 +271,9 @@ class PocketAIEngine:
                     )
                 )
 
+            # ==================================
+            # CLOSE TO BUDGET
+            # ==================================
 
             elif usage >= 0.80:
 
@@ -267,7 +282,6 @@ class PocketAIEngine:
                     -
                     category.amount
                 )
-
 
                 insights.append(
                     Insight(
@@ -288,7 +302,6 @@ class PocketAIEngine:
                     )
                 )
 
-
         # ======================================
         # SAVINGS GOALS
         # ======================================
@@ -300,7 +313,6 @@ class PocketAIEngine:
             if not goal.is_completed
         ]
 
-
         if active_goals:
 
             highest_priority_goal = min(
@@ -308,7 +320,6 @@ class PocketAIEngine:
                 key=lambda goal:
                     goal.priority_rank,
             )
-
 
             if (
                 highest_priority_goal.remaining
@@ -320,9 +331,7 @@ class PocketAIEngine:
                     Insight(
                         category="savings",
                         severity="info",
-                        title=(
-                            "Top savings priority"
-                        ),
+                        title="Top savings priority",
                         message=(
                             f"{highest_priority_goal.name} "
                             f"still needs "
@@ -334,7 +343,6 @@ class PocketAIEngine:
                         ),
                     )
                 )
-
 
         # ======================================
         # REQUIRED SAVINGS
@@ -364,7 +372,6 @@ class PocketAIEngine:
                 )
             )
 
-
         # ======================================
         # FINANCIAL HEALTH
         # ======================================
@@ -377,7 +384,6 @@ class PocketAIEngine:
             score = (
                 context.financial_health_score
             )
-
 
             if score >= 70:
 
@@ -406,7 +412,6 @@ class PocketAIEngine:
                     "is under significant pressure."
                 )
 
-
             insights.append(
                 Insight(
                     category="health",
@@ -434,7 +439,6 @@ class PocketAIEngine:
                 )
         )
 
-
         insights.extend(
             pattern_insights
         )
@@ -453,6 +457,100 @@ class PocketAIEngine:
         insights.extend(
             savings_deadline_insights
         )
+
+        # ======================================
+        # REPEATED BUDGET PRESSURE
+        # ======================================
+
+        budget_pressure_insights = (
+            self.budget_pressure_analyzer
+                .analyze(
+                    context
+                )
+        )
+
+        insights.extend(
+            budget_pressure_insights
+        )
+
+        # ======================================
+        # MONTH-END PROJECTION
+        # ======================================
+
+        if context.projected_additional_spending > 0:
+
+            if context.projected_month_end_money < 0:
+
+                shortfall = abs(
+                    context.projected_month_end_money
+                )
+
+                insights.append(
+                    Insight(
+                        category="projection",
+                        severity="warning",
+                        title="Month-end spending risk",
+                        message=(
+                            f"At your current spending pace, "
+                            f"you could end the month about "
+                            f"${shortfall:,.2f} short."
+                        ),
+                        reason=(
+                            "Your projected future spending is "
+                            "higher than the room currently "
+                            "available in your plan."
+                        ),
+                    )
+                )
+
+            elif (
+                context.projected_additional_spending
+                >
+                context.safe_to_spend_total
+            ):
+
+                difference = (
+                    context.projected_additional_spending
+                    -
+                    context.safe_to_spend_total
+                )
+
+                insights.append(
+                    Insight(
+                        category="projection",
+                        severity="warning",
+                        title="Spending pace is high",
+                        message=(
+                            f"Your current pace could use about "
+                            f"${difference:,.2f} more than your "
+                            f"remaining Safe to Spend."
+                        ),
+                        reason=(
+                            "Slowing optional spending could "
+                            "help keep the month on track."
+                        ),
+                    )
+                )
+
+            else:
+
+                insights.append(
+                    Insight(
+                        category="projection",
+                        severity="info",
+                        title="Month-end projection",
+                        message=(
+                            f"At your current pace, PocketAI "
+                            f"projects about "
+                            f"${context.projected_month_end_money:,.2f} "
+                            f"left by the end of the month."
+                        ),
+                        reason=(
+                            "This estimate can change as new "
+                            "transactions are recorded."
+                        ),
+                    )
+                )
 
         # ======================================
         # DATA CONFIDENCE
@@ -477,21 +575,20 @@ class PocketAIEngine:
                 )
             )
 
-
         # ======================================
         # REMOVE DUPLICATE ACTIONS
         # ======================================
 
-        actions = self._remove_duplicate_actions(
-            actions
+        actions = (
+            self._remove_duplicate_actions(
+                actions
+            )
         )
-
 
         actions.sort(
             key=lambda item:
                 item.priority
         )
-
 
         # ======================================
         # OVERALL STATUS
@@ -503,6 +600,9 @@ class PocketAIEngine:
             )
         )
 
+        # ======================================
+        # SUMMARY
+        # ======================================
 
         summary = (
             self._build_summary(
@@ -511,6 +611,9 @@ class PocketAIEngine:
             )
         )
 
+        # ======================================
+        # RESULT
+        # ======================================
 
         return AnalysisResult(
             engine_version=self.VERSION,
@@ -520,7 +623,6 @@ class PocketAIEngine:
             insights=insights,
             recommended_actions=actions,
         )
-
 
     # ==========================================
     # OVERALL STATUS
@@ -537,21 +639,16 @@ class PocketAIEngine:
             in insights
         }
 
-
         if "critical" in severities:
             return "critical"
-
 
         if "warning" in severities:
             return "warning"
 
-
         if "success" in severities:
             return "on_track"
 
-
         return "informational"
-
 
     # ==========================================
     # BUILD SUMMARY
@@ -572,7 +669,6 @@ class PocketAIEngine:
                 "spending."
             )
 
-
         if status == "warning":
 
             return (
@@ -580,7 +676,6 @@ class PocketAIEngine:
                 "but PocketAI found something worth "
                 "watching closely."
             )
-
 
         if context.safe_to_spend_total > 0:
 
@@ -590,12 +685,10 @@ class PocketAIEngine:
                 "Safe to Spend remaining this month."
             )
 
-
         return (
             "PocketAI has analyzed the financial "
             "information currently available."
         )
-
 
     # ==========================================
     # REMOVE DUPLICATE ACTIONS
@@ -614,9 +707,7 @@ class PocketAIEngine:
             RecommendedAction
         ] = []
 
-
         seen: set[str] = set()
-
 
         for action in actions:
 
@@ -626,31 +717,15 @@ class PocketAIEngine:
                     .lower()
             )
 
-
             if key in seen:
                 continue
-
 
             seen.add(
                 key
             )
 
-
             unique_actions.append(
                 action
             )
+
         return unique_actions
-    
-    def __init__(
-        self,
-    ) -> None:
-
-        self.pattern_analyzer = (
-            PatternAnalyzer()
-        )
-
-        self.savings_deadline_analyzer = (
-            SavingsDeadlineAnalyzer()
-        )
-
-        

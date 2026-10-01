@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 
 namespace PocketAI.App.Services;
 
@@ -97,7 +98,7 @@ public sealed class AIService
         // ======================================
 
         DateTime historyStartDate =
-            today.AddDays(-90);
+            today.AddDays(-180);
 
 
         var transactionHistory =
@@ -174,7 +175,17 @@ public sealed class AIService
                                 .LimitAmount,
                         StringComparer.OrdinalIgnoreCase);
 
+        var budgetLimitData = 
+            budgetLimits.GroupBy(
+                budget => budget.Category,
+                StringComparer.OrdinalIgnoreCase
+            ).Select(
+                group => new
+            {
+            category = group.Key,
 
+            limitAmount = Math.Round(group.Last().LimitAmount, 2)
+        }).ToList();
 
         // ======================================
         // CATEGORY SPENDING
@@ -322,7 +333,13 @@ public sealed class AIService
                         conversationState.PreviousQuestion,
 
                     previousAnswer =
-                        conversationState.PreviousAnswer
+                        conversationState.PreviousAnswer,
+                    
+                    transactionHistoryStateData =
+                        historyStartDate.ToString("yyyy-MM-dd"),
+
+                    budgetLimits = 
+                        budgetLimitData
                 },
 
                 checkingBalance =

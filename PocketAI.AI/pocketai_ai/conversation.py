@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import calendar
 import re
+
 from datetime import date, timedelta
-from .patterns import PatternAnalyzer
 
 from .engine import PocketAIEngine
+from .patterns import PatternAnalyzer
+
 from .models import (
     AnalysisResult,
     BillContext,
@@ -19,8 +21,14 @@ from .models import (
 class PocketAIConversationEngine:
     VERSION = "0.3.0"
 
+    # ==========================================
+    # CONSTRUCTOR
+    # ==========================================
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
+
         self.analysis_engine = (
             PocketAIEngine()
         )
@@ -28,7 +36,6 @@ class PocketAIConversationEngine:
         self.pattern_analyzer = (
             PatternAnalyzer()
         )
-
 
     # ==========================================
     # MAIN ENTRY
@@ -45,14 +52,12 @@ class PocketAIConversationEngine:
             question.strip()
         )
 
-
         analysis = (
             self.analysis_engine
                 .analyze(
                     context
                 )
         )
-
 
         intent, confidence = (
             self._detect_intent(
@@ -61,6 +66,9 @@ class PocketAIConversationEngine:
             )
         )
 
+        # ======================================
+        # AFFORDABILITY
+        # ======================================
 
         if intent == "affordability":
 
@@ -72,6 +80,9 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # PURCHASE SAVINGS IMPACT
+        # ======================================
 
         elif intent == "purchase_savings_impact":
 
@@ -83,6 +94,23 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # REPEATED BUDGET PRESSURE
+        # ======================================
+
+        elif intent == "budget_pressure":
+
+            answer = (
+                self._answer_budget_pressure(
+                    question,
+                    context,
+                    analysis,
+                )
+            )
+
+        # ======================================
+        # NORMAL BUDGET QUESTION
+        # ======================================
 
         elif intent == "budget":
 
@@ -93,31 +121,55 @@ class PocketAIConversationEngine:
                     state,
                 )
             )
+        elif intent == "projection":
+
+            answer = (
+                self._answer_projection(
+                    context
+                )
+            )
+
+        # ======================================
+        # SPENDING TREND
+        # ======================================
 
         elif intent == "spending_trend":
 
-            category = self._find_trend_category(
-                question,
-                context,
+            category = (
+                self._find_trend_category(
+                    question,
+                    context,
+                )
             )
 
             if category:
 
-                intent = "category_trend"
+                intent = (
+                    "category_trend"
+                )
 
-                state.last_category = category
+                state.last_category = (
+                    category
+                )
 
-                answer = self._answer_category_trend(
-                    context,
-                    category,
+                answer = (
+                    self._answer_category_trend(
+                        context,
+                        category,
+                    )
                 )
 
             else:
 
-                answer = self._answer_spending_trend(
-                    context
+                answer = (
+                    self._answer_spending_trend(
+                        context
+                    )
                 )
 
+        # ======================================
+        # NORMAL SPENDING
+        # ======================================
 
         elif intent == "spending":
 
@@ -127,6 +179,10 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # SAVINGS DEADLINES
+        # ======================================
+
         elif intent == "savings_deadlines":
 
             answer = (
@@ -134,6 +190,10 @@ class PocketAIConversationEngine:
                     analysis
                 )
             )
+
+        # ======================================
+        # SAVINGS
+        # ======================================
 
         elif intent == "savings":
 
@@ -145,6 +205,9 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # BILLS
+        # ======================================
 
         elif intent == "bills":
 
@@ -156,6 +219,10 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # PATTERNS
+        # ======================================
+
         elif intent == "patterns":
 
             answer = (
@@ -163,6 +230,10 @@ class PocketAIConversationEngine:
                     context
                 )
             )
+
+        # ======================================
+        # FINANCIAL HEALTH
+        # ======================================
 
         elif intent == "health":
 
@@ -172,6 +243,9 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # FOCUS
+        # ======================================
 
         elif intent == "focus":
 
@@ -181,6 +255,9 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # SAFE TO SPEND EXPLANATION
+        # ======================================
 
         elif intent == "explanation":
 
@@ -190,6 +267,9 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # GENERAL
+        # ======================================
 
         else:
 
@@ -199,36 +279,37 @@ class PocketAIConversationEngine:
                 )
             )
 
+        # ======================================
+        # SAVE CONVERSATION MEMORY
+        # ======================================
 
         state.last_intent = (
             intent
         )
 
-
         state.previous_question = (
             question
         )
-
 
         state.previous_answer = (
             answer
         )
 
+        # ======================================
+        # FINAL RESPONSE INFORMATION
+        # ======================================
 
         analysis.engine_version = (
             self.VERSION
         )
 
-
         analysis.intent = (
             intent
         )
 
-
         analysis.intent_confidence = (
             confidence
         )
-
 
         analysis.answer = (
             self._add_confidence_note(
@@ -237,15 +318,11 @@ class PocketAIConversationEngine:
             )
         )
 
-
         analysis.conversation_state = (
             state
         )
 
-
         return analysis
-
-
 
     # ==========================================
     # INTENT DETECTION
@@ -263,13 +340,11 @@ class PocketAIConversationEngine:
                 .strip()
         )
 
-
         amount = (
             self._extract_amount(
                 question
             )
         )
-
 
         # ======================================
         # AFFORDABILITY FOLLOW-UP
@@ -297,7 +372,6 @@ class PocketAIConversationEngine:
                 0.99,
             )
 
-
         if (
             state.last_purchase_amount
             is not None
@@ -324,9 +398,8 @@ class PocketAIConversationEngine:
                 0.99,
             )
 
-
         # ======================================
-        # PURCHASE → SAVINGS FOLLOW-UP
+        # PURCHASE -> SAVINGS FOLLOW-UP
         # ======================================
 
         if (
@@ -352,7 +425,6 @@ class PocketAIConversationEngine:
                 "purchase_savings_impact",
                 0.99,
             )
-
 
         # ======================================
         # CONTEXTUAL CATEGORY FOLLOW-UP
@@ -383,7 +455,6 @@ class PocketAIConversationEngine:
                 0.98,
             )
 
-
         # ======================================
         # CONTEXTUAL BILL FOLLOW-UP
         # ======================================
@@ -410,7 +481,6 @@ class PocketAIConversationEngine:
                 "bills",
                 0.98,
             )
-
 
         # ======================================
         # CONTEXTUAL SAVINGS FOLLOW-UP
@@ -440,7 +510,6 @@ class PocketAIConversationEngine:
                 0.98,
             )
 
-
         # ======================================
         # SAFE TO SPEND EXPLANATION
         # ======================================
@@ -464,7 +533,6 @@ class PocketAIConversationEngine:
                 "explanation",
                 0.95,
             )
-
 
         # ======================================
         # AFFORDABILITY
@@ -509,12 +577,19 @@ class PocketAIConversationEngine:
         ]
 
         if (
-            any(phrase in text for phrase in trend_phrases)
-            or (
+            any(
+                phrase in text
+                for phrase
+                in trend_phrases
+            )
+            or
+            (
                 "spend" in text
-                and "changed" in text
+                and
+                "changed" in text
             )
         ):
+
             return (
                 "spending_trend",
                 0.95,
@@ -542,12 +617,63 @@ class PocketAIConversationEngine:
                 "savings_deadlines",
                 0.95,
             )
-        
+
+        # ======================================
+        # REPEATED BUDGET PRESSURE
+        # ======================================
+
+        if self._contains_any(
+            text,
+            [
+                "keep going over",
+                "keep getting close",
+                "usually over budget",
+                "repeated budget",
+                "budget pressure",
+                "over budget often",
+                "consistently over budget",
+                "budget every month",
+                "keep hitting my budget",
+                "always close to my budget",
+            ],
+        ):
+
+            return (
+                "budget_pressure",
+                0.96,
+            )
+
+        # ======================================
+        # MONTH-END PROJECTION QUESTIONS
+        # ======================================
+
+        if self._contains_any(
+            text,
+            [
+                "end of the month",
+                "end of month",
+                "month end",
+                "month-end",
+                "projected spending",
+                "spending projection",
+                "how much will i have left",
+                "where will i end up",
+                "finish the month",
+                "on pace this month",
+            ],
+        ):
+
+            return (
+                "projection",
+                0.96,
+            )
+
         # ======================================
         # NORMAL INTENTS
         # ======================================
 
         rules = {
+
             "focus": [
                 "what should i focus on",
                 "what should i focus",
@@ -585,6 +711,8 @@ class PocketAIConversationEngine:
                 "recurring",
             ],
 
+            # Patterns comes before spending so
+            # a broad pattern question wins a tie.
             "patterns": [
                 "anything unusual",
                 "anything weird",
@@ -618,16 +746,13 @@ class PocketAIConversationEngine:
             ],
         }
 
-
         best_intent = (
             "general"
         )
 
-
         best_score = (
             0
         )
-
 
         for intent, phrases in rules.items():
 
@@ -638,18 +763,15 @@ class PocketAIConversationEngine:
                 if phrase in text
             )
 
-
             if score > best_score:
 
                 best_score = (
                     score
                 )
 
-
                 best_intent = (
                     intent
                 )
-
 
         if best_score == 0:
 
@@ -657,7 +779,6 @@ class PocketAIConversationEngine:
                 "general",
                 0.40,
             )
-
 
         return (
             best_intent,
@@ -671,8 +792,6 @@ class PocketAIConversationEngine:
             ),
         )
 
-
-
     # ==========================================
     # AFFORDABILITY
     # ==========================================
@@ -682,32 +801,19 @@ class PocketAIConversationEngine:
         question: str,
         context: FinancialContext,
         state: ConversationState,
-    ) -> str:
+        ) -> str:
 
         amount = (
-            self._extract_amount(
-                question
-            )
+            self._extract_amount(question)
+            or state.last_purchase_amount
         )
 
-
         if amount is None:
-
-            amount = (
-                state.last_purchase_amount
-            )
-
-
-        if amount is None:
-
             return (
-                f"You currently have "
-                f"${context.safe_to_spend_total:,.2f} "
+                f"You have ${context.safe_to_spend_total:,.2f} "
                 f"Safe to Spend this month. "
-                f"Tell me the price of what you're "
-                f"considering."
+                "How much is the purchase?"
             )
-
 
         description = (
             self._extract_purchase_description(
@@ -715,36 +821,26 @@ class PocketAIConversationEngine:
             )
         )
 
-
         if description:
-
             state.last_purchase_description = (
                 description
             )
 
+        state.last_purchase_amount = amount
 
-        state.last_purchase_amount = (
-            amount
+        item = (
+            state.last_purchase_description
+            or
+            "purchase"
         )
-
-
-        item_text = (
-            f" {state.last_purchase_description}"
-            if state.last_purchase_description
-            else " purchase"
-        )
-
 
         if context.obligation_shortfall > 0:
-
             return (
-                f"I would not treat the "
-                f"${amount:,.2f}{item_text} as safe "
-                f"right now. Your monthly plan is "
-                f"already short by "
+                f"I wouldn't call the ${amount:,.2f} "
+                f"{item} safe right now. "
+                f"Your monthly plan is already short by "
                 f"${context.obligation_shortfall:,.2f}."
             )
-
 
         if amount > context.checking_balance:
 
@@ -754,43 +850,30 @@ class PocketAIConversationEngine:
                 context.checking_balance
             )
 
-
             return (
-                f"You do not currently have enough "
-                f"in Checking for the "
-                f"${amount:,.2f}{item_text}. "
-                f"Your Checking balance is "
-                f"${context.checking_balance:,.2f}, "
-                f"which is ${shortage:,.2f} short."
+                f"You don't have enough in Checking for it. "
+                f"You're about ${shortage:,.2f} short."
             )
-
 
         if amount > context.safe_to_spend_total:
 
-            over_amount = (
+            over = (
                 amount
                 -
                 context.safe_to_spend_total
             )
 
-
             return (
-                f"You have enough in Checking, but "
-                f"I would not consider the "
-                f"${amount:,.2f}{item_text} safe "
-                f"inside your monthly plan. "
-                f"It is ${over_amount:,.2f} more than "
-                f"your Safe to Spend of "
-                f"${context.safe_to_spend_total:,.2f}."
+                f"You can cover it from Checking, but it's "
+                f"${over:,.2f} above your Safe to Spend. "
+                "I'd wait or cut spending somewhere else first."
             )
-
 
         remaining = (
             context.safe_to_spend_total
             -
             amount
         )
-
 
         percent = (
             amount
@@ -802,42 +885,27 @@ class PocketAIConversationEngine:
             else 100
         )
 
-
         if percent <= 25:
-
             return (
-                f"The ${amount:,.2f}{item_text} "
-                f"currently fits comfortably inside "
-                f"your plan. You would still have "
-                f"about ${remaining:,.2f} "
-                f"Safe to Spend afterward."
+                f"Yes, the ${amount:,.2f} {item} fits "
+                f"comfortably in your plan. "
+                f"You'd still have ${remaining:,.2f} "
+                "Safe to Spend."
             )
-
 
         if percent <= 50:
-
             return (
-                f"The ${amount:,.2f}{item_text} fits "
-                f"inside your current plan, but it "
-                f"would use about {percent:.0f}% of "
-                f"your remaining Safe to Spend. "
-                f"You would have about "
-                f"${remaining:,.2f} left."
+                f"Yes, it fits, but it would use about "
+                f"{percent:.0f}% of your remaining money. "
+                f"You'd have ${remaining:,.2f} left."
             )
 
-
         return (
-            f"The ${amount:,.2f}{item_text} technically "
-            f"fits inside your Safe to Spend, but it "
-            f"would use about {percent:.0f}% of what "
-            f"remains in your monthly plan. "
-            f"You would have only "
-            f"${remaining:,.2f} left afterward, so "
-            f"I would treat it as a significant purchase."
+            f"It fits, but it's a big purchase for your "
+            f"current budget. It would use about "
+            f"{percent:.0f}% of your Safe to Spend and "
+            f"leave ${remaining:,.2f}."
         )
-
-
-
     # ==========================================
     # PURCHASE IMPACT ON SAVINGS
     # ==========================================
@@ -850,37 +918,32 @@ class PocketAIConversationEngine:
     ) -> str:
 
         amount = (
-            self._extract_amount(
-                question
-            )
+            self._extract_amount(question)
             or
             state.last_purchase_amount
         )
 
-
         if amount is None:
-
             return (
-                "Tell me which purchase you mean and "
-                "I can compare it with your savings plan."
+                "Tell me the purchase amount and I'll "
+                "compare it with your savings plan."
             )
 
-
-        state.last_purchase_amount = (
-            amount
-        )
-
+        state.last_purchase_amount = amount
 
         if amount > context.safe_to_spend_total:
 
-            return (
-                f"A ${amount:,.2f} purchase is larger "
-                f"than your current Safe to Spend of "
-                f"${context.safe_to_spend_total:,.2f}. "
-                f"I would avoid it if protecting your "
-                f"savings goals is the priority."
+            difference = (
+                amount
+                -
+                context.safe_to_spend_total
             )
 
+            return (
+                f"That purchase is ${difference:,.2f} above "
+                f"your Safe to Spend. I'd avoid it if keeping "
+                "your savings plan on track is the priority."
+            )
 
         remaining = (
             context.safe_to_spend_total
@@ -888,20 +951,82 @@ class PocketAIConversationEngine:
             amount
         )
 
-
         return (
-            f"PocketAI has already protected "
-            f"${context.required_savings_this_month:,.2f} "
-            f"of required savings inside your monthly "
-            f"plan. A ${amount:,.2f} purchase would "
-            f"reduce your remaining Safe to Spend to "
-            f"about ${remaining:,.2f}, but it should "
-            f"not reduce your actual Savings balance "
-            f"unless you choose to spend money from Savings."
+            f"It shouldn't take money from Savings if you "
+            f"pay from Checking. Your planned savings are "
+            f"already protected, and you'd have "
+            f"${remaining:,.2f} Safe to Spend left."
         )
 
+    # ==========================================
+    # REPEATED BUDGET PRESSURE
+    # ==========================================
 
+    def _answer_budget_pressure(
+        self,
+        question: str,
+        context: FinancialContext,
+        analysis: AnalysisResult,
+    ) -> str:
 
+        pressure_insights = [
+            insight
+            for insight in analysis.insights
+            if insight.category == "budget_pressure"
+        ]
+
+        question_lower = (
+            question.casefold()
+        )
+
+        mentioned_category = None
+
+        for budget in context.budget_limits:
+
+            if (
+                budget.category.casefold()
+                in question_lower
+            ):
+                mentioned_category = (
+                    budget.category
+                )
+                break
+
+        if mentioned_category:
+
+            pressure_insights = [
+                insight
+                for insight in pressure_insights
+                if (
+                    mentioned_category.casefold()
+                    in insight.title.casefold()
+                    or
+                    mentioned_category.casefold()
+                    in insight.message.casefold()
+                )
+            ]
+
+        if not pressure_insights:
+
+            if mentioned_category:
+                return (
+                    f"I don't see repeated budget pressure "
+                    f"in {mentioned_category} yet. "
+                    "Keep recording expenses and I'll watch it."
+                )
+
+            return (
+                "I don't see any category repeatedly pushing "
+                "its budget yet."
+            )
+
+        insight = pressure_insights[0]
+
+        return (
+            f"{insight.message} "
+            "If this keeps happening, consider either cutting "
+            "that spending or setting a more realistic budget."
+        )
     # ==========================================
     # BUDGET
     # ==========================================
@@ -920,13 +1045,11 @@ class PocketAIConversationEngine:
             )
         )
 
-
         if (
             category is None
             and
             state.last_category
         ):
-
             category = (
                 self._find_category_by_name(
                     state.last_category,
@@ -934,28 +1057,22 @@ class PocketAIConversationEngine:
                 )
             )
 
-
         if category is not None:
 
             state.last_category = (
                 category.category
             )
 
-
             if (
                 category.budget_limit is None
                 or
                 category.budget_limit <= 0
             ):
-
                 return (
-                    f"You have spent "
-                    f"${category.amount:,.2f} on "
-                    f"{category.category} this month, "
-                    f"but there is no budget limit "
-                    f"attached to it yet."
+                    f"You've spent ${category.amount:,.2f} on "
+                    f"{category.category} this month, but you "
+                    "haven't set a budget for it."
                 )
-
 
             remaining = (
                 category.budget_limit
@@ -963,18 +1080,13 @@ class PocketAIConversationEngine:
                 category.amount
             )
 
-
             if remaining < 0:
-
                 return (
-                    f"You have spent "
-                    f"${category.amount:,.2f} on "
-                    f"{category.category} against a "
-                    f"${category.budget_limit:,.2f} budget. "
-                    f"You are currently "
-                    f"${abs(remaining):,.2f} over."
+                    f"{category.category} is "
+                    f"${abs(remaining):,.2f} over budget. "
+                    f"You've spent ${category.amount:,.2f} "
+                    f"of your ${category.budget_limit:,.2f} limit."
                 )
-
 
             usage = (
                 category.amount
@@ -984,21 +1096,15 @@ class PocketAIConversationEngine:
                 100
             )
 
-
             return (
-                f"You have spent "
-                f"${category.amount:,.2f} of your "
-                f"${category.budget_limit:,.2f} "
+                f"You've used about {usage:.0f}% of your "
                 f"{category.category} budget. "
-                f"That is about {usage:.0f}% used, "
-                f"leaving ${remaining:,.2f}."
+                f"${remaining:,.2f} remains."
             )
-
 
         tracked = [
             item
-            for item
-            in context.category_spending
+            for item in context.category_spending
             if (
                 item.budget_limit is not None
                 and
@@ -1006,28 +1112,21 @@ class PocketAIConversationEngine:
             )
         ]
 
-
         if not tracked:
-
             return (
-                "I do not have enough budget information "
-                "yet to identify a category that needs attention."
+                "You don't have enough budget information "
+                "recorded yet."
             )
-
 
         highest = max(
             tracked,
             key=lambda item:
-                item.amount
-                /
-                item.budget_limit,
+                item.amount / item.budget_limit,
         )
-
 
         state.last_category = (
             highest.category
         )
-
 
         remaining = (
             highest.budget_limit
@@ -1035,18 +1134,76 @@ class PocketAIConversationEngine:
             highest.amount
         )
 
+        if remaining < 0:
+            return (
+                f"{highest.category} needs the most attention. "
+                f"It's ${abs(remaining):,.2f} over budget."
+            )
 
         return (
-            f"{highest.category} is currently your "
-            f"most-used tracked budget. "
-            f"You have spent "
-            f"${highest.amount:,.2f} of "
-            f"${highest.budget_limit:,.2f}, "
-            f"leaving ${remaining:,.2f}."
+            f"{highest.category} is your most-used budget. "
+            f"You have ${remaining:,.2f} left."
         )
 
+    # ==========================================
+    # MONTH-END PROJECTION
+    # ==========================================
 
+    def _answer_projection(
+        self,
+        context: FinancialContext,
+    ) -> str:
 
+        if (
+            context.current_month_transaction_count == 0
+            or
+            context.projected_additional_spending <= 0
+        ):
+
+            return (
+                "I don't have enough spending this month "
+                "to make a useful projection yet."
+            )
+
+        if context.projected_month_end_money < 0:
+
+            shortfall = abs(
+                context.projected_month_end_money
+            )
+
+            return (
+                f"At your current pace, you could end the "
+                f"month about ${shortfall:,.2f} short. "
+                "I'd cut back on optional spending for now."
+            )
+
+        if (
+            context.projected_additional_spending
+            >
+            context.safe_to_spend_total
+        ):
+
+            difference = (
+                context.projected_additional_spending
+                -
+                context.safe_to_spend_total
+            )
+
+            return (
+                f"Your spending pace is a little high. "
+                f"You're projected to spend about "
+                f"${difference:,.2f} more than your "
+                f"remaining Safe to Spend."
+            )
+
+        return (
+            f"You're currently on pace to finish the month "
+            f"with about "
+            f"${context.projected_month_end_money:,.2f} left. "
+            f"PocketAI expects about "
+            f"${context.projected_additional_spending:,.2f} "
+            f"of additional spending."
+        )
     # ==========================================
     # SPENDING
     # ==========================================
@@ -1057,13 +1214,10 @@ class PocketAIConversationEngine:
     ) -> str:
 
         if not context.category_spending:
-
             return (
-                "You do not have enough spending "
-                "recorded this month for me to identify "
-                "your largest category yet."
+                "You don't have enough spending recorded "
+                "this month yet."
             )
-
 
         biggest = max(
             context.category_spending,
@@ -1071,13 +1225,10 @@ class PocketAIConversationEngine:
                 item.amount,
         )
 
-
         total = sum(
             item.amount
-            for item
-            in context.category_spending
+            for item in context.category_spending
         )
-
 
         percentage = (
             biggest.amount
@@ -1089,16 +1240,12 @@ class PocketAIConversationEngine:
             else 0
         )
 
-
         return (
-            f"Your largest spending category this "
-            f"month is {biggest.category} at "
-            f"${biggest.amount:,.2f}. "
-            f"That is about {percentage:.0f}% of your "
-            f"${total:,.2f} recorded monthly spending."
+            f"You're spending the most on "
+            f"{biggest.category}: ${biggest.amount:,.2f}. "
+            f"That's about {percentage:.0f}% of your "
+            "recorded spending this month."
         )
-
-
 
     # ==========================================
     # SAVINGS
@@ -1113,19 +1260,15 @@ class PocketAIConversationEngine:
 
         active = [
             goal
-            for goal
-            in context.savings_goals
+            for goal in context.savings_goals
             if not goal.is_completed
         ]
 
-
         if not active:
-
             return (
-                "You do not currently have any active "
-                "savings goals."
+                "You don't currently have an active "
+                "savings goal."
             )
-
 
         goal = (
             self._find_savings_goal(
@@ -1133,7 +1276,6 @@ class PocketAIConversationEngine:
                 active,
             )
         )
-
 
         if (
             goal is None
@@ -1144,8 +1286,7 @@ class PocketAIConversationEngine:
             goal = next(
                 (
                     item
-                    for item
-                    in active
+                    for item in active
                     if item.name.lower()
                     ==
                     state.last_savings_goal_name.lower()
@@ -1153,20 +1294,16 @@ class PocketAIConversationEngine:
                 None,
             )
 
-
         if goal is None:
-
             goal = min(
                 active,
                 key=lambda item:
                     item.priority_rank,
             )
 
-
         state.last_savings_goal_name = (
             goal.name
         )
-
 
         progress = (
             goal.progress
@@ -1174,17 +1311,11 @@ class PocketAIConversationEngine:
             100
         )
 
-
         return (
-            f"{goal.name} is currently Priority "
-            f"{goal.priority_rank}. "
-            f"You have saved "
-            f"${goal.current_amount:,.2f} of "
-            f"${goal.target_amount:,.2f}, "
-            f"which is about {progress:.0f}% complete. "
-            f"${goal.remaining:,.2f} remains."
+            f"{goal.name} is {progress:.0f}% complete. "
+            f"You've saved ${goal.current_amount:,.2f} and "
+            f"still need ${goal.remaining:,.2f}."
         )
-
 
     # ==========================================
     # SAVINGS DEADLINE QUESTIONS
@@ -1202,23 +1333,23 @@ class PocketAIConversationEngine:
         ]
 
         if not deadline_insights:
-
             return (
-                "I don't see an active savings goal "
-                "with an approaching deadline that "
-                "needs attention right now."
+                "Your savings deadlines look okay right now."
             )
 
-        messages = [
-            f"{insight.message} {insight.reason}"
-            for insight in deadline_insights[:3]
-        ]
+        insight = (
+            deadline_insights[0]
+        )
+
+        reason = (
+            insight.reason.split(".")[0]
+        )
 
         return (
-            "Here's what I see with your savings goals: "
-            + " ".join(messages)
+            f"{insight.message} "
+            f"{reason}."
         )
-    
+
     # ==========================================
     # BILLS
     # ==========================================
@@ -1236,7 +1367,6 @@ class PocketAIConversationEngine:
                 context,
             )
         )
-
 
         if (
             bill is None
@@ -1256,7 +1386,6 @@ class PocketAIConversationEngine:
                 None,
             )
 
-
         if bill is None:
 
             unpaid = [
@@ -1270,14 +1399,12 @@ class PocketAIConversationEngine:
                 )
             ]
 
-
             if not unpaid:
 
                 return (
                     "I do not see any active unpaid bills "
                     "that need attention right now."
                 )
-
 
             bill = min(
                 unpaid,
@@ -1287,11 +1414,9 @@ class PocketAIConversationEngine:
                     ),
             )
 
-
         state.last_bill_name = (
             bill.name
         )
-
 
         days_until = (
             self._days_until_due(
@@ -1299,14 +1424,17 @@ class PocketAIConversationEngine:
             )
         )
 
-
         if days_until == 0:
 
-            due_text = "today"
+            due_text = (
+                "today"
+            )
 
         elif days_until == 1:
 
-            due_text = "tomorrow"
+            due_text = (
+                "tomorrow"
+            )
 
         else:
 
@@ -1314,11 +1442,9 @@ class PocketAIConversationEngine:
                 f"in {days_until} days"
             )
 
-
         text = (
             question.lower()
         )
-
 
         if "how much" in text:
 
@@ -1326,7 +1452,6 @@ class PocketAIConversationEngine:
                 f"{bill.name} is "
                 f"${bill.amount:,.2f}."
             )
-
 
         if (
             "when" in text
@@ -1340,7 +1465,6 @@ class PocketAIConversationEngine:
                 f"${bill.amount:,.2f}."
             )
 
-
         return (
             f"Your next relevant bill is "
             f"{bill.name} for "
@@ -1348,9 +1472,8 @@ class PocketAIConversationEngine:
             f"{due_text}."
         )
 
-
     # ==========================================
-    # FIND CATEGORY MENTIONED IN TREND QUESTION
+    # FIND CATEGORY IN TREND QUESTION
     # ==========================================
 
     def _find_trend_category(
@@ -1361,29 +1484,36 @@ class PocketAIConversationEngine:
 
         category_names = {
             item.category
-            for item in context.category_spending
+            for item
+            in context.category_spending
         }
 
         category_names.update(
             item.category
-            for item in context.transaction_history
+            for item
+            in context.transaction_history
         )
 
-        question_lower = question.casefold()
+        question_lower = (
+            question.casefold()
+        )
 
         for category in sorted(
             category_names,
             key=len,
             reverse=True,
         ):
+
             if (
                 category.strip()
-                and category.casefold() in question_lower
+                and
+                category.casefold()
+                in question_lower
             ):
+
                 return category
 
         return None
-
 
     # ==========================================
     # OVERALL SPENDING TREND
@@ -1394,21 +1524,36 @@ class PocketAIConversationEngine:
         context: FinancialContext,
     ) -> str:
 
-        today = date.today()
-
-        start_this_week = today - timedelta(
-            days=today.weekday()
+        today = (
+            date.today()
         )
 
-        start_last_week = start_this_week - timedelta(
-            days=7
+        start_this_week = (
+            today
+            -
+            timedelta(
+                days=today.weekday()
+            )
         )
 
-        end_last_period = start_last_week + timedelta(
-            days=today.weekday()
+        start_last_week = (
+            start_this_week
+            -
+            timedelta(
+                days=7
+            )
+        )
+
+        end_last_period = (
+            start_last_week
+            +
+            timedelta(
+                days=today.weekday()
+            )
         )
 
         this_week = []
+
         last_week = []
 
         for transaction in context.transaction_history:
@@ -1417,25 +1562,49 @@ class PocketAIConversationEngine:
                 continue
 
             try:
-                transaction_date = date.fromisoformat(
-                    transaction.date
+
+                transaction_date = (
+                    date.fromisoformat(
+                        transaction.date
+                    )
                 )
-            except (ValueError, TypeError):
+
+            except (
+                ValueError,
+                TypeError,
+            ):
+
                 continue
 
-            if start_this_week <= transaction_date <= today:
+            if (
+                start_this_week
+                <=
+                transaction_date
+                <=
+                today
+            ):
 
-                this_week.append(transaction)
+                this_week.append(
+                    transaction
+                )
 
             elif (
                 start_last_week
-                <= transaction_date
-                <= end_last_period
+                <=
+                transaction_date
+                <=
+                end_last_period
             ):
 
-                last_week.append(transaction)
+                last_week.append(
+                    transaction
+                )
 
-        if len(this_week) < 2 or len(last_week) < 2:
+        if (
+            len(this_week) < 2
+            or
+            len(last_week) < 2
+        ):
 
             return (
                 "I don't have enough transactions in both "
@@ -1445,101 +1614,94 @@ class PocketAIConversationEngine:
 
         current_total = sum(
             transaction.amount
-            for transaction in this_week
+            for transaction
+            in this_week
         )
 
         previous_total = sum(
             transaction.amount
-            for transaction in last_week
+            for transaction
+            in last_week
         )
 
         if previous_total <= 0:
+
             return (
                 "I don't have a usable previous-week "
                 "spending total to compare against."
             )
 
-        difference = current_total - previous_total
+        difference = (
+            current_total
+            -
+            previous_total
+        )
 
         percentage = (
-            difference / previous_total * 100
+            difference
+            /
+            previous_total
+            *
+            100
         )
+
+        # ======================================
+        # SPENDING INCREASED
+        # ======================================
 
         if difference > 0:
 
             answer = (
-                f"Yes, your recorded spending is higher "
-                f"this week. You've spent "
-                f"${current_total:,.2f}, compared with "
-                f"${previous_total:,.2f} over the same "
-                f"weekdays last week. That's an increase "
-                f"of ${difference:,.2f}, or approximately "
-                f"{percentage:.0f}%."
+                f"Yes. You've spent ${current_total:,.2f} "
+                f"this week versus ${previous_total:,.2f} "
+                f"at the same point last week. "
+                f"That's ${difference:,.2f} more."
             )
 
         elif difference < 0:
 
             answer = (
-                f"Your recorded spending is lower this "
-                f"week. You've spent ${current_total:,.2f}, "
-                f"compared with ${previous_total:,.2f} over "
-                f"the same weekdays last week. That's "
-                f"${abs(difference):,.2f} less, or "
-                f"approximately {abs(percentage):.0f}% lower."
+                f"You're spending less this week. "
+                f"You've spent ${current_total:,.2f} versus "
+                f"${previous_total:,.2f} last week."
             )
 
         else:
 
             return (
-                f"Your spending is unchanged across the "
-                f"comparison periods at "
-                f"${current_total:,.2f}."
+                f"Your spending is about the same as last week "
+                f"at ${current_total:,.2f}."
             )
 
-        # Identify whether one purchase is driving
-        # most of the increase.
 
-        if difference > 0 and current_total > 0:
+        if (
+            difference > 0
+            and
+            current_total > 0
+        ):
 
             largest = max(
                 this_week,
-                key=lambda transaction: transaction.amount,
+                key=lambda transaction:
+                    transaction.amount,
             )
 
-            share = largest.amount / current_total
+            share = (
+                largest.amount
+                /
+                current_total
+            )
 
             if share >= 0.50:
 
-                without_largest = (
-                    current_total - largest.amount
-                )
-
-                remaining_difference = (
-                    without_largest - previous_total
-                )
-
-                if remaining_difference >= 0:
-                    comparison = (
-                        f"${remaining_difference:,.2f} above"
-                    )
-                else:
-                    comparison = (
-                        f"${abs(remaining_difference):,.2f} below"
-                    )
-
                 answer += (
                     f" Your ${largest.amount:,.2f} "
-                    f"{largest.name} purchase accounts for "
-                    f"about {share * 100:.0f}% of this week's "
-                    f"recorded spending. Without it, spending "
-                    f"would be ${without_largest:,.2f}, "
-                    f"only {comparison} last week's amount. "
-                    f"One week alone does not establish an "
-                    f"ongoing spending habit."
+                    f"{largest.name} purchase caused most "
+                    "of the increase."
                 )
 
-        return answer
 
+        return answer
 
     # ==========================================
     # CATEGORY-SPECIFIC SPENDING TREND
@@ -1551,16 +1713,28 @@ class PocketAIConversationEngine:
         category: str,
     ) -> str:
 
-        today = date.today()
+        today = (
+            date.today()
+        )
 
-        first_this_month = today.replace(day=1)
+        first_this_month = (
+            today.replace(
+                day=1
+            )
+        )
 
         last_day_previous_month = (
-            first_this_month - timedelta(days=1)
+            first_this_month
+            -
+            timedelta(
+                days=1
+            )
         )
 
         first_last_month = (
-            last_day_previous_month.replace(day=1)
+            last_day_previous_month.replace(
+                day=1
+            )
         )
 
         comparison_days = min(
@@ -1570,54 +1744,108 @@ class PocketAIConversationEngine:
 
         end_this_period = (
             first_this_month
-            + timedelta(days=comparison_days - 1)
+            +
+            timedelta(
+                days=
+                    comparison_days
+                    -
+                    1
+            )
         )
 
         end_previous_period = (
             first_last_month
-            + timedelta(days=comparison_days - 1)
+            +
+            timedelta(
+                days=
+                    comparison_days
+                    -
+                    1
+            )
         )
 
-        current_total = 0.0
-        previous_total = 0.0
+        current_total = (
+            0.0
+        )
 
-        current_count = 0
-        previous_count = 0
+        previous_total = (
+            0.0
+        )
+
+        current_count = (
+            0
+        )
+
+        previous_count = (
+            0
+        )
 
         for transaction in context.transaction_history:
 
-            if transaction.category.casefold() != category.casefold():
+            if (
+                transaction.category.casefold()
+                !=
+                category.casefold()
+            ):
+
                 continue
 
             if transaction.amount <= 0:
+
                 continue
 
             try:
-                transaction_date = date.fromisoformat(
-                    transaction.date
+
+                transaction_date = (
+                    date.fromisoformat(
+                        transaction.date
+                    )
                 )
-            except (ValueError, TypeError):
+
+            except (
+                ValueError,
+                TypeError,
+            ):
+
                 continue
 
             if (
                 first_this_month
-                <= transaction_date
-                <= end_this_period
+                <=
+                transaction_date
+                <=
+                end_this_period
             ):
 
-                current_total += transaction.amount
-                current_count += 1
+                current_total += (
+                    transaction.amount
+                )
+
+                current_count += (
+                    1
+                )
 
             elif (
                 first_last_month
-                <= transaction_date
-                <= end_previous_period
+                <=
+                transaction_date
+                <=
+                end_previous_period
             ):
 
-                previous_total += transaction.amount
-                previous_count += 1
+                previous_total += (
+                    transaction.amount
+                )
 
-        if current_count < 1 or previous_count < 1:
+                previous_count += (
+                    1
+                )
+
+        if (
+            current_count < 1
+            or
+            previous_count < 1
+        ):
 
             return (
                 f"I don't have enough {category} transactions "
@@ -1632,38 +1860,41 @@ class PocketAIConversationEngine:
                 f"{category} total for comparison."
             )
 
-        difference = current_total - previous_total
+        difference = (
+            current_total
+            -
+            previous_total
+        )
 
-        percentage = difference / previous_total * 100
+        percentage = (
+            difference
+            /
+            previous_total
+            *
+            100
+        )
 
         if difference > 0:
 
             return (
                 f"Your {category} spending increased from "
                 f"${previous_total:,.2f} to "
-                f"${current_total:,.2f} over equivalent "
-                f"{comparison_days}-day periods. "
-                f"That's an increase of "
-                f"${difference:,.2f}, or approximately "
-                f"{percentage:.0f}%."
+                f"${current_total:,.2f}. "
+                f"That's ${difference:,.2f} more."
             )
 
         if difference < 0:
 
             return (
-                f"Your {category} spending decreased from "
+                f"Your {category} spending dropped from "
                 f"${previous_total:,.2f} to "
-                f"${current_total:,.2f} over equivalent "
-                f"{comparison_days}-day periods. "
-                f"That's ${abs(difference):,.2f} less, "
-                f"or approximately "
-                f"{abs(percentage):.0f}% lower."
+                f"${current_total:,.2f}. "
+                f"That's ${abs(difference):,.2f} less."
             )
 
         return (
-            f"Your {category} spending is unchanged at "
-            f"${current_total:,.2f} over the comparable "
-            f"periods."
+            f"Your {category} spending hasn't changed much. "
+            f"It's ${current_total:,.2f} in both periods."
         )
 
     # ==========================================
@@ -1674,15 +1905,13 @@ class PocketAIConversationEngine:
         self,
         context: FinancialContext,
     ) -> str:
-        
+
         if not context.transaction_history:
             return (
-                "I don't have transaction history available "
-                "to analyze yet. Once transactions are "
-                "available, I can compare spending across "
-                "different time periods."
+                "I need more transaction history before "
+                "I can spot spending patterns."
             )
-        
+
         patterns = (
             self.pattern_analyzer
                 .analyze(
@@ -1690,39 +1919,27 @@ class PocketAIConversationEngine:
                 )
         )
 
-
         if not patterns:
-
             return (
-                "I don't see a strong spending pattern "
-                "that stands out yet. Keep recording "
-                "transactions and I'll become more "
-                "confident as your history grows."
+                "Nothing unusual stands out right now. "
+                "Keep recording your expenses and I'll "
+                "continue watching for changes."
             )
 
-
-        # Limit the response so PocketAI does
-        # not overwhelm the user.
-        strongest_patterns = (
+        strongest = (
             patterns[:3]
         )
 
-
-        parts = [
-            (
-                f"{pattern.message} "
-                f"{pattern.reason}"
-            )
-            for pattern
-            in strongest_patterns
+        messages = [
+            pattern.message
+            for pattern in strongest
         ]
-
 
         return (
             "Here's what stands out: "
             +
             " ".join(
-                parts
+                messages
             )
         )
 
@@ -1739,45 +1956,27 @@ class PocketAIConversationEngine:
             context.financial_health_score
         )
 
-
         if score is None:
-
             return (
-                "I do not have enough financial history "
-                "yet to give you a confident Financial "
-                "Health score."
+                "I need more financial history before "
+                "I can give you a useful health score."
             )
-
 
         if score >= 70:
-
-            status = (
-                "generally healthy"
-            )
+            status = "looking healthy"
 
         elif score >= 50:
-
-            status = (
-                "showing some areas that need attention"
-            )
+            status = "okay, but needs some attention"
 
         else:
-
-            status = (
-                "under noticeable financial pressure"
-            )
-
+            status = "under some financial pressure"
 
         return (
-            f"Your current Financial Health score is "
-            f"{score}/100, which means your finances "
-            f"are {status}. "
-            f"You currently have "
-            f"${context.safe_to_spend_total:,.2f} "
-            f"Safe to Spend remaining this month."
+            f"Your Financial Health score is {score}/100 "
+            f"and is {status}. "
+            f"You have ${context.safe_to_spend_total:,.2f} "
+            "Safe to Spend."
         )
-
-
 
     # ==========================================
     # FOCUS
@@ -1796,20 +1995,15 @@ class PocketAIConversationEngine:
                     item.priority,
             )
 
-
             return (
-                f"{analysis.summary} "
-                f"My top recommendation: "
-                f"{action.action} "
+                f"Your top priority: {action.action} "
                 f"{action.reason}"
             )
-
 
         warning = next(
             (
                 insight
-                for insight
-                in analysis.insights
+                for insight in analysis.insights
                 if insight.severity
                 in (
                     "critical",
@@ -1819,42 +2013,16 @@ class PocketAIConversationEngine:
             None,
         )
 
-
         if warning is not None:
-
             return (
-                f"{analysis.summary} "
                 f"{warning.message} "
-                f"{warning.reason}"
+                f"That's the main thing I'd watch right now."
             )
-
-
-        budget = next(
-            (
-                insight
-                for insight
-                in analysis.insights
-                if insight.category
-                ==
-                "budget"
-            ),
-            None,
-        )
-
-
-        if budget is not None:
-
-            return (
-                f"{analysis.summary} "
-                f"{budget.message}"
-            )
-
 
         return (
-            analysis.summary
+            "Nothing urgent needs attention right now. "
+            "Keep following your current plan."
         )
-
-
 
     # ==========================================
     # SAFE TO SPEND EXPLANATION
@@ -1866,22 +2034,11 @@ class PocketAIConversationEngine:
     ) -> str:
 
         return (
-            f"Your Safe to Spend starts with "
-            f"${context.expected_monthly_income:,.2f} "
-            f"of expected monthly income, then subtracts "
-            f"${context.current_month_spent:,.2f} "
-            f"of spending, "
-            f"${context.upcoming_bills:,.2f} "
-            f"of active bills, "
-            f"${context.required_savings_this_month:,.2f} "
-            f"of required savings, and "
-            f"${context.accepted_extra_savings:,.2f} "
-            f"of accepted extra savings. "
-            f"That leaves "
-            f"${context.safe_to_spend_total:,.2f}."
+            f"You have ${context.safe_to_spend_total:,.2f} "
+            f"Safe to Spend this month. "
+            "That's what's left after your current spending, "
+            "bills, and planned savings are accounted for."
         )
-
-
 
     # ==========================================
     # GENERAL
@@ -1895,11 +2052,11 @@ class PocketAIConversationEngine:
         return (
             f"{analysis.summary} "
             f"You can ask me about affordability, "
-            f"spending, budgets, savings goals, bills, "
-            f"Safe to Spend, or Financial Health."
+            f"spending, spending trends, budgets, "
+            f"repeated budget pressure, savings goals, "
+            f"savings deadlines, bills, Safe to Spend, "
+            f"or Financial Health."
         )
-
-
 
     # ==========================================
     # HELPERS
@@ -1917,6 +2074,9 @@ class PocketAIConversationEngine:
             in phrases
         )
 
+    # ==========================================
+    # EXTRACT MONEY AMOUNT
+    # ==========================================
 
     def _extract_amount(
         self,
@@ -1928,18 +2088,15 @@ class PocketAIConversationEngine:
             question,
         )
 
-
         if match is None:
 
             return None
-
 
         try:
 
             amount = float(
                 match.group(1)
             )
-
 
             return (
                 amount
@@ -1951,6 +2108,9 @@ class PocketAIConversationEngine:
 
             return None
 
+    # ==========================================
+    # EXTRACT PURCHASE DESCRIPTION
+    # ==========================================
 
     def _extract_purchase_description(
         self,
@@ -1963,11 +2123,9 @@ class PocketAIConversationEngine:
             re.IGNORECASE,
         )
 
-
         if match is None:
 
             return ""
-
 
         description = (
             match.group(1)
@@ -1976,14 +2134,12 @@ class PocketAIConversationEngine:
                 )
         )
 
-
         description = re.sub(
             r"^(for|on)\s+",
             "",
             description,
             flags=re.IGNORECASE,
         )
-
 
         description = re.sub(
             r"^(a|an|the)\s+",
@@ -1992,11 +2148,13 @@ class PocketAIConversationEngine:
             flags=re.IGNORECASE,
         )
 
-
         return (
             description.strip()
         )
 
+    # ==========================================
+    # FIND CURRENT CATEGORY
+    # ==========================================
 
     def _find_category(
         self,
@@ -2007,7 +2165,6 @@ class PocketAIConversationEngine:
         text = (
             question.lower()
         )
-
 
         return next(
             (
@@ -2020,6 +2177,9 @@ class PocketAIConversationEngine:
             None,
         )
 
+    # ==========================================
+    # FIND CATEGORY BY NAME
+    # ==========================================
 
     def _find_category_by_name(
         self,
@@ -2039,6 +2199,9 @@ class PocketAIConversationEngine:
             None,
         )
 
+    # ==========================================
+    # FIND BILL
+    # ==========================================
 
     def _find_bill(
         self,
@@ -2049,7 +2212,6 @@ class PocketAIConversationEngine:
         text = (
             question.lower()
         )
-
 
         return next(
             (
@@ -2062,6 +2224,9 @@ class PocketAIConversationEngine:
             None,
         )
 
+    # ==========================================
+    # FIND SAVINGS GOAL
+    # ==========================================
 
     def _find_savings_goal(
         self,
@@ -2075,7 +2240,6 @@ class PocketAIConversationEngine:
             question.lower()
         )
 
-
         return next(
             (
                 goal
@@ -2087,6 +2251,9 @@ class PocketAIConversationEngine:
             None,
         )
 
+    # ==========================================
+    # DAYS UNTIL BILL IS DUE
+    # ==========================================
 
     def _days_until_due(
         self,
@@ -2097,7 +2264,6 @@ class PocketAIConversationEngine:
             date.today()
         )
 
-
         current_month_days = (
             calendar.monthrange(
                 today.year,
@@ -2105,12 +2271,10 @@ class PocketAIConversationEngine:
             )[1]
         )
 
-
         current_due_day = min(
             due_day,
             current_month_days,
         )
-
 
         if current_due_day >= today.day:
 
@@ -2120,7 +2284,6 @@ class PocketAIConversationEngine:
                 today.day
             )
 
-
         if today.month == 12:
 
             next_year = (
@@ -2129,7 +2292,9 @@ class PocketAIConversationEngine:
                 1
             )
 
-            next_month = 1
+            next_month = (
+                1
+            )
 
         else:
 
@@ -2143,7 +2308,6 @@ class PocketAIConversationEngine:
                 1
             )
 
-
         next_month_days = (
             calendar.monthrange(
                 next_year,
@@ -2151,12 +2315,10 @@ class PocketAIConversationEngine:
             )[1]
         )
 
-
         next_due_day = min(
             due_day,
             next_month_days,
         )
-
 
         return (
             current_month_days
@@ -2166,6 +2328,9 @@ class PocketAIConversationEngine:
             next_due_day
         )
 
+    # ==========================================
+    # CONFIDENCE NOTE
+    # ==========================================
 
     def _add_confidence_note(
         self,
@@ -2178,14 +2343,10 @@ class PocketAIConversationEngine:
             !=
             "low"
         ):
-
             return answer
-
 
         return (
             answer
             +
-            " I still have limited financial history, "
-            "so this recommendation will improve as "
-            "you record more activity."
+            " I need a little more history to be fully confident."
         )

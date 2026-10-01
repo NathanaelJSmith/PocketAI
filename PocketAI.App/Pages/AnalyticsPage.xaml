@@ -835,7 +835,7 @@
                                             BackgroundColor="{DynamicResource BorderColor}" />
 
                                         <Label
-                                            Text="{Binding PercentText}"
+                                            Text="{Binding DetailText}"
                                             FontSize="11"
                                             TextColor="{DynamicResource TextSecondary}" />
 
@@ -852,6 +852,40 @@
                 </Border>
 
             </VerticalStackLayout>
+
+            <Border
+                BackgroundColor="{DynamicResource ThemePrimaryVeryLight}"
+                Stroke="{DynamicResource ThemePrimaryLight}"
+                StrokeThickness="1"
+                Padding="16"
+                Margin="0,6,0,0">
+
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="12" />
+                </Border.StrokeShape>
+
+                <Grid
+                    ColumnDefinitions="Auto,*"
+                    ColumnSpacing="10">
+
+                    <Label
+                        Grid.Column="0"
+                        Text="✦"
+                        FontSize="18"
+                        TextColor="{DynamicResource ThemePrimary}"
+                        VerticalOptions="Start" />
+
+                    <Label
+                        x:Name="SpendingBudgetInsightLabel"
+                        Grid.Column="1"
+                        Text="PocketAI is checking your budgets."
+                        FontSize="13"
+                        TextColor="{DynamicResource TextPrimary}"
+                        LineBreakMode="WordWrap" />
+
+                </Grid>
+
+            </Border>
 
 
 
